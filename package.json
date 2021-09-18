@@ -1,0 +1,19 @@
+{
+  "name": "netcode-multiplayer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/server/index.js",
+  "scripts": {
+    "start": "node src/server/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "accurate-game-loop": "^2.0.0",
+    "express": "^4.17.1",
+    "msgpack-lite": "^0.1.26",
+    "uuid": "^8.3.2",
+    "ws": "^8.2.2"
+  }
+}
