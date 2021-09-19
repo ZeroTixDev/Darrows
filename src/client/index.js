@@ -73,7 +73,7 @@ try {
 	let tickOffset;
 	let spacing = 0;
 	let spacings = [];
-	let spacingLength = 10;
+	let spacingLength = 30;
 	let lastReceivedStateTime;
 
 	let stateMessageDisplay = 0;
@@ -337,7 +337,7 @@ try {
 		ctx.lineWidth = 10;
 		ctx.strokeRect(a.x, a.y, arena.width, arena.height);
 
-		ctx.font = '21px Arial'
+		ctx.font = '18px Arial'
 
 		ctx.fillStyle = 'black';
 		ctx.textAlign = 'left'
