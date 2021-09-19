@@ -66,7 +66,7 @@ const decode = (msg) => msgpack.decode(msg)
 // 	ServerTick();
 // }, tickRate).start();
 
-gameloop.setGameLoop(ServerTick, Math.round(1000 / tickRate)); 
+// gameloop.setGameLoop(ServerTick, Math.round(1000 / tickRate)); 
 
 function highest(arr) {
 		let h = -Infinity;
@@ -92,9 +92,9 @@ function avg(arr) {
 		return h;
 	}
 
-// setInterval(() => {
-// 	ServerTick()
-// }, 1000 / tickRate)
+setInterval(() => {
+	ServerTick()
+}, Math.round(1000 / tickRate));
 
 wss.on('connection', (socket, _request) => {
 	const clientId = createId();
