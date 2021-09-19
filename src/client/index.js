@@ -85,6 +85,7 @@ try {
 	let uploadByteCount = 0;
 	let uploadByteDisplay = 0;
 	let ping = 0;
+	let serverSpacing = Array(3).fill(0)
 	let messages = [];
 
 	const rotator = { x: 0, y: 0 };
@@ -152,6 +153,9 @@ try {
 			if (obj.rotator) {
 				rotator.x = obj.rotator.x;
 				rotator.y = obj.rotator.y;
+			}
+			if (obj.spacing) {
+				serverSpacing = obj.spacing;
 			}
 			const cplayers = obj.data.players;
 			for (const { id, data, last_processed_input } of cplayers) {
@@ -327,11 +331,11 @@ try {
 		ctx.lineWidth = 10;
 		ctx.strokeRect(a.x, a.y, arena.width, arena.height);
 
-		ctx.font = '20px Arial'
+		ctx.font = '21px Arial'
 
 		ctx.fillStyle = 'black';
 		ctx.textAlign = 'left'
-		ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | LocalTick#${tick - tickOffset} | GlobalTick#${tick}`, 10, 870);
+		ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}], LocalTick#${tick - tickOffset} | GlobalTick#${tick}`, 10, 870);
 
 		for (const playerId of Object.keys(players)) {
 			const player = players[playerId];

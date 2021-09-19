@@ -9,7 +9,8 @@ const path = require('path')
 const WebSocket = require('ws');
 const msgpack = require('msgpack-lite')
 const uuid = require('uuid');
-const Loop = require('accurate-game-loop')
+// const Loop = require('accurate-game-loop')
+const gameloop = require('node-gameloop')
 const Player = require('./player.js');
 const wss = new WebSocket.Server({
 	noServer: true
@@ -43,6 +44,8 @@ const arena = {
 	width: 1500,
 	height: 1500,
 };
+const spacings = [];
+let lastSentPackageTime = null;
 const rotator = { timer: 0, x: arena.width / 2, y: arena.height / 2, cx: arena.width / 2, cy: arena.height / 2 }
 const tickRate = 60;
 const updateRate = 60;
@@ -59,9 +62,35 @@ const encode = (msg) => msgpack.encode(msg);
 const decode = (msg) => msgpack.decode(msg)
 
 
-new Loop(() => {
-	ServerTick();
-}, tickRate).start();
+// new Loop(() => {
+// 	ServerTick();
+// }, tickRate).start();
+
+gameloop.setGameLoop(ServerTick, 1000 / tickRate); 
+
+function highest(arr) {
+		let h = -Infinity;
+		for (let i = 0; i < arr.length; i++) {
+			if (arr[i] > h) {
+				h = arr[i]
+			}
+		}
+		return h;
+	}
+
+function avg(arr) {
+	return arr.reduce((a, b) => a + b, 0) / arr.length
+}
+
+	function lowest(arr) {
+		let h = Infinity;
+		for (let i = 0; i < arr.length; i++) {
+			if(arr[i] < h) {
+				h = arr[i]
+			}
+		}
+		return h;
+	}
 
 // setInterval(() => {
 // 	ServerTick()
@@ -255,7 +284,18 @@ function sendWorldState() {
 
 
 	lastSentPlayers = copyPlayers()
-	broadcast({ type: 'state', data: state, rotator: { x: rotator.x, y: rotator.y } });
+	
+	if (lastSentPackageTime == null) {
+		lastSentPackageTime = Date.now();
+	} else {
+		if (spacings.length > 10) {
+			spacings.shift()
+		}
+		spacings.push(Date.now() - lastSentPackageTime);
+		lastSentPackageTime = Date.now();
+	}
+	
+	broadcast({ type: 'state', data: state, spacing: [lowest(spacings).toFixed(1), avg(spacings).toFixed(1), highest(spacings).toFixed(1)] ,rotator: { x: rotator.x, y: rotator.y } });
 
 	// console.log(state)
 
