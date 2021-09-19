@@ -59,13 +59,13 @@ const encode = (msg) => msgpack.encode(msg);
 const decode = (msg) => msgpack.decode(msg)
 
 
-// new Loop(() => {
-// 	ServerTick();
-// }, tickRate).start();
+new Loop(() => {
+	ServerTick();
+}, tickRate).start();
 
-setInterval(() => {
-	ServerTick()
-}, 1000 / tickRate)
+// setInterval(() => {
+// 	ServerTick()
+// }, 1000 / tickRate)
 
 wss.on('connection', (socket, _request) => {
 	const clientId = createId();
@@ -178,7 +178,7 @@ function newMessage(obj, socket) {
 function processInputs() {
 	// comes in order (inputMessages)
 	for (const id of Object.keys(inputMessages)) {
-		if (inputMessages[id][0] != undefined) {
+		if (inputMessages[id][0] != undefined && inputMessages.length > 5) {
 			const {
 				data,
 				tick
@@ -234,9 +234,9 @@ function takeSnapshots() {
 
 function updateServerControlledObjects() {
 	const delta = 1 / updateRate;
-	rotator.timer += delta * 2;
-	rotator.x = rotator.cx + Math.cos(rotator.timer) * 200;
-	rotator.y = rotator.cy + Math.sin(rotator.timer) * 200;
+	rotator.timer += delta * 1.5;
+	rotator.x = rotator.cx + Math.cos(rotator.timer) * 150;
+	rotator.y = rotator.cy + Math.sin(rotator.timer) * 150;
 }
 
 function sendWorldState() {
