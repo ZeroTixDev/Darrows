@@ -88,7 +88,7 @@ try {
 	let serverSpacing = Array(3).fill(0)
 	// let messages = [];
 
-	const rotator = { x: 0, y: 0 };
+	const rotator = { x: 0, y: 0, sx: 0, sy: 0 };
 	window.extraLag = 0;
 
 	setInterval(() => {
@@ -157,8 +157,8 @@ try {
 				lastReceivedStateTime = window.performance.now();
 			}
 			if (obj.rotator) {
-				rotator.x = obj.rotator.x;
-				rotator.y = obj.rotator.y;
+				rotator.sx = obj.rotator.x;
+				rotator.sy = obj.rotator.y;
 			}
 			if (obj.spacing) {
 				serverSpacing = obj.spacing;
@@ -192,15 +192,22 @@ try {
 
 	let lastTime = window.performance.now();
 	; (function run() {
-		requestAnimationFrame(run);
-		update();
-		window.delta = (window.performance.now() - lastTime) / 1000;
-		lastTime = window.performance.now()
-		for (const playerId of Object.keys(players)) {
-			players[playerId].smooth(delta, playerId === selfId)
-		}
-		render();
+			requestAnimationFrame(run);
+			update();
+			window.delta = (window.performance.now() - lastTime) / 1000;
+			lastTime = window.performance.now()
+			for (const playerId of Object.keys(players)) {
+				players[playerId].smooth(delta, playerId === selfId)
+			}
+			const dt = Math.min(delta * 30, 1);
+			rotator.x = lerp(rotator.x, rotator.sx, dt);
+			rotator.y = lerp(rotator.y, rotator.sy, dt);
+			render();
 	})()
+
+	function lerp(start, end, time) {
+	return start * (1 - time) + end * time;
+}
 
 	function getTick() {
 		return Math.ceil(
