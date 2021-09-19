@@ -59,13 +59,13 @@ const encode = (msg) => msgpack.encode(msg);
 const decode = (msg) => msgpack.decode(msg)
 
 
-new Loop(() => {
-	ServerTick();
-}, tickRate).start();
+// new Loop(() => {
+// 	ServerTick();
+// }, tickRate).start();
 
-// setInterval(() => {
-// 	ServerTick()
-// }, 1000 / tickRate)
+setInterval(() => {
+	ServerTick()
+}, 1000 / tickRate)
 
 wss.on('connection', (socket, _request) => {
 	const clientId = createId();
