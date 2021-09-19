@@ -86,7 +86,7 @@ try {
 	let uploadByteDisplay = 0;
 	let ping = 0;
 	let serverSpacing = Array(3).fill(0)
-	let messages = [];
+	// let messages = [];
 
 	const rotator = { x: 0, y: 0 };
 	window.extraLag = 0;
@@ -109,10 +109,16 @@ try {
 	});
 
 	ws.addEventListener('message', (msg) => {
-		setTimeout(() => {
+		// setTimeout(() => {
 			if (window.stutter) return;
-			messages.push(msg);
-		}, extraLag);
+			if (extraLag > 0) {
+				processMessage(msg);
+			} else {
+				setTimeout(() => {
+					processMessage(msg);
+				}, extraLag);
+			}
+		// }, extraLag);
 	});
 
 	function processMessage(msg) {
@@ -273,10 +279,10 @@ try {
 	}
 
 	function update() {
-		for (const msg of messages) {
-			processMessage(msg);
-		}
-		messages = [];
+		// for (const msg of messages) {
+		// 	processMessage(msg);
+		// }
+		// messages = [];
 		if (selfId == null || startTime == null || players[selfId] == null) {
 			return;
 		}
