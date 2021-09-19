@@ -178,7 +178,7 @@ function newMessage(obj, socket) {
 function processInputs() {
 	// comes in order (inputMessages)
 	for (const id of Object.keys(inputMessages)) {
-		if (inputMessages[id][0] != undefined && inputMessages.length > 5) {
+		if (inputMessages[id][0] != undefined && inputMessages[id].length > 5) {
 			const {
 				data,
 				tick
