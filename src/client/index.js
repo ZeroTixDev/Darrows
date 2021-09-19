@@ -73,7 +73,7 @@ try {
 	let tickOffset;
 	let spacing = 0;
 	let spacings = [];
-	let spacingLength = 5;
+	let spacingLength = 10;
 	let lastReceivedStateTime;
 
 	let stateMessageDisplay = 0;
@@ -289,6 +289,26 @@ try {
 		};
 	}
 
+	function highest(arr) {
+		let h = -Infinity;
+		for (let i = 0; i < arr.length; i++) {
+			if (arr[i] > h) {
+				h = arr[i]
+			}
+		}
+		return h;
+	}
+
+	function lowest(arr) {
+		let h = Infinity;
+		for (let i = 0; i < arr.length; i++) {
+			if(arr[i] < h) {
+				h = arr[i]
+			}
+		}
+		return h;
+	}
+
 	function render() {
 		ctx.fillStyle = 'gray'
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -311,7 +331,7 @@ try {
 
 		ctx.fillStyle = 'black';
 		ctx.textAlign = 'left'
-		ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | AvgSpacing: ${(spacing).toFixed(0)}ms | LocalTick#${tick - tickOffset} | GlobalTick#${tick}`, 10, 870);
+		ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | LocalTick#${tick - tickOffset} | GlobalTick#${tick}`, 10, 870);
 
 		for (const playerId of Object.keys(players)) {
 			const player = players[playerId];
