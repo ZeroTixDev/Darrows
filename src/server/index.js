@@ -1,7 +1,8 @@
 console.log('Running server script...');
 
 const {
-	applyInput
+	applyInput,
+	// collidePlayers
 } = require('../shared/func.js');
 const express = require('express');
 const path = require('path')
@@ -37,11 +38,12 @@ server.on('upgrade', (request, socket, head) => {
 const players = {};
 const clients = {};
 let lastSentPlayers = {};
-let inputMessages = [];
+let inputMessages = {};
 const arena = {
 	width: 1500,
 	height: 1500,
 };
+const rotator = { timer: 0, x: arena.width / 2, y: arena.height / 2, cx: arena.width / 2, cy: arena.height / 2 }
 const tickRate = 60;
 const updateRate = 60;
 const startTime = Date.now();
@@ -57,13 +59,13 @@ const encode = (msg) => msgpack.encode(msg);
 const decode = (msg) => msgpack.decode(msg)
 
 
-// new Loop(() => {
-// 	ServerTick();
-// }, tickRate).start();
+new Loop(() => {
+	ServerTick();
+}, tickRate).start();
 
-setInterval(() => {
-	ServerTick()
-}, Math.round(1000 / tickRate))
+// setInterval(() => {
+// 	ServerTick()
+// }, 1000 / tickRate)
 
 wss.on('connection', (socket, _request) => {
 	const clientId = createId();
@@ -99,7 +101,7 @@ wss.on('connection', (socket, _request) => {
 		delete clients[clientId];
 		delete players[clientId];
 
-    broadcast({ type: 'leave', id: clientId })
+		broadcast({ type: 'leave', id: clientId })
 	});
 });
 
@@ -148,14 +150,17 @@ function newMessage(obj, socket) {
 		console.log(obj.debug)
 	}
 	if (obj.type === 'input' && validateInput(obj)) {
+		if (inputMessages[obj.id] == null) {
+			inputMessages[obj.id] = [];
+		}
 		if (obj.data.last != undefined) {
-			inputMessages.push({
+			inputMessages[obj.id].push({
 				id: obj.id,
 				data: players[obj.id].lastReceivedInput,
 				tick: obj.tick
 			})
 		} else {
-			inputMessages.push({
+			inputMessages[obj.id].push({
 				id: obj.id,
 				data: obj.data,
 				tick: obj.tick
@@ -171,26 +176,25 @@ function newMessage(obj, socket) {
 }
 
 function processInputs() {
-	for (let i = 0; i < inputMessages.length; i++) {
-		const {
-			id,
-			data,
-			tick
-		} = inputMessages[i];
+	// comes in order (inputMessages)
+	for (const id of Object.keys(inputMessages)) {
+		if (inputMessages[id][0] != undefined) {
+			const {
+				data,
+				tick
+			} = inputMessages[id][0];
 
-		// if (
-		// 	(lastProcessedInputTick[id] + 1 === tick &&
-		// 		lastProcessedInputTick[id] != null) ||
-		// 	lastProcessedInputTick[id] == null && !(players[id] == null )
-		// ) {
-		// if (!(players[id] == null))
-			  applyInput(players[id], data, arena);
-		// }
-		lastProcessedInputTick[id] = tick;
+			applyInput(players[id], data, arena);
+			lastProcessedInputTick[id] = tick;
+			inputMessages[id].shift()
+		}
 	}
-
-	inputMessages = [];
 }
+// for (const id of Object.keys(inputMessages)) {
+// 	inputMessages[id] = []
+// }
+// collidePlayers(players)
+// }
 
 function copyPlayers() {
 	const p = {};
@@ -201,21 +205,23 @@ function copyPlayers() {
 }
 
 function oldestHistory() {
-		return this.history[Object.keys(this.history)[0]];
-	}
+	return this.history[Object.keys(this.history)[0]];
+}
 
 function getSnapshot(tick) {
-		if (tick < Object.keys(history)[0]) {
-			return oldestHistory();
-		}
-		return history[tick];
+	if (tick < Object.keys(history)[0]) {
+		return oldestHistory();
 	}
+	return history[tick];
+}
 
 function takeSnapshots() {
 	const expectedTick = presentTick();
 
 	while (tick < expectedTick) {
 		// take a snapshot
+		processInputs();
+		updateServerControlledObjects();
 		history[tick] = {
 			players: copyPlayers()
 		};
@@ -226,32 +232,37 @@ function takeSnapshots() {
 	}
 }
 
+function updateServerControlledObjects() {
+	const delta = 1 / updateRate;
+	rotator.timer += delta * 2;
+	rotator.x = rotator.cx + Math.cos(rotator.timer) * 200;
+	rotator.y = rotator.cy + Math.sin(rotator.timer) * 200;
+}
+
 function sendWorldState() {
-		const state = { players: [] };
+	const state = { players: [] };
 
-		for (const clientId of Object.keys(clients)) {
-			const player = players[clientId];
-			if (lastSentPlayers[clientId] == null || player.isDifferent(lastSentPlayers[clientId])) {
-				state.players.push({
-					id: clientId,
-					data: player.pack(),
-					last_processed_input: lastProcessedInputTick[clientId]
-				});
-			}
+	for (const clientId of Object.keys(clients)) {
+		const player = players[clientId];
+		if (lastSentPlayers[clientId] == null || player.isDifferent(lastSentPlayers[clientId])) {
+			state.players.push({
+				id: clientId,
+				data: player.pack(),
+				last_processed_input: lastProcessedInputTick[clientId]
+			});
 		}
+	}
 
 
-		lastSentPlayers = copyPlayers()
+	lastSentPlayers = copyPlayers()
+	broadcast({ type: 'state', data: state, rotator: { x: rotator.x, y: rotator.y } });
 
-    broadcast({ type: 'state', data: state });
-
-    // console.log(state)
+	// console.log(state)
 
 }
 
 
 function ServerTick() {
-	processInputs();
 	takeSnapshots();
 	sendWorldState();
 }
