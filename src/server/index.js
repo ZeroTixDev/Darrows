@@ -69,32 +69,32 @@ const decode = (msg) => msgpack.decode(msg)
 // gameloop.setGameLoop(ServerTick, Math.round(1000 / tickRate)); 
 
 function highest(arr) {
-		let h = -Infinity;
-		for (let i = 0; i < arr.length; i++) {
-			if (arr[i] > h) {
-				h = arr[i]
-			}
+	let h = -Infinity;
+	for (let i = 0; i < arr.length; i++) {
+		if (arr[i] > h) {
+			h = arr[i]
 		}
-		return h;
 	}
+	return h;
+}
 
 function avg(arr) {
 	return arr.reduce((a, b) => a + b, 0) / arr.length
 }
 
-	function lowest(arr) {
-		let h = Infinity;
-		for (let i = 0; i < arr.length; i++) {
-			if(arr[i] < h) {
-				h = arr[i]
-			}
+function lowest(arr) {
+	let h = Infinity;
+	for (let i = 0; i < arr.length; i++) {
+		if (arr[i] < h) {
+			h = arr[i]
 		}
-		return h;
 	}
+	return h;
+}
 
 setInterval(() => {
 	ServerTick()
-}, Math.round(1000 / tickRate));
+}, 1000 / tickRate);
 
 wss.on('connection', (socket, _request) => {
 	const clientId = createId();
@@ -167,7 +167,7 @@ function broadcast(obj, except = []) {
 }
 
 function validateInput(obj) {
-	if (obj.data != undefined && obj.tick < presentTick() && clients[obj.id] != undefined && presentTick() + Math.ceil(updateRate * 0.5) >= obj.tick) {
+	if (obj.tick < presentTick() && clients[obj.id] != undefined && presentTick() + Math.ceil(updateRate * 0.5) >= obj.tick) {
 		return true;
 	}
 	return false;
@@ -178,24 +178,26 @@ function newMessage(obj, socket) {
 	if (obj.debug !== undefined) {
 		console.log(obj.debug)
 	}
-	if (obj.type === 'input' && validateInput(obj)) {
+	if (obj.lastInput && validateInput(obj)) {
 		if (inputMessages[obj.id] == null) {
 			inputMessages[obj.id] = [];
 		}
-		if (obj.data.last != undefined) {
-			inputMessages[obj.id].push({
-				id: obj.id,
-				data: players[obj.id].lastReceivedInput,
-				tick: obj.tick
-			})
-		} else {
-			inputMessages[obj.id].push({
-				id: obj.id,
-				data: obj.data,
-				tick: obj.tick
-			});
-			players[obj.id].lastReceivedInput = obj.data;
+		inputMessages[obj.id].push({
+			id: obj.id,
+			data: players[obj.id].lastReceivedInput,
+			tick: obj.tick,
+		})
+	}
+	if (obj.input && validateInput(obj)) {
+		if (inputMessages[obj.id] == null) {
+			inputMessages[obj.id] = [];
 		}
+		inputMessages[obj.id].push({
+			id: obj.id,
+			data: obj.data,
+			tick: obj.tick
+		});
+		players[obj.id].lastReceivedInput = obj.data;
 	}
 	if (obj.ping != null) {
 		send(socket, {
@@ -207,7 +209,7 @@ function newMessage(obj, socket) {
 function processInputs() {
 	// comes in order (inputMessages)
 	for (const id of Object.keys(inputMessages)) {
-		if (inputMessages[id][0] != undefined && inputMessages[id].length > 5) {
+		while (inputMessages[id][0] != undefined) {
 			const {
 				data,
 				tick
@@ -263,9 +265,9 @@ function takeSnapshots() {
 
 function updateServerControlledObjects() {
 	const delta = 1 / updateRate;
-	rotator.timer += delta * 1.5;
-	rotator.x = rotator.cx + Math.cos(rotator.timer) * 150;
-	rotator.y = rotator.cy + Math.sin(rotator.timer) * 150;
+	rotator.timer += delta * 3;
+	rotator.x = rotator.cx + Math.cos(rotator.timer) * 250;
+	rotator.y = rotator.cy + Math.sin(rotator.timer) * 250;
 }
 
 function sendWorldState() {
@@ -284,7 +286,7 @@ function sendWorldState() {
 
 
 	lastSentPlayers = copyPlayers()
-	
+
 	if (lastSentPackageTime == null) {
 		lastSentPackageTime = Date.now();
 	} else {
@@ -294,8 +296,8 @@ function sendWorldState() {
 		spacings.push(Date.now() - lastSentPackageTime);
 		lastSentPackageTime = Date.now();
 	}
-	
-	broadcast({ type: 'state', data: state, spacing: [lowest(spacings).toFixed(1), avg(spacings).toFixed(1), highest(spacings).toFixed(1)] ,rotator: { x: rotator.x, y: rotator.y } });
+
+	broadcast({ type: 'state', data: state, spacing: [lowest(spacings).toFixed(1), avg(spacings).toFixed(1), highest(spacings).toFixed(1)], rotator: { x: rotator.x, y: rotator.y } });
 
 	// console.log(state)
 

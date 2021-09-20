@@ -88,7 +88,7 @@ try {
 	let serverSpacing = Array(3).fill(0)
 	// let messages = [];
 
-	const rotator = { x: 0, y: 0, sx: 0, sy: 0 };
+	const rotator = { x: 0, y: 0, sx: 0, sy: 0, buffer: [], canUpdate: false };
 	window.extraLag = 0;
 
 	setInterval(() => {
@@ -104,20 +104,20 @@ try {
 
 	ws.addEventListener('open', () => {
 		setInterval(() => {
-			send({ ping: window.performance.now() })
-		}, 200);
+			send({ ping: Date.now() })
+		}, 500);
 	});
 
 	ws.addEventListener('message', (msg) => {
 		// setTimeout(() => {
-			if (window.stutter) return;
-			if (extraLag > 0) {
+		if (window.stutter) return;
+		if (extraLag > 0) {
+			processMessage(msg);
+		} else {
+			setTimeout(() => {
 				processMessage(msg);
-			} else {
-				setTimeout(() => {
-					processMessage(msg);
-				}, extraLag);
-			}
+			}, extraLag);
+		}
 		// }, extraLag);
 	});
 
@@ -135,7 +135,7 @@ try {
 			arena = obj.arena;
 		}
 		if (obj.pung != undefined) {
-			ping = Math.round((window.performance.now() - obj.pung) / 2)
+			ping = Math.round((Date.now() - obj.pung) / 2)
 		}
 		if (obj.type === "newPlayer") {
 			players[obj.id] = new CPlayer(obj.player, obj.id === selfId);
@@ -146,17 +146,21 @@ try {
 		if (obj.type === "state") {
 			stateMessageCount++;
 			if (lastReceivedStateTime == null) {
-				lastReceivedStateTime = window.performance.now();
+				lastReceivedStateTime = Date.now();
 			} else {
-				const space = window.performance.now() - lastReceivedStateTime;
+				const space = Date.now() - lastReceivedStateTime;
 				if (spacings.length > spacingLength) {
 					spacings.shift();
 				}
 				spacings.push(space);
 				spacing = spacings.reduce((a, b) => a + b) / spacings.length
-				lastReceivedStateTime = window.performance.now();
+				lastReceivedStateTime = Date.now();
 			}
 			if (obj.rotator) {
+				// rotator.buffer.push({ x: obj.rotator.x, y: obj.rotator.y })
+				// if (rotator.buffer.length > 10) {
+				// 	rotator.canUpdate = true;
+				// }
 				rotator.sx = obj.rotator.x;
 				rotator.sy = obj.rotator.y;
 			}
@@ -192,6 +196,7 @@ try {
 
 	let lastTime = window.performance.now();
 	; (function run() {
+		try {
 			requestAnimationFrame(run);
 			update();
 			window.delta = (window.performance.now() - lastTime) / 1000;
@@ -199,19 +204,31 @@ try {
 			for (const playerId of Object.keys(players)) {
 				players[playerId].smooth(delta, playerId === selfId)
 			}
-			const dt = Math.min(delta * 30, 1);
+			// simulateRotator();
+			const dt = Math.min(delta * 20, 1);
 			rotator.x = lerp(rotator.x, rotator.sx, dt);
-			rotator.y = lerp(rotator.y, rotator.sy, dt);
+			rotator.y = lerp(rotator.y, rotator.sy, dt)
 			render();
+		} catch (e) {
+			throw e;
+		}
 	})()
 
 	function lerp(start, end, time) {
-	return start * (1 - time) + end * time;
-}
+		return start * (1 - time) + end * time;
+	}
+
+	// function simulateRotator() {
+	// 	if (rotator.canUpdate && rotator.buffer[0] != undefined) {
+	// 		rotator.sx = rotator.buffer[0].x;
+	// 		rotator.sy = rotator.buffer[0].y;
+	// 		rotator.buffer.shift()
+	// 	}
+	// }
 
 	function getTick() {
 		return Math.ceil(
-			(Date.now() - startTime) * (60 / 1000)
+			(Date.now() - startTime) * (updateRate / 1000)
 		) + tickOffset;
 	}
 
@@ -225,16 +242,16 @@ try {
 		// }
 
 		while (tick < expectedTick) {
-			const packageInput = {
-				type: "input",
+			let packageInput = {
 				data: copyInput(input),
 				tick,
 				id: selfId,
+				input: true
 			};
 
 			if (lastSentInput != null && sameInput(lastSentInput, input)) {
 				// send smaller package indicating that its the last input sent
-				packageInput.data = { last: true };
+				packageInput = { lastInput: true, tick, id: selfId };
 			} else {
 				lastSentInput = copyInput(input);
 			}
@@ -256,12 +273,20 @@ try {
 	}
 
 	function send(obj) {
-		setTimeout(() => {
-			if (window.stutter) return;
+		// setTimeout(() => {
+		if (window.stutter) return;
+		if (extraLag > 0) {
+			setTimeout(() => {
+				const pack = msgpack.encode(obj);
+				uploadByteCount += pack.byteLength;
+				ws.send(pack)
+			}, extraLag)
+		} else {
 			const pack = msgpack.encode(obj);
 			uploadByteCount += pack.byteLength;
 			ws.send(pack)
-		}, extraLag);
+		}
+		// }, extraLag);
 	}
 
 	let lastGlobalTick = 0;
@@ -319,7 +344,7 @@ try {
 	function lowest(arr) {
 		let h = Infinity;
 		for (let i = 0; i < arr.length; i++) {
-			if(arr[i] < h) {
+			if (arr[i] < h) {
 				h = arr[i]
 			}
 		}
@@ -391,11 +416,21 @@ try {
 			ctx.fillText(player.name, pos.x, pos.y - player.radius * 1.5)
 		}
 
-			ctx.fillStyle = "#a37958";
-			ctx.beginPath();
-			const pos = offset(rotator.x, rotator.y)
-			ctx.arc(pos.x, pos.y, 30, 0, Math.PI * 2);
-			ctx.fill();
+		if (window.showSnapshots) {
+			ctx.fillStyle = 'rgb(100, 0, 0)';
+			for (const { x, y } of rotator.buffer) {
+				const pos = offset(x, y);
+				ctx.beginPath();
+				ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2);
+				ctx.fill()
+			}
+		}
+
+		ctx.fillStyle = "red";
+		ctx.beginPath();
+		const pos = offset(rotator.x, rotator.y)
+		ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2);
+		ctx.fill();
 	}
 } catch (err) {
 	document.body.innerHTML = `${err}`

@@ -56,10 +56,10 @@ class CPlayer {
 		// this.pos.x = this.interp.x;
 		// this.pos.y = this.interp.y;
 
-
-		// const dt = Math.min(delta * 30, 1);
-		// this.pos.x = lerp(this.pos.x, this.x, dt);
-		// this.pos.y = lerp(this.pos.y, this.y, dt);
+		// console.log('lerping', this.name)
+		const dt = Math.min(delta * 20, 1);
+		this.pos.x = lerp(this.pos.x, this.x, dt);
+		this.pos.y = lerp(this.pos.y, this.y, dt);
 
 		// this.pos.x = this.x;
 		// this.pos.y = this.y;
@@ -75,7 +75,7 @@ class CPlayer {
 		// 	time: window.performance.now() + (1000 / 60) * (this.ticksBehind),
 		// });
 		if (!this.isSelf) {
-			this.buffer.push({ time: window.performance.now() , x: data.x, y: data.y });
+			// this.buffer.push({ time: window.performance.now() , x: data.x, y: data.y });
 			// if (this.bufferQueue.length >= this.bufferQueueSize) {
 			// 	this.buffer.push({ time: window.performance.now(), x: this.bufferQueue[0].x, y: this.bufferQueue[0].y });
 			// 	this.bufferQueue.shift();
@@ -86,8 +86,8 @@ class CPlayer {
 		this.y = data.y;
 		this.xv = data.xv;
 		this.yv = data.yv;
-		this.pos.x = data.x;
-		this.pos.y = data.y;
+		// this.pos.x = data.x;
+		// this.pos.y = data.y;
 		this.server = { x: this.x, y: this.y, xv: this.xv, yv: this.yv };
 		this.radius = data.radius;
 		// this.name = this.bufferQueue.length;

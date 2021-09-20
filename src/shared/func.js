@@ -11,12 +11,12 @@ function copyInput(input) {
 
 function applyInput(player, input, arena) {
   if (!player) return;
-	player.xv += (input.right - input.left) * 1;
-	player.yv += (input.down - input.up) * 1;
+	player.xv += (input.right - input.left) * 1.2;
+	player.yv += (input.down - input.up) * 1.2;
 	player.x += player.xv;
 	player.y += player.yv;
-	player.xv *= 0.8;
-	player.yv *= 0.8;
+	player.xv *= 0.6;
+	player.yv *= 0.6;
 	boundPlayer(player, arena)
 	// boundPlayer(player);
 }
