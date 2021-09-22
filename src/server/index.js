@@ -2,8 +2,9 @@ console.log('Running server script...');
 
 const {
 	applyInput,
-	// collidePlayers
+	collidePlayers
 } = require('../shared/func.js');
+const Raycast = require('../shared/raycast.js');
 const express = require('express');
 const path = require('path')
 const WebSocket = require('ws');
@@ -99,7 +100,7 @@ setInterval(() => {
 wss.on('connection', (socket, _request) => {
 	const clientId = createId();
 	clients[clientId] = socket;
-	players[clientId] = new Player(Math.round(Math.random() * 100), Math.round(Math.random() * 100));
+	players[clientId] = new Player();
 
 	console.log('new client', clientId);
 
@@ -119,7 +120,7 @@ wss.on('connection', (socket, _request) => {
 
 	socket.on('message', (data) => {
 		try {
-			newMessage(decode(data), socket);
+			newMessage(decode(data), socket, clientId);
 		} catch (e) {
 			console.log(e);
 		}
@@ -173,8 +174,31 @@ function validateInput(obj) {
 	return false;
 }
 
-function newMessage(obj, socket) {
+function newMessage(obj, socket, clientId) {
 	// console.log(obj, 'obj')
+	if (obj.type === 'shoot') {
+		// player attempted to shoot
+		const player = players[clientId];
+		const ray = new Raycast({ x: player.x, y: player.y }, player.angle);
+
+		const data = [];
+		for (const id of Object.keys(players)) {
+			if (id !== clientId) {
+				data.push({ type: 'circle', id, x: players[id].x, y: players[id].y, radius: players[id].radius });
+			}
+		}
+		const { point, id } = ray.cast(data);
+
+		if (point && players[id]) {
+			players[id].respawn();
+			console.log('hit')
+		}
+
+		send(socket, {
+			type: 'shoot',
+			players: _allPlayerPacks(),
+		})
+	}
 	if (obj.debug !== undefined) {
 		console.log(obj.debug)
 	}
@@ -253,6 +277,7 @@ function takeSnapshots() {
 		// take a snapshot
 		processInputs();
 		updateServerControlledObjects();
+		// collidePlayers(players);
 		history[tick] = {
 			players: copyPlayers()
 		};

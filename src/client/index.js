@@ -21,7 +21,7 @@ try {
 		ArrowLeft: { key: 'left' },
 		ArrowRight: { key: 'right' },
 		ArrowDown: { key: 'down' },
-	};
+	}
 
 	window.stutter = false;
 
@@ -37,6 +37,12 @@ try {
 		if (event.code == 'KeyT' && event.type === 'keydown') {
 			window.showSnapshots = !window.showSnapshots;
 		}
+		if (event.code === 'KeyZ' && event.type == 'keydown') {
+			extraLag = 0;
+		}
+		if (event.code === 'KeyX' && event.type == 'keydown') {
+			extraLag += 25;
+		}
 		if (inputCodes[event.code] === undefined) return;
 		input[inputCodes[event.code].key] = event.type === "keydown";
 	}
@@ -46,14 +52,36 @@ try {
 		canvas.style.transform = `scale(${Math.min(window.innerWidth / width, window.innerHeight / height)})`;
 		canvas.style.left = `${(window.innerWidth - width) / 2}px`;
 		canvas.style.top = `${(window.innerHeight - height) / 2}px`;
-		return Math.min(window.innerWidth / width, window.innerHeight / height);
 	};
 
+	function getScale() {
+		return Math.min(window.innerWidth / width, window.innerHeight / height);
+	}
 
 
 	window.addEventListener('resize', () => {
 		resizeCanvas(canvas)
 	})
+
+	window.mouse = { x: 0, y: 0 };
+
+	canvas.addEventListener('mousemove', (event) => {
+		const bound = canvas.getBoundingClientRect();
+		mouse.x = Math.round((event.pageX - bound.left) / getScale());
+		mouse.y = Math.round((event.pageY - bound.top) / getScale());
+		input.angle = Math.atan2(window.mouse.y - canvas.height / 2, window.mouse.x - canvas.width / 2)
+	});
+
+	canvas.addEventListener('contextmenu', (event) => {
+		return event.preventDefault();
+	})
+
+	canvas.addEventListener('mousedown', () => {
+		send({ type: 'shoot' });
+		// window.angle = 0;
+	})
+
+	window.angle = 0;
 
 	const ws = new WebSocket(location.origin.replace(/^http/, 'ws'));
 	ws.binaryType = 'arraybuffer'
@@ -64,7 +92,7 @@ try {
 
 	const players = {};
 	const unconfirmed_inputs = [];
-	const input = { up: false, right: false, left: false, down: false };
+	const input = { up: false, right: false, left: false, down: false, angle: 0 };
 	let lastSentInput;
 	let selfId;
 	let startTime;
@@ -85,6 +113,7 @@ try {
 	let uploadByteCount = 0;
 	let uploadByteDisplay = 0;
 	let ping = 0;
+	let angle = 0;
 	let serverSpacing = Array(3).fill(0)
 	// let messages = [];
 
@@ -102,6 +131,8 @@ try {
 		uploadByteCount = 0;
 	}, 1000);
 
+
+
 	ws.addEventListener('open', () => {
 		setInterval(() => {
 			send({ ping: Date.now() })
@@ -111,7 +142,7 @@ try {
 	ws.addEventListener('message', (msg) => {
 		// setTimeout(() => {
 		if (window.stutter) return;
-		if (extraLag > 0) {
+		if (extraLag === 0) {
 			processMessage(msg);
 		} else {
 			setTimeout(() => {
@@ -121,6 +152,8 @@ try {
 		// }, extraLag);
 	});
 
+	const shotPlayers = {}
+
 	function processMessage(msg) {
 		byteCount += msg.data.byteLength;
 		const obj = msgpack.decode(new Uint8Array(msg.data));
@@ -129,10 +162,16 @@ try {
 			for (const { data, id } of obj.players) {
 				players[id] = new CPlayer(data, id === selfId);
 			}
+
 			startTime = Date.now();
 			tickOffset = obj.tick;
 			tick = obj.tick;
 			arena = obj.arena;
+		}
+		if (obj.type === 'shoot') {
+			for (const { data, id } of obj.players) {
+				shotPlayers[id] = new CPlayer(data, id === selfId);
+			}
 		}
 		if (obj.pung != undefined) {
 			ping = Math.round((Date.now() - obj.pung) / 2)
@@ -204,13 +243,24 @@ try {
 			for (const playerId of Object.keys(players)) {
 				players[playerId].smooth(delta, playerId === selfId)
 			}
+
+			// if (players[selfId] != null) {
+			// 	players[selfId].ray.setRay({ x: players[selfId].pos.x, y: players[selfId].pos.y }, window.angle);
+			// }
+			for (const playerId of Object.keys(players)) {
+				// if (playerId === selfId) continue;
+				players[playerId].ray.setRay({ x: players[playerId].pos.x, y: players[playerId].pos.y, }, players[playerId].angle);
+			}
+			window.data = Object.keys(players).map((id) => {
+				return players[id].angle;
+			})
 			// simulateRotator();
 			const dt = Math.min(delta * 20, 1);
 			rotator.x = lerp(rotator.x, rotator.sx, dt);
 			rotator.y = lerp(rotator.y, rotator.sy, dt)
 			render();
-		} catch (e) {
-			throw e;
+		} catch (err) {
+			document.body.innerHTML = `${err}`
 		}
 	})()
 
@@ -269,7 +319,7 @@ try {
 	}
 
 	function sameInput(input1, input2) {
-		return input1.up === input2.up && input1.down === input2.down && input1.right === input2.right && input1.left === input2.left;
+		return input1.up === input2.up && input1.down === input2.down && input1.right === input2.right && input1.left === input2.left && input1.angle === input2.angle;
 	}
 
 	function send(obj) {
@@ -352,85 +402,131 @@ try {
 	}
 
 	function render() {
-		ctx.fillStyle = 'gray'
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		try {
+			ctx.fillStyle = 'gray'
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 
 
-		// ctx.fillStyle = 'black'
-		// ctx.fillText(msgpack, 0, 20)
+			// ctx.fillStyle = 'black'
+			// ctx.fillText(msgpack, 0, 20)
 
-		ctx.fillStyle = 'white';
-		const a = offset(0, 0);
+			ctx.fillStyle = 'white';
+			const a = offset(0, 0);
 
-		if (!a) return;
-		ctx.fillRect(a.x, a.y, arena.width, arena.height);
-		ctx.strokeStyle = 'black';
-		ctx.lineWidth = 10;
-		ctx.strokeRect(a.x, a.y, arena.width, arena.height);
+			if (!a) return;
+			ctx.fillRect(a.x, a.y, arena.width, arena.height);
+			ctx.strokeStyle = 'black';
+			ctx.lineWidth = 10;
+			ctx.strokeRect(a.x, a.y, arena.width, arena.height);
 
-		ctx.font = '18px Arial'
+			// window.data = shotPlayers;
 
-		ctx.fillStyle = 'black';
-		ctx.textAlign = 'left'
-		ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}], LocalTick#${tick - tickOffset} | GlobalTick#${tick}`, 10, 870);
+			ctx.font = '18px Arial'
 
-		for (const playerId of Object.keys(players)) {
-			const player = players[playerId];
+			ctx.fillStyle = 'black';
+			ctx.textAlign = 'left'
+			ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}], GlobalTick#${tick} | Extralag: ${extraLag}`, 10, 870);
+			ctx.fillText(`${JSON.stringify(window.data)}`, 10, 840)
+
+			for (const playerId of Object.keys(shotPlayers)) {
+				const player = shotPlayers[playerId];
+				ctx.fillStyle = 'orange'
+				ctx.beginPath();
+				const pos = offset(player.pos.x, player.pos.y)
+				ctx.arc(pos.x, pos.y, player.radius, 0, Math.PI * 2);
+				ctx.fill();
+				ctx.fillStyle = 'black';
+				ctx.textAlign = 'center';
+				ctx.textBaseline = 'middle'
+				ctx.fillText(player.name, pos.x, pos.y - player.radius * 1.5)
+			}
+
+			for (const playerId of Object.keys(players)) {
+				const player = players[playerId];
+
+				if (window.showSnapshots) {
+				}
+
+
+				ctx.fillStyle = "#a37958";
+				ctx.beginPath();
+				const pos = offset(player.pos.x, player.pos.y)
+				ctx.arc(pos.x, pos.y, player.radius, 0, Math.PI * 2);
+				ctx.fill();
+				ctx.fillStyle = 'black';
+				ctx.textAlign = 'center';
+				ctx.textBaseline = 'middle'
+				ctx.fillText(player.name, pos.x, pos.y - player.radius * 1.5)
+			}
+
 
 			if (window.showSnapshots) {
-				// for (let i = 0; i < player.snapshots.length; i++) {
-				// 	const { x, y } = player.snapshots[i]
-				// 	ctx.fillStyle = `rgb(0,${i * 5},0)`
-				// 	ctx.beginPath();
-				// 	const pos = offset(x, y)
-				// 	ctx.arc(pos.x, pos.y, player.radius, 0, Math.PI * 2);
-				// 	ctx.fill();
-				// // }
-				// if (player.oldInterp != undefined) {
-				// 	ctx.fillStyle = 'blue'
-				// 	ctx.beginPath();
-				// 	const pos = offset(player.oldInterp.x, player.oldInterp.y)
-				// 	ctx.arc(pos.x, pos.y, player.radius, 0, Math.PI * 2);
-				// 	ctx.fill()
-				// }
-
-				// if (player.newInterp != undefined) {
-				// 	ctx.fillStyle = 'red'
-				// 	ctx.beginPath();
-				// 	const pos = offset(player.newInterp.x, player.newInterp.y)
-				// 	ctx.arc(pos.x, pos.y, player.radius, 0, Math.PI * 2);
-				// 	ctx.fill()
-				// }
+				ctx.fillStyle = 'rgb(100, 0, 0)';
+				for (const { x, y } of rotator.buffer) {
+					const pos = offset(x, y);
+					ctx.beginPath();
+					ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2);
+					ctx.fill()
+				}
 			}
 
-
-			ctx.fillStyle = "#a37958";
+			ctx.fillStyle = "green";
 			ctx.beginPath();
-			const pos = offset(player.pos.x, player.pos.y)
-			ctx.arc(pos.x, pos.y, player.radius, 0, Math.PI * 2);
+			const pos = offset(rotator.x, rotator.y)
+			ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2);
 			ctx.fill();
-			ctx.fillStyle = 'black';
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'middle'
-			ctx.fillText(player.name, pos.x, pos.y - player.radius * 1.5)
-		}
 
-		if (window.showSnapshots) {
-			ctx.fillStyle = 'rgb(100, 0, 0)';
-			for (const { x, y } of rotator.buffer) {
-				const pos = offset(x, y);
-				ctx.beginPath();
-				ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2);
-				ctx.fill()
+			// if (players[selfId].ray != null) {
+			// data.push({ type: 'line',  start: { x: arena.width, y: 0 }, end: { x: arena.width, y: arena.height }});
+
+			// console.log(players)
+
+			// window.data = point;
+			// window.data = 0;
+			ctx.strokeStyle = 'red';
+			ctx.lineWidth = 2;
+			for (const playerId of Object.keys(players)) {
+				const data = [];
+				for (const id of Object.keys(players)) {
+					if (id !== playerId) {
+						data.push({ type: 'circle', x: players[id].pos.x, y: players[id].pos.y, radius: players[id].radius });
+					}
+				}
+				const { point } = players[playerId].ray.cast(data);
+				if (point) {
+					ctx.beginPath();
+					ctx.fillStyle = 'blue';
+					const e = offset(point.x, point.y)
+					ctx.arc(e.x, e.y, 5, 0, Math.PI * 2);
+					ctx.fill()
+					ctx.beginPath();
+					const p = offset(players[playerId].ray.pos.x + players[playerId].ray.direction.x * players[playerId].radius, players[playerId].ray.pos.y + players[playerId].ray.direction.y * players[playerId].radius);
+					// console.log(p)
+					// console.log(`${JSON.stringify(p)} exists`, playerId)
+					ctx.moveTo(p.x, p.y)
+					ctx.lineTo(p.x, p.y);
+					let end = offset(point.x, point.y);
+					// console.log(`${JSON.stringify(point)} exists`, playerId)
+					// console.log(end)
+					ctx.lineTo(end.x, end.y);
+					ctx.stroke();
+					ctx.closePath()
+				} else {
+					ctx.beginPath()
+					const p = offset(players[playerId].ray.pos.x + players[playerId].ray.direction.x * players[playerId].radius, players[playerId].ray.pos.y + players[playerId].ray.direction.y * players[playerId].radius);
+					ctx.moveTo(p.x, p.y);
+					ctx.lineTo(p.x, p.y);
+					let end = offset(players[playerId].ray.pos.x + players[playerId].ray.direction.x *500, players[playerId].ray.pos.y + players[playerId].ray.direction.y * 500);
+					ctx.lineTo(end.x, end.y);
+					ctx.stroke();
+					ctx.closePath()
+				}
 			}
-		}
 
-		ctx.fillStyle = "red";
-		ctx.beginPath();
-		const pos = offset(rotator.x, rotator.y)
-		ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2);
-		ctx.fill();
+		} catch (err) {
+			document.body.innerHTMK = `${err}`
+		}
 	}
 } catch (err) {
 	document.body.innerHTML = `${err}`

@@ -5,18 +5,20 @@ function copyInput(input) {
 		up: input.up,
 		left: input.left,
 		right: input.right,
-		down: input.down
+		down: input.down,
+		angle: input.angle,
 	};
 }
 
 function applyInput(player, input, arena) {
   if (!player) return;
-	player.xv += (input.right - input.left) * 1.2;
-	player.yv += (input.down - input.up) * 1.2;
+	player.xv += (input.right - input.left) * 2;
+	player.yv += (input.down - input.up) * 2;
 	player.x += player.xv;
 	player.y += player.yv;
-	player.xv *= 0.6;
-	player.yv *= 0.6;
+	player.angle = input.angle;
+	player.xv *= 0.65;
+	player.yv *= 0.65;
 	boundPlayer(player, arena)
 	// boundPlayer(player);
 }

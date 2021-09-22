@@ -3,6 +3,7 @@
 class CPlayer {
 	constructor(pack, isSelf) {
 		this.x = pack.x;
+		this.angle = pack.angle;
 		this.y = pack.y;
 		this.xv = pack.xv;
 		this.yv = pack.yv;
@@ -15,6 +16,7 @@ class CPlayer {
 		this.bufferQueue = [];
 		this.buffer = [];
 		this.isSelf = isSelf;
+		this.ray = new Raycast({ x: this.x, y: this.y }, 0);
 	}
 	smooth(delta, isSelf) {
 
@@ -24,7 +26,7 @@ class CPlayer {
 			this.pos.y = this.y;
 			return;
 		}
-		
+
 
 		// const now = window.performance.now();
 		// const render_timestamp = now - 1000/60;
@@ -82,6 +84,10 @@ class CPlayer {
 			// }
 			// this.bufferQueue.push({ x: data.x, y: data.y })
 		}
+		
+		
+		this.angle = data.angle;
+		// this.ray.setRay({ x: this.ray.pos.x, y: this.ray.pos.y,}, this.angle)
 		this.x = data.x;
 		this.y = data.y;
 		this.xv = data.xv;
