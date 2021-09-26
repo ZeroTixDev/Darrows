@@ -1,13 +1,11 @@
 
 
 function copyInput(input) {
-	return {
-		up: input.up,
-		left: input.left,
-		right: input.right,
-		down: input.down,
-		angle: input.angle,
-	};
+	const copy = {};
+	for (const key of Object.keys(input)) {
+		copy[key] = input[key];
+	}
+	return copy;
 }
 
 function applyInput(player, input, arena) {
@@ -16,7 +14,23 @@ function applyInput(player, input, arena) {
 	player.yv += (input.down - input.up) * 2;
 	player.x += player.xv;
 	player.y += player.yv;
-	player.angle = input.angle;
+	// player.angle = input.angle;
+	if (input.arrowLeft) {
+		player.angleVel -= 0.05;
+	}
+	if (input.arrowRight) {
+		player.angleVel += 0.05;
+	}
+	// player.angleVel *= 0;
+	player.angle += player.angleVel;
+	player.angleVel = 0;
+	// player.angleVel *= 0.1;
+	if (player.angle > Math.PI ) {
+		player.angle -= Math.PI * 2;
+	}
+	if (player.angle < -Math.PI) {
+		player.angle += Math.PI  * 2
+	}
 	player.xv *= 0.65;
 	player.yv *= 0.65;
 	boundPlayer(player, arena)

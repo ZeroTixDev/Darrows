@@ -49,9 +49,11 @@ const spacings = [];
 let lastSentPackageTime = null;
 const rotator = { timer: 0, x: arena.width / 2, y: arena.height / 2, cx: arena.width / 2, cy: arena.height / 2 }
 const tickRate = 60;
+const pingRate = 10;
 const updateRate = 60;
 const startTime = Date.now();
 const history = {};
+const pings = {};
 const lastProcessedInputTick = {};
 const maximumAllowedPingForCompensation = 400;
 const historyMaxSize = Math.round(
@@ -97,9 +99,19 @@ setInterval(() => {
 	ServerTick()
 }, 1000 / tickRate);
 
+setInterval(() => {
+	for (const clientId of Object.keys(clients)) {
+		send(clients[clientId], {
+			ping: tick,
+		})
+	}
+	// console.log(tick)
+}, 1000 / pingRate)
+
 wss.on('connection', (socket, _request) => {
 	const clientId = createId();
 	clients[clientId] = socket;
+	pings[clientId] = 0;
 	players[clientId] = new Player();
 
 	console.log('new client', clientId);
@@ -130,6 +142,7 @@ wss.on('connection', (socket, _request) => {
 		console.log('client left', clientId);
 		delete clients[clientId];
 		delete players[clientId];
+		delete pings[clientId];
 
 		broadcast({ type: 'leave', id: clientId })
 	});
@@ -176,27 +189,57 @@ function validateInput(obj) {
 
 function newMessage(obj, socket, clientId) {
 	// console.log(obj, 'obj')
+	if (obj.pung != undefined) {
+		pings[clientId] = Math.floor((presentTick() - obj.pung) / 2);
+		send(socket, {
+			serverPing: pings[clientId],
+		});
+	}
 	if (obj.type === 'shoot') {
 		// player attempted to shoot
-		const player = players[clientId];
+		const cPlayers = {};
+		for (const playerId of Object.keys(players)) {
+			if (playerId === clientId) {
+				cPlayers[clientId] = players[clientId];
+				continue;
+			}
+			const hist = getSnapshot(tick - pings[clientId] * 2).players;
+			if (hist[playerId] != null) {
+				cPlayers[playerId] = hist[playerId];
+			}
+		}
+		
+		const player = cPlayers[clientId];
 		const ray = new Raycast({ x: player.x, y: player.y }, player.angle);
 
 		const data = [];
-		for (const id of Object.keys(players)) {
+		for (const id of Object.keys(cPlayers)) {
 			if (id !== clientId) {
-				data.push({ type: 'circle', id, x: players[id].x, y: players[id].y, radius: players[id].radius });
+				data.push({ type: 'circle', id, x: cPlayers[id].x, y: cPlayers[id].y, radius: cPlayers[id].radius });
 			}
 		}
-		const { point, id } = ray.cast(data);
+		let { point, id } = ray.cast(data);
 
-		if (point && players[id]) {
+		// if (ray.getDist(ray.pos, point) > 200) {
+		// 	point = null;
+		// }
+
+		if (point && cPlayers[id] && ray.getDist({ x: player.x, y: player.y }, point) <600) {
 			players[id].respawn();
-			console.log('hit')
+			send(socket, {
+				hitId: obj.hitId,
+			})
 		}
+
+		const packed = [];
+		for (const id of Object.keys(cPlayers)) {
+			packed.push({ data: cPlayers[id], id })
+		}
+
 
 		send(socket, {
 			type: 'shoot',
-			players: _allPlayerPacks(),
+			players: packed,
 		})
 	}
 	if (obj.debug !== undefined) {
@@ -238,9 +281,11 @@ function processInputs() {
 				data,
 				tick
 			} = inputMessages[id][0];
-
-			applyInput(players[id], data, arena);
-			lastProcessedInputTick[id] = tick;
+			
+			if (data) {
+				applyInput(players[id], data, arena);
+				lastProcessedInputTick[id] = tick;
+			}
 			inputMessages[id].shift()
 		}
 	}
@@ -260,7 +305,7 @@ function copyPlayers() {
 }
 
 function oldestHistory() {
-	return this.history[Object.keys(this.history)[0]];
+	return history[Object.keys(history)[0]];
 }
 
 function getSnapshot(tick) {

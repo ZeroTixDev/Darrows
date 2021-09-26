@@ -2,13 +2,9 @@
 
 class CPlayer {
 	constructor(pack, isSelf) {
-		this.x = pack.x;
-		this.angle = pack.angle;
-		this.y = pack.y;
-		this.xv = pack.xv;
-		this.yv = pack.yv;
-		this.radius = pack.radius;
-		this.name = pack.name;
+		for (const key of Object.keys(pack)) {
+			this[key] = pack[key]
+ 		}
 		this.server = { x: pack.x, y: pack.y, xv: pack.xv, yv: pack.yv }
 		this.pos = { x: this.x, y: this.y };
 		this.interp = { x: this.x, y: this.y }
@@ -17,6 +13,7 @@ class CPlayer {
 		this.buffer = [];
 		this.isSelf = isSelf;
 		this.ray = new Raycast({ x: this.x, y: this.y }, 0);
+		this.interpAngle = pack.angle;
 	}
 	smooth(delta, isSelf) {
 
@@ -24,6 +21,7 @@ class CPlayer {
 		if (isSelf) {
 			this.pos.x = this.x;
 			this.pos.y = this.y;
+			this.interpAngle = this.angle;
 			return;
 		}
 
@@ -63,29 +61,23 @@ class CPlayer {
 		this.pos.x = lerp(this.pos.x, this.x, dt);
 		this.pos.y = lerp(this.pos.y, this.y, dt);
 
+		const dtheta = this.angle - this.interpAngle;
+         if (dtheta > Math.PI) {
+            this.interpAngle += 2 * Math.PI;
+         } else if (dtheta < -Math.PI) {
+            this.interpAngle -= 2 * Math.PI;
+         }
+         this.interpAngle = lerp(this.interpAngle, this.angle, dt);
+
 		// this.pos.x = this.x;
 		// this.pos.y = this.y;
 
 	}
 	Snap(data) {
-		// if (this.isSelf && this.snapshots.length >= this.ticksBehind) {
-		// 	this.snapshots.shift();
-		// }
-		// this.snapshots.push({
-		// 	x: data.x,
-		// 	y: data.y,
-		// 	time: window.performance.now() + (1000 / 60) * (this.ticksBehind),
-		// });
-		if (!this.isSelf) {
-			// this.buffer.push({ time: window.performance.now() , x: data.x, y: data.y });
-			// if (this.bufferQueue.length >= this.bufferQueueSize) {
-			// 	this.buffer.push({ time: window.performance.now(), x: this.bufferQueue[0].x, y: this.bufferQueue[0].y });
-			// 	this.bufferQueue.shift();
-			// }
-			// this.bufferQueue.push({ x: data.x, y: data.y })
-		}
+	// snapshots
 		
 		
+		this.angleVel = data.angleVel;
 		this.angle = data.angle;
 		// this.ray.setRay({ x: this.ray.pos.x, y: this.ray.pos.y,}, this.angle)
 		this.x = data.x;
@@ -94,9 +86,17 @@ class CPlayer {
 		this.yv = data.yv;
 		// this.pos.x = data.x;
 		// this.pos.y = data.y;
-		this.server = { x: this.x, y: this.y, xv: this.xv, yv: this.yv };
+		this.server = { x: this.x, angle: this.angle, y: this.y, xv: this.xv, yv: this.yv };
 		this.radius = data.radius;
 		// this.name = this.bufferQueue.length;
+	}
+	pack() {
+		return {
+			x: this.x,
+			y: this.y,
+			radius: this.radius,
+			name: this.name,
+		};
 	}
 }
 
