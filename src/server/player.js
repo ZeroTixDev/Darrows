@@ -5,6 +5,7 @@ module.exports = class Player {
 		this.radius = 30;
 		this.xv = 0;
 		this.yv = 0;
+		// this.timer = 0;
 		this.angle = 0;
 		this.angleVel = 0;
 		this.lastRecievedInput = { left: false, right: false, up: false, down: false }
@@ -24,6 +25,7 @@ module.exports = class Player {
 		this.xv = 0;
 		this.yv = 0;
 		this.angleVel = 0;
+		// this.timer = 0;
 	}
 	pack() {
 		return {
@@ -35,6 +37,7 @@ module.exports = class Player {
 			angle: this.angle,
 			name: this.name,
 			angleVel: this.angleVel,
+			// timer: this.timer,
 		};
 	}
 }

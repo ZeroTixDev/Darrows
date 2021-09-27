@@ -59,6 +59,7 @@ const maximumAllowedPingForCompensation = 400;
 const historyMaxSize = Math.round(
 	maximumAllowedPingForCompensation / (1000 / updateRate)
 );
+// console.log('max history size', historyMaxSize)
 let tick = 0;
 
 const encode = (msg) => msgpack.encode(msg);
@@ -94,6 +95,8 @@ function lowest(arr) {
 	}
 	return h;
 }
+
+// accurate-game-loop for heroku*
 
 setInterval(() => {
 	ServerTick()
@@ -210,6 +213,9 @@ function newMessage(obj, socket, clientId) {
 		}
 		
 		const player = cPlayers[clientId];
+		// if (player.timer <= 0) {
+		// 	return;
+		// }
 		const ray = new Raycast({ x: player.x, y: player.y }, player.angle);
 
 		const data = [];
@@ -227,6 +233,7 @@ function newMessage(obj, socket, clientId) {
 		if (point && cPlayers[id] && ray.getDist({ x: player.x, y: player.y }, point) <600) {
 			players[id].respawn();
 			send(socket, {
+				hitPos: point,
 				hitId: obj.hitId,
 			})
 		}
@@ -276,18 +283,15 @@ function newMessage(obj, socket, clientId) {
 function processInputs() {
 	// comes in order (inputMessages)
 	for (const id of Object.keys(inputMessages)) {
-		while (inputMessages[id][0] != undefined) {
-			const {
-				data,
-				tick
-			} = inputMessages[id][0];
-			
+		for (const { data, tick } of inputMessages[id]) {
 			if (data) {
 				applyInput(players[id], data, arena);
 				lastProcessedInputTick[id] = tick;
 			}
-			inputMessages[id].shift()
 		}
+	}
+	for (const id of Object.keys(inputMessages)) {
+		inputMessages[id] = []
 	}
 }
 // for (const id of Object.keys(inputMessages)) {

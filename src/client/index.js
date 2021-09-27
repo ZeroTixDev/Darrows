@@ -155,7 +155,7 @@ try {
 	let ping = 0;
 	let angle = 0;
 	let serverSpacing = Array(3).fill(0)
-	// let messages = [];
+	let messages = [];
 
 	const rotator = { x: 0, y: 0, sx: 0, sy: 0, buffer: [], canUpdate: false };
 	window.extraLag = 0;
@@ -183,10 +183,12 @@ try {
 		// setTimeout(() => {
 		if (window.stutter) return;
 		if (extraLag === 0) {
-			processMessage(msg);
+			// processMessage(msg);
+			messages.push(msg)
 		} else {
 			setTimeout(() => {
-				processMessage(msg);
+				// processMessage(msg);
+				messages.push(msg)
 			}, extraLag);
 		}
 		// }, extraLag);
@@ -210,7 +212,18 @@ try {
 			arena = obj.arena;
 		}
 		if (obj.hitId) {
-			hits[obj.hitId].confirm = true;
+			if (hits[obj.hitId] == null) {
+				hits[obj.hitId] = {
+					x: obj.hitPos.x,
+					y: obj.hitPos.y,
+					confirm: true
+				}
+				setTimeout(() => {
+						delete hits[obj.hitId]
+				}, 2000);
+			} else {
+				hits[obj.hitId].confirm = true;
+			}
 		}
 		if (obj.type === 'shoot') {
 			shotPlayers = {};
@@ -425,10 +438,10 @@ try {
 	}
 
 	function update() {
-		// for (const msg of messages) {
-		// 	processMessage(msg);
-		// }
-		// messages = [];
+		for (const msg of messages) {
+			processMessage(msg);
+		}
+		messages = [];
 		if (selfId == null || startTime == null || players[selfId] == null) {
 			return;
 		}
@@ -490,7 +503,7 @@ try {
 
 			ctx.fillStyle = 'black';
 			ctx.textAlign = 'left'
-			ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}]`, 10, 870);
+			ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}] | Unconfirmed Inputs: ${unconfirmed_inputs.length}`, 10, 870);
 			ctx.fillText(`GlobalTick#${tick} | Extralag: ${extraLag} | ServerPing[Tick]: ${serverPing}`, 10, 840)
 
 			// if (window.showSnapshots) {

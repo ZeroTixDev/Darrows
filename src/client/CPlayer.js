@@ -84,6 +84,7 @@ class CPlayer {
 		this.y = data.y;
 		this.xv = data.xv;
 		this.yv = data.yv;
+		// this.timer = data.timer;
 		// this.pos.x = data.x;
 		// this.pos.y = data.y;
 		this.server = { x: this.x, angle: this.angle, y: this.y, xv: this.xv, yv: this.yv };

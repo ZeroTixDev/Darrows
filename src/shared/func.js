@@ -21,6 +21,10 @@ function applyInput(player, input, arena) {
 	if (input.arrowRight) {
 		player.angleVel += 0.05;
 	}
+	// player.timer -= 1/60;
+	// if (player.timer <= 0) {
+	// 	player.timer = 0;
+	// }
 	// player.angleVel *= 0;
 	player.angle += player.angleVel;
 	player.angleVel = 0;
