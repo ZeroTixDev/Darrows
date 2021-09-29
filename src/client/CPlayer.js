@@ -57,7 +57,7 @@ class CPlayer {
 		// this.pos.y = this.interp.y;
 
 		// console.log('lerping', this.name)
-		const dt = Math.min(delta * 20, 1);
+		const dt = Math.min(delta * 30, 1);
 		this.pos.x = lerp(this.pos.x, this.x, dt);
 		this.pos.y = lerp(this.pos.y, this.y, dt);
 
@@ -68,6 +68,12 @@ class CPlayer {
             this.interpAngle -= 2 * Math.PI;
          }
          this.interpAngle = lerp(this.interpAngle, this.angle, dt);
+
+
+
+		// this.interpAngle = this.angle;
+		// this.pos.x = this.x;
+		// this.pos.y = this.y;
 
 		// this.pos.x = this.x;
 		// this.pos.y = this.y;
@@ -84,6 +90,9 @@ class CPlayer {
 		this.y = data.y;
 		this.xv = data.xv;
 		this.yv = data.yv;
+		this.timer = data.timer;
+		this.spaceLock = data.spaceLock;
+		this.arrows = data.arrows;
 		// this.timer = data.timer;
 		// this.pos.x = data.x;
 		// this.pos.y = data.y;
@@ -102,5 +111,9 @@ class CPlayer {
 }
 
 function lerp(start, end, time) {
-	return start * (1 - time) + end * time;
+	let value = start * (1 - time) + end * time;
+	if (Math.abs(value - end) < 1) {
+		value = end;
+	}
+	return value;
 }

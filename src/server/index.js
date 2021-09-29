@@ -11,7 +11,7 @@ const WebSocket = require('ws');
 const msgpack = require('msgpack-lite')
 const uuid = require('uuid');
 // const Loop = require('accurate-game-loop')
-const gameloop = require('node-gameloop')
+// const gameloop = require('node-gameloop')
 const Player = require('./player.js');
 const wss = new WebSocket.Server({
 	noServer: true
@@ -198,56 +198,57 @@ function newMessage(obj, socket, clientId) {
 			serverPing: pings[clientId],
 		});
 	}
-	if (obj.type === 'shoot') {
+	if (obj.type === 'shoot' && players[clientId].timer <= 0) {
+		players[clientId].timer = 1;
 		// player attempted to shoot
-		const cPlayers = {};
-		for (const playerId of Object.keys(players)) {
-			if (playerId === clientId) {
-				cPlayers[clientId] = players[clientId];
-				continue;
-			}
-			const hist = getSnapshot(tick - pings[clientId] * 2).players;
-			if (hist[playerId] != null) {
-				cPlayers[playerId] = hist[playerId];
-			}
-		}
-		
-		const player = cPlayers[clientId];
-		// if (player.timer <= 0) {
-		// 	return;
-		// }
-		const ray = new Raycast({ x: player.x, y: player.y }, player.angle);
-
-		const data = [];
-		for (const id of Object.keys(cPlayers)) {
-			if (id !== clientId) {
-				data.push({ type: 'circle', id, x: cPlayers[id].x, y: cPlayers[id].y, radius: cPlayers[id].radius });
-			}
-		}
-		let { point, id } = ray.cast(data);
-
-		// if (ray.getDist(ray.pos, point) > 200) {
-		// 	point = null;
+		// const cPlayers = {};
+		// for (const playerId of Object.keys(players)) {
+		// 	if (playerId === clientId) {
+		// 		cPlayers[clientId] = players[clientId];
+		// 		continue;
+		// 	}
+		// 	const hist = getSnapshot(tick - pings[clientId] * 2).players;
+		// 	if (hist[playerId] != null) {
+		// 		cPlayers[playerId] = hist[playerId];
+		// 	}
 		// }
 
-		if (point && cPlayers[id] && ray.getDist({ x: player.x, y: player.y }, point) <600) {
-			players[id].respawn();
-			send(socket, {
-				hitPos: point,
-				hitId: obj.hitId,
-			})
-		}
+		// const player = cPlayers[clientId];
+		// // if (player.timer <= 0) {
+		// // 	return;
+		// // }
+		// const ray = new Raycast({ x: player.x, y: player.y }, player.angle);
 
-		const packed = [];
-		for (const id of Object.keys(cPlayers)) {
-			packed.push({ data: cPlayers[id], id })
-		}
+		// const data = [];
+		// for (const id of Object.keys(cPlayers)) {
+		// 	if (id !== clientId) {
+		// 		data.push({ type: 'circle', id, x: cPlayers[id].x, y: cPlayers[id].y, radius: cPlayers[id].radius });
+		// 	}
+		// }
+		// let { point, id } = ray.cast(data);
+
+		// // if (ray.getDist(ray.pos, point) > 200) {
+		// // 	point = null;
+		// // }
+
+		// if (point && cPlayers[id] && ray.getDist({ x: player.x, y: player.y }, point) <600) {
+		// 	players[id].respawn();
+		// 	broadcast({
+		// 		hitPos: point,
+		// 		hitId: obj.hitId,
+		// 	})
+		// }
+
+		// const packed = [];
+		// for (const id of Object.keys(cPlayers)) {
+		// 	packed.push({ data: cPlayers[id], id })
+		// }
 
 
-		send(socket, {
-			type: 'shoot',
-			players: packed,
-		})
+		// send(socket, {
+		// 	type: 'shoot',
+		// 	players: packed,
+		// })
 	}
 	if (obj.debug !== undefined) {
 		console.log(obj.debug)
@@ -292,6 +293,46 @@ function processInputs() {
 	}
 	for (const id of Object.keys(inputMessages)) {
 		inputMessages[id] = []
+	}
+
+	// check arrow collison
+	// very expensive operation
+	// todo fix speed :D
+	for (const playerId of Object.keys(players)) {
+		const { arrows } = players[playerId];
+		const cPlayers = {};
+		for (const id of Object.keys(players)) {
+			if (playerId === id) {
+				continue;
+			}
+			const history = getSnapshot(tick - pings[playerId] * 2)
+			if (history) {
+				const hist = history.players;
+				if (hist[id] != null) {
+					cPlayers[id] = hist[id];
+				}
+			}
+		}
+		for (const otherId of Object.keys(cPlayers)) {
+			if (playerId === otherId) continue;
+			const player = cPlayers[otherId];
+			for (let i = 0; i < arrows.length; i++) {
+				const arrow = arrows[i];
+				const distX = arrow.x - player.x;
+				const distY = arrow.y - player.y;
+				const dist = distX * distX + distY * distY;
+				if (dist < (arrow.radius + player.radius) ** 2) {
+					// collision
+					players[otherId].respawn();
+					arrows.splice(i, 1);
+					broadcast({
+						hitPos: { x: arrow.x, y: arrow.y },
+						hitId: Math.random(),
+					})
+					break;
+				}
+			}
+		}
 	}
 }
 // for (const id of Object.keys(inputMessages)) {
@@ -349,13 +390,13 @@ function sendWorldState() {
 
 	for (const clientId of Object.keys(clients)) {
 		const player = players[clientId];
-		if (lastSentPlayers[clientId] == null || player.isDifferent(lastSentPlayers[clientId])) {
-			state.players.push({
-				id: clientId,
-				data: player.pack(),
-				last_processed_input: lastProcessedInputTick[clientId]
-			});
-		}
+		// if (lastSentPlayers[clientId] == null || player.isDifferent(lastSentPlayers[clientId])) {
+		state.players.push({
+			id: clientId,
+			data: player.pack(),
+			last_processed_input: lastProcessedInputTick[clientId]
+		});
+		// }
 	}
 
 
@@ -377,6 +418,7 @@ function sendWorldState() {
 
 }
 
+let last = Date.now();
 
 function ServerTick() {
 	takeSnapshots();

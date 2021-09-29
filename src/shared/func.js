@@ -21,11 +21,6 @@ function applyInput(player, input, arena) {
 	if (input.arrowRight) {
 		player.angleVel += 0.05;
 	}
-	// player.timer -= 1/60;
-	// if (player.timer <= 0) {
-	// 	player.timer = 0;
-	// }
-	// player.angleVel *= 0;
 	player.angle += player.angleVel;
 	player.angleVel = 0;
 	// player.angleVel *= 0.1;
@@ -37,7 +32,31 @@ function applyInput(player, input, arena) {
 	}
 	player.xv *= 0.65;
 	player.yv *= 0.65;
+	player.timer -= 1/60;
+	if (player.timer <= 0) {
+		player.timer = 0;
+	}
+	if (input.space && !player.spaceLock) {
+		player.timer = 1;
+		// create arrow
+		player.arrows.push({ x: player.x, y: player.y, angle: player.angle, radius: 40, speed: 10, life: 5, })
+		player.spaceLock = true;
+	}
+	if (!input.space) {
+		player.spaceLock = false;
+	}
+	// player.angleVel *= 0;
 	boundPlayer(player, arena)
+
+	for (let i = player.arrows.length - 1; i >= 0; i--) {
+		const arrow = player.arrows[i];
+		arrow.x += Math.cos(arrow.angle) * arrow.speed;
+		arrow.y += Math.sin(arrow.angle) * arrow.speed;
+		arrow.life -= 1/60;
+		if (arrow.life <= 0) {
+			player.arrows.splice(i, 1);
+		}
+	}
 	// boundPlayer(player);
 }
 
