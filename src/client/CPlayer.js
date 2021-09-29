@@ -1,10 +1,9 @@
 
-
 class CPlayer {
 	constructor(pack, isSelf) {
 		for (const key of Object.keys(pack)) {
 			this[key] = pack[key]
- 		}
+		}
 		this.server = { x: pack.x, y: pack.y, xv: pack.xv, yv: pack.yv }
 		this.pos = { x: this.x, y: this.y };
 		this.interp = { x: this.x, y: this.y }
@@ -25,49 +24,16 @@ class CPlayer {
 			return;
 		}
 
-
-		// const now = window.performance.now();
-		// const render_timestamp = now - 1000/60;
-
-		// // Drop older positions.
-		// while (this.buffer.length >= 2 && this.buffer[1].time <= render_timestamp) {
-		// 	this.buffer.shift();
-		// }
-
-		// // Interpolate between the two surrounding authoritative positions.
-		// if (this.buffer.length >= 2 && this.buffer[0].time <= render_timestamp && render_timestamp <= this.buffer[1].time) {
-		// 	const x0 = this.buffer[0].x;
-		// 	const x1 = this.buffer[1].x;
-		// 	const y0 = this.buffer[0].y;
-		// 	const y1 = this.buffer[1].y;
-		// 	const t0 = this.buffer[0].time;
-		// 	const t1 = this.buffer[1].time;
-
-		// 	this.oldInterp = { x: x0, y: y0 };
-		// 	this.newInterp = { x: x1, y: y1 };
-
-		// 	this.interp.x = x0 + ((x1 - x0) * (render_timestamp - t0)) / (t1 - t0);
-		// 	this.interp.y = y0 + ((y1 - y0) * (render_timestamp - t0)) / (t1 - t0);
-
-		// 	this.name = `${(render_timestamp - t0).toFixed(1)}%`
-		// }
-
-
-		// this.pos.x = this.interp.x;
-		// this.pos.y = this.interp.y;
-
-		// console.log('lerping', this.name)
-		const dt = Math.min(delta * 30, 1);
-		this.pos.x = lerp(this.pos.x, this.x, dt);
-		this.pos.y = lerp(this.pos.y, this.y, dt);
+		this.pos.x = lerp(this.pos.x, this.x, delta);
+		this.pos.y = lerp(this.pos.y, this.y, delta);
 
 		const dtheta = this.angle - this.interpAngle;
-         if (dtheta > Math.PI) {
-            this.interpAngle += 2 * Math.PI;
-         } else if (dtheta < -Math.PI) {
-            this.interpAngle -= 2 * Math.PI;
-         }
-         this.interpAngle = lerp(this.interpAngle, this.angle, dt);
+		if (dtheta > Math.PI) {
+			this.interpAngle += 2 * Math.PI;
+		} else if (dtheta < -Math.PI) {
+			this.interpAngle -= 2 * Math.PI;
+		}
+		this.interpAngle = lerp(this.interpAngle, this.angle, delta);
 
 
 
@@ -80,9 +46,9 @@ class CPlayer {
 
 	}
 	Snap(data) {
-	// snapshots
-		
-		
+		// snapshots
+
+
 		this.angleVel = data.angleVel;
 		this.angle = data.angle;
 		// this.ray.setRay({ x: this.ray.pos.x, y: this.ray.pos.y,}, this.angle)
@@ -90,6 +56,7 @@ class CPlayer {
 		this.y = data.y;
 		this.xv = data.xv;
 		this.yv = data.yv;
+		this.dying = data.dying;
 		this.timer = data.timer;
 		this.spaceLock = data.spaceLock;
 		this.arrows = data.arrows;
@@ -110,10 +77,6 @@ class CPlayer {
 	}
 }
 
-function lerp(start, end, time) {
-	let value = start * (1 - time) + end * time;
-	if (Math.abs(value - end) < 1) {
-		value = end;
-	}
-	return value;
+function lerp(start, end, dt) {
+	return (1 - dt) * start + dt * end;
 }

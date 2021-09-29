@@ -42,12 +42,12 @@ const clients = {};
 let lastSentPlayers = {};
 let inputMessages = {};
 const arena = {
-	width: 1500,
-	height: 1500,
+	width: 2000,
+	height: 1000,
 };
 const spacings = [];
 let lastSentPackageTime = null;
-const rotator = { timer: 0, x: arena.width / 2, y: arena.height / 2, cx: arena.width / 2, cy: arena.height / 2 }
+// const rotator = { timer: 0, x: arena.width / 2, y: arena.height / 2, cx: arena.width / 2, cy: arena.height / 2 }
 const tickRate = 60;
 const pingRate = 10;
 const updateRate = 60;
@@ -323,11 +323,19 @@ function processInputs() {
 				const dist = distX * distX + distY * distY;
 				if (dist < (arrow.radius + player.radius) ** 2) {
 					// collision
-					players[otherId].respawn();
+					players[otherId].dying = true;
+					setTimeout(() => {
+						if (players[otherId]) {
+							players[otherId].spawn()
+						}
+					}, 500)
 					arrows.splice(i, 1);
-					broadcast({
-						hitPos: { x: arrow.x, y: arrow.y },
-						hitId: Math.random(),
+					// broadcast({
+					// 	hitPos: { x: arrow.x, y: arrow.y },
+					// 	hitId: Math.random(),
+					// })
+					send(clients[otherId], {
+						arrowHit: true,
 					})
 					break;
 				}
@@ -380,9 +388,9 @@ function takeSnapshots() {
 
 function updateServerControlledObjects() {
 	const delta = 1 / updateRate;
-	rotator.timer += delta * 3;
-	rotator.x = rotator.cx + Math.cos(rotator.timer) * 250;
-	rotator.y = rotator.cy + Math.sin(rotator.timer) * 250;
+	// rotator.timer += delta * 3;
+	// rotator.x = rotator.cx + Math.cos(rotator.timer) * 250;
+	// rotator.y = rotator.cy + Math.sin(rotator.timer) * 250;
 }
 
 function sendWorldState() {
@@ -412,7 +420,7 @@ function sendWorldState() {
 		lastSentPackageTime = Date.now();
 	}
 
-	broadcast({ type: 'state', data: state, spacing: [lowest(spacings).toFixed(1), avg(spacings).toFixed(1), highest(spacings).toFixed(1)], rotator: { x: rotator.x, y: rotator.y } });
+	broadcast({ type: 'state', data: state, spacing: [lowest(spacings).toFixed(1), avg(spacings).toFixed(1), highest(spacings).toFixed(1)],  });
 
 	// console.log(state)
 

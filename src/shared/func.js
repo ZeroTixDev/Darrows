@@ -10,42 +10,51 @@ function copyInput(input) {
 
 function applyInput(player, input, arena) {
   if (!player) return;
-	player.xv += (input.right - input.left) * 2;
-	player.yv += (input.down - input.up) * 2;
-	player.x += player.xv;
-	player.y += player.yv;
-	// player.angle = input.angle;
-	if (input.arrowLeft) {
-		player.angleVel -= 0.05;
-	}
-	if (input.arrowRight) {
-		player.angleVel += 0.05;
-	}
-	player.angle += player.angleVel;
-	player.angleVel = 0;
-	// player.angleVel *= 0.1;
-	if (player.angle > Math.PI ) {
-		player.angle -= Math.PI * 2;
-	}
-	if (player.angle < -Math.PI) {
-		player.angle += Math.PI  * 2
-	}
-	player.xv *= 0.65;
-	player.yv *= 0.65;
-	player.timer -= 1/60;
-	if (player.timer <= 0) {
-		player.timer = 0;
-	}
-	if (input.space && !player.spaceLock) {
-		player.timer = 1;
-		// create arrow
-		player.arrows.push({ x: player.x, y: player.y, angle: player.angle, radius: 40, speed: 10, life: 5, })
-		player.spaceLock = true;
-	}
-	if (!input.space) {
-		player.spaceLock = false;
-	}
-	// player.angleVel *= 0;
+  if (player.dying) {
+	  player.radius -= 60 * (1/60);
+	  if (player.radius <= 20) {
+		  player.radius = 20;
+		  player.respawn = true;
+	  }
+  } else {
+		player.xv += (input.right - input.left) * (150 * 1/60);
+		player.yv += (input.down - input.up) * (150 * 1/60);
+		player.x += player.xv;
+		player.y += player.yv;
+
+		// player.angle = input.angle;
+		if (input.arrowLeft) {
+			player.angleVel -= 0.05;
+		}
+		if (input.arrowRight) {
+			player.angleVel += 0.05;
+		}
+		player.angle += player.angleVel;
+		player.angleVel = 0;
+		// player.angleVel *= 0.1;
+		if (player.angle > Math.PI ) {
+			player.angle -= Math.PI * 2;
+		}
+		if (player.angle < -Math.PI) {
+			player.angle += Math.PI  * 2
+		}
+		player.xv *= 0.65;
+		player.yv *= 0.65;
+		player.timer -= 1/60;
+		if (player.timer <= 0) {
+			player.timer = 0;
+		}
+		if (input.space && !player.spaceLock) {
+			player.timer = 1;
+			// create arrow
+			player.arrows.push({ x: player.x, y: player.y, angle: player.angle, radius: 35, speed: 15, life: 5, })
+			player.spaceLock = true;
+		}
+		if (!input.space) {
+			player.spaceLock = false;
+		}
+		// player.angleVel *= 0;
+  	}
 	boundPlayer(player, arena)
 
 	for (let i = player.arrows.length - 1; i >= 0; i--) {
@@ -53,6 +62,9 @@ function applyInput(player, input, arena) {
 		arrow.x += Math.cos(arrow.angle) * arrow.speed;
 		arrow.y += Math.sin(arrow.angle) * arrow.speed;
 		arrow.life -= 1/60;
+		if (arrow.x - arrow.radius < 0  || arrow.x + arrow.radius > arena.width || arrow.y - arrow.radius < 0|| arrow.y + arrow.radius > arena.height){
+			arrow.life = 0;
+		}
 		if (arrow.life <= 0) {
 			player.arrows.splice(i, 1);
 		}
