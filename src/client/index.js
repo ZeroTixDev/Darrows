@@ -14,6 +14,10 @@ try {
 	window.debug = false;
 
 	window.redness = 0;
+	
+	let killedPlayerName = '';
+	let killedNotifTime = 0;
+	let _kills = 0;
 
 	const canvas = document.createElement('canvas');
 	const ctx = canvas.getContext('2d')
@@ -203,12 +207,12 @@ try {
 		// setTimeout(() => {
 		if (window.stutter) return;
 		if (extraLag === 0) {
-			// processMessage(msg);
-			messages.push(msg)
+			processMessage(msg);
+			// messages.push(msg)
 		} else {
 			setTimeout(() => {
-				// processMessage(msg);
-				messages.push(msg)
+				processMessage(msg);
+				// messages.push(msg)
 			}, extraLag);
 		}
 		// }, extraLag);
@@ -257,6 +261,11 @@ try {
 			send({
 				pung: obj.ping,
 			})
+		}
+		if (obj.kill != undefined) {
+			_kills++;
+			killedNotifTime = 2;
+			killedPlayerName = obj.kill;
 		}
 		if (obj.serverPing != undefined) {
 			serverPing = obj.serverPing;
@@ -357,6 +366,10 @@ try {
 				window.redness -= ((window.performance.now() - lastTime) / 1000) * 1.5;
 				if (window.redness <= 0) {
 					window.redness = 0;
+				}
+				killedNotifTime -= ((window.performance.now() - lastTime) / 1000) * 1.5;
+				if (killedNotifTime <= 0) {
+					killedNotifTime = 0;
 				}
 				lastTime = window.performance.now();
 
@@ -507,10 +520,10 @@ try {
 	}
 
 	function update() {
-		for (const msg of messages) {
-			processMessage(msg);
-		}
-		messages = [];
+		// for (const msg of messages) {
+		// 	processMessage(msg);
+		// }
+		// messages = [];
 		if (selfId == null || startTime == null || players[selfId] == null) {
 			return;
 		}
@@ -522,8 +535,8 @@ try {
 		const player = players[selfId];
 		if (!player) return;
 		return {
-			x: Math.round(x - player.pos.x + canvas.width / 2),
-			y: Math.round(y - player.pos.y + canvas.height / 2),
+			x: x - player.pos.x + canvas.width / 2,
+			y: y - player.pos.y + canvas.height / 2,
 		};
 	}
 
@@ -573,6 +586,7 @@ try {
 				ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}] | Unconfirmed Inputs: ${unconfirmed_inputs.length}`, 10, 870);
 				ctx.fillText(`GlobalTick#${tick} | Extralag: ${extraLag} | ServerPing[Tick]: ${serverPing} | Interpolation: ${window.delta.toFixed(1)} / 1`, 10, 840)
 			}
+			ctx.fillText(`Kills: ${_kills}`, 0, 20);
 			if (window.showSnapshots) {
 				ctx.globalAlpha = 0.5;
 				for (const playerId of Object.keys(shotPlayers)) {
@@ -608,10 +622,13 @@ try {
 				for (const { x, y, angle, radius, life } of arrows) {
 					ctx.globalAlpha = 1; // life 
 					ctx.fillStyle = '#d93311';
+					ctx.strokeStyle = '#a30800';
+					ctx.lineWidth = 4;
 					ctx.beginPath();
 					const pos = offset(x, y);
 					ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
 					ctx.fill()
+					ctx.stroke()
 				}
 			}
 
@@ -628,6 +645,7 @@ try {
 				ctx.strokeStyle = '#363636';
 				ctx.lineWidth = 2.5;
 				ctx.beginPath();
+				// const pos = offset(player.pos.x, player.pos.y)
 				const pos = offset(player.pos.x, player.pos.y)
 				ctx.arc(pos.x, pos.y, player.radius, 0, Math.PI * 2);
 				ctx.fill();
@@ -709,6 +727,19 @@ try {
 			ctx.globalAlpha = window.redness;
 			ctx.fillStyle = '#eb0000';
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.globalAlpha = 1;
+
+			ctx.globalAlpha = killedNotifTime;
+			ctx.fillStyle = '#080808';
+			ctx.fillRect(600, 700, 400, 50);
+			ctx.textAlign = 'left';
+			ctx.textBaseline = 'middle';
+			ctx.fillStyle = 'rgb(255, 0, 0)';
+			ctx.font = '30px Arial'
+			ctx.fillText(`Eliminiated`, 650, 725)
+			const xOff =  ctx.measureText('Eliminated ').width;
+			ctx.fillStyle = 'white'
+			ctx.fillText(` Agent ${killedPlayerName}`, 650 + xOff, 725);
 			ctx.globalAlpha = 1;
 
 			// if (players[selfId].ray != null) {

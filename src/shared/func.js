@@ -19,8 +19,17 @@ function applyInput(player, input, arena) {
   } else {
 		player.xv += (input.right - input.left) * (150 * 1/60);
 		player.yv += (input.down - input.up) * (150 * 1/60);
+		if (input.space && !player.spaceLock) {
+			player.timer = 1;
+			// create arrowx
+			player.xv += Math.cos(player.angle) * 5;
+			player.yv += Math.sin(player.angle) * 5;
+			player.arrows.push({ x: player.x, y: player.y, angle: player.angle, radius: 35, speed: 15, life: 5, })
+			player.spaceLock = true;
+		}
 		player.x += player.xv;
 		player.y += player.yv;
+		
 
 		// player.angle = input.angle;
 		if (input.arrowLeft) {
@@ -43,12 +52,6 @@ function applyInput(player, input, arena) {
 		player.timer -= 1/60;
 		if (player.timer <= 0) {
 			player.timer = 0;
-		}
-		if (input.space && !player.spaceLock) {
-			player.timer = 1;
-			// create arrow
-			player.arrows.push({ x: player.x, y: player.y, angle: player.angle, radius: 35, speed: 15, life: 5, })
-			player.spaceLock = true;
 		}
 		if (!input.space) {
 			player.spaceLock = false;

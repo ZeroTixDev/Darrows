@@ -1,6 +1,6 @@
 module.exports = class Player {
 	constructor() {
-		this.radius = 50;
+		this.radius = 45;
 		this.x = Math.round(Math.random() * 500) + this.radius
 		this.y = Math.round(Math.random() * 500) + this.radius
 		this.xv = 0;

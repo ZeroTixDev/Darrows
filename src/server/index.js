@@ -336,6 +336,9 @@ function processInputs() {
 					// })
 					send(clients[otherId], {
 						arrowHit: true,
+					});
+					send(clients[playerId], {
+						kill: players[otherId].name,
 					})
 					break;
 				}
