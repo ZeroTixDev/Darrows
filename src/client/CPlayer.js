@@ -17,7 +17,7 @@ class CPlayer {
 	smooth(delta, isSelf) {
 
 
-		if (isSelf) {
+		if (isSelf && !_prediction) {
 			this.pos.x = this.x;
 			this.pos.y = this.y;
 			this.interpAngle = this.angle;

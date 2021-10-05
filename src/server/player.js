@@ -1,3 +1,5 @@
+const { createInput } = require('../shared/func.js');
+
 module.exports = class Player {
 	constructor() {
 		this.radius = 45;
@@ -11,7 +13,7 @@ module.exports = class Player {
 		this.spaceLock = false;
 		this.angleVel = 0;
 		this.arrows = [];
-		this.lastRecievedInput = { left: false, right: false, up: false, down: false }
+		this.lastReceivedInput = createInput()
 		this.name = `${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
 	}
 	isDifferent(player) {

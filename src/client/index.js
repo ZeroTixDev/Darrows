@@ -12,9 +12,10 @@ try {
 	}
 
 	window.debug = false;
+	window._prediction = true;
 
 	window.redness = 0;
-	
+
 	let killedPlayerName = '';
 	let killedNotifTime = 0;
 	let _kills = 0;
@@ -54,6 +55,9 @@ try {
 		if (event.repeat) return;
 		if (event.code === 'KeyN' && event.type === 'keydown') {
 			window.debug = !window.debug;
+		}
+		if (event.code === 'KeyP' && event.type === 'keydown') {
+			window._prediction = !window._prediction;
 		}
 		if (event.code === 'ArrowLeft') {
 			input.arrowLeft = event.type === 'keydown'
@@ -155,7 +159,7 @@ try {
 
 	const players = {};
 	const unconfirmed_inputs = [];
-	const input = { up: false, right: false, left: false, down: false, arrowLeft: false, arrowRight: false, space: false };
+	const input = createInput();
 	let lastSentInput;
 	let selfId;
 	let startTime;
@@ -183,6 +187,7 @@ try {
 
 	// const rotator = { x: 0, y: 0, sx: 0, sy: 0, buffer: [], canUpdate: false };
 	window.extraLag = 0;
+	window.inputsBuffered = 0;
 
 	setInterval(() => {
 		stateMessageDisplay = stateMessageCount;
@@ -205,13 +210,14 @@ try {
 
 	ws.addEventListener('message', (msg) => {
 		// setTimeout(() => {
-		if (window.stutter) return;
+		// if (window.stutter) return;
 		if (extraLag === 0) {
 			processMessage(msg);
 			// messages.push(msg)
 		} else {
 			setTimeout(() => {
 				processMessage(msg);
+				// console.log('delay')
 				// messages.push(msg)
 			}, extraLag);
 		}
@@ -234,6 +240,9 @@ try {
 			tickOffset = obj.tick;
 			tick = obj.tick;
 			arena = obj.arena;
+		}
+		if  (obj.inputsBuffered) {
+			inputsBuffered = obj.inputsBuffered
 		}
 		if (obj.hitId) {
 			if (hits[obj.hitId] == null) {
@@ -306,53 +315,63 @@ try {
 			if (obj.spacing) {
 				serverSpacing = obj.spacing;
 			}
+			for (const pack of obj.data.players) {
+				if (players[pack.id] == null) {
+					players[pack.id] = new CPlayer(pack, pack.id === selfId)
+				}
+			}
 			const cplayers = obj.data.players;
 			for (const { id, data, last_processed_input } of cplayers) {
 				if (id === selfId) {
 					players[selfId].Snap(data);
-
-					let j = 0;
-					while (j < unconfirmed_inputs.length) {
-						const { input, tick } = unconfirmed_inputs[j];
-						// console.log(tick, last_processed_input)
-						if (tick <= last_processed_input) {
-							// Already processed. so we can drop it
-							unconfirmed_inputs.splice(j, 1);
-						} else {
-							// Not processed by the server yet. Re-apply it.
-							applyInput(players[selfId], input, arena);
-							for (const playerId of Object.keys(players)) {
-								const { arrows } = players[playerId];
-								for (const otherId of Object.keys(players)) {
-									if (playerId === otherId) continue;
-									const player = players[otherId];
-									for (let i = 0; i < arrows.length; i++) {
-										const arrow = arrows[i];
-										const distX = arrow.x - player.x;
-										const distY = arrow.y - player.y;
-										const dist = distX * distX + distY * distY;
-										if (dist < (arrow.radius + player.radius) ** 2) {
-											// collision
-											// players[otherId].respawn();
-											arrows.splice(i, 1);
-											// broadcast({
-											// 	hitPos: { x: arrow.x, y: arrow.y },
-											// 	hitId: Math.random(),
-											// })
-											break;
+					if (_prediction) {
+						let j = 0;
+						while (j < unconfirmed_inputs.length) {
+							const { input, tick } = unconfirmed_inputs[j];
+							// console.log(tick, last_processed_input)
+							if (tick <= last_processed_input) {
+								// Already processed. so we can drop it
+								unconfirmed_inputs.splice(j, 1);
+							} else {
+								// Not processed by the server yet. Re-apply it.
+								applyInput(players[selfId], input, arena);
+								simulatePlayer(players[selfId], arena);
+								for (const playerId of Object.keys(players)) {
+									const { arrows } = players[playerId];
+									for (const otherId of Object.keys(players)) {
+										if (playerId === otherId) continue;
+										const player = players[otherId];
+										for (let i = 0; i < arrows.length; i++) {
+											const arrow = arrows[i];
+											const distX = arrow.x - player.x;
+											const distY = arrow.y - player.y;
+											const dist = distX * distX + distY * distY;
+											if (dist < (arrow.radius + player.radius) ** 2) {
+												// collision
+												// players[otherId].respawn();
+												arrows.splice(i, 1);
+												// broadcast({
+												// 	hitPos: { x: arrow.x, y: arrow.y },
+												// 	hitId: Math.random(),
+												// })
+												break;
+											}
 										}
 									}
 								}
+								// collidePlayers(players)
+								j++;
 							}
-							// collidePlayers(players)
-							j++;
 						}
-					}
+
+						const startTick = tick - Math.ceil(ping * 1/60)
+					} 
 				} else {
 					players[id].Snap(data);
 					// maybe interpolation
 				}
 			}
+
 		}
 	}
 
@@ -438,35 +457,40 @@ try {
 			}
 			send(packageInput);
 			inputMessageCount++;
-			applyInput(players[selfId], input, arena);
-			for (const playerId of Object.keys(players)) {
-				const { arrows } = players[playerId];
-				for (const otherId of Object.keys(players)) {
-					if (playerId === otherId) continue;
-					const player = players[otherId];
-					for (let i = 0; i < arrows.length; i++) {
-						const arrow = arrows[i];
-						const distX = arrow.x - player.x;
-						const distY = arrow.y - player.y;
-						const dist = distX * distX + distY * distY;
-						if (dist < (arrow.radius + player.radius) ** 2) {
-							// collision
-							// players[otherId].respawn();
-							arrows.splice(i, 1);
-							// broadcast({
-							// 	hitPos: { x: arrow.x, y: arrow.y },
-							// 	hitId: Math.random(),
-							// })
-							break;
+			if (_prediction) {
+				applyInput(players[selfId], input, arena);
+				// simulatePlayer(players[selfId], aren  a)
+				for (const playerId of Object.keys(players)) {
+					const { arrows } = players[playerId];
+					for (const otherId of Object.keys(players)) {
+						if (playerId === otherId) continue;
+						const player = players[otherId];
+						for (let i = 0; i < arrows.length; i++) {
+							const arrow = arrows[i];
+							const distX = arrow.x - player.x;
+							const distY = arrow.y - player.y;
+							const dist = distX * distX + distY * distY;
+							if (dist < (arrow.radius + player.radius) ** 2) {
+								// collision
+								// players[otherId].respawn();
+								arrows.splice(i, 1);
+								// broadcast({
+								// 	hitPos: { x: arrow.x, y: arrow.y },
+								// 	hitId: Math.random(),
+								// })
+								break;
+							}
 						}
 					}
 				}
 			}
 			// collidePlayers(players)
-			unconfirmed_inputs.push({
-				input: copyInput(input),
-				tick: tick
-			});
+			if (_prediction) {
+				unconfirmed_inputs.push({
+					input: copyInput(input),
+					tick: tick
+				});
+			}
 
 			tick++;
 		}
@@ -527,6 +551,7 @@ try {
 		if (selfId == null || startTime == null || players[selfId] == null) {
 			return;
 		}
+		// if (_prediction) {
 		processInputs();
 
 	}
@@ -584,7 +609,7 @@ try {
 			ctx.textAlign = 'left'
 			if (window.debug) {
 				ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}] | Unconfirmed Inputs: ${unconfirmed_inputs.length}`, 10, 870);
-				ctx.fillText(`GlobalTick#${tick} | Extralag: ${extraLag} | ServerPing[Tick]: ${serverPing} | Interpolation: ${window.delta.toFixed(1)} / 1`, 10, 840)
+				ctx.fillText(`GlobalTick#${tick} | Extralag: ${extraLag} | ServerPing[Tick]: ${serverPing} | Interpolation: ${window.delta.toFixed(1)} / 1 | Prediction: ${window._prediction.toString().toUpperCase()} | ServerInputsNotUsedYetLength: ${inputsBuffered}`, 10, 840)
 			}
 			ctx.fillText(`Kills: ${_kills}`, 0, 20);
 			if (window.showSnapshots) {
@@ -737,7 +762,7 @@ try {
 			ctx.fillStyle = 'rgb(255, 0, 0)';
 			ctx.font = '30px Arial'
 			ctx.fillText(`Eliminiated`, 650, 725)
-			const xOff =  ctx.measureText('Eliminated ').width;
+			const xOff = ctx.measureText('Eliminated ').width;
 			ctx.fillStyle = 'white'
 			ctx.fillText(` Agent ${killedPlayerName}`, 650 + xOff, 725);
 			ctx.globalAlpha = 1;
@@ -798,7 +823,7 @@ try {
 			// 	ctx.fillText('X', pos.x, pos.y);
 			// }
 
-			
+
 		} catch (err) {
 			document.body.innerHTMK = `${err}`
 		}

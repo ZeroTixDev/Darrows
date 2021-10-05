@@ -2,7 +2,9 @@ console.log('Running server script...');
 
 const {
 	applyInput,
-	collidePlayers
+	collidePlayers,
+	createInput,
+	simulatePlayer,
 } = require('../shared/func.js');
 const Raycast = require('../shared/raycast.js');
 const express = require('express');
@@ -283,18 +285,27 @@ function newMessage(obj, socket, clientId) {
 
 function processInputs() {
 	// comes in order (inputMessages)
+	// const ids = [];
 	for (const id of Object.keys(inputMessages)) {
 		for (const { data, tick } of inputMessages[id]) {
 			if (data) {
+				// ids.push(id);
 				applyInput(players[id], data, arena);
 				lastProcessedInputTick[id] = tick;
+				// break;
 			}
 		}
 	}
 	for (const id of Object.keys(inputMessages)) {
+		// if (inputMessages[id].length > 0) {
+		// 	inputMessages[id].splice(0, 1)
+		// }
 		inputMessages[id] = []
 	}
 
+	for (const playerId of Object.keys(players)) {
+		simulatePlayer(players[playerId], arena)
+	}
 	// check arrow collison
 	// very expensive operation
 	// todo fix speed :D
@@ -407,6 +418,10 @@ function sendWorldState() {
 			data: player.pack(),
 			last_processed_input: lastProcessedInputTick[clientId]
 		});
+
+		send(clients[clientId], {
+			inputsBuffered: inputMessages[clientId] != null ? inputMessages[clientId].length: -1,
+		})
 		// }
 	}
 
