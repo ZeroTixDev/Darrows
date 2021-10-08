@@ -13,7 +13,7 @@ module.exports = class Player {
 		this.spaceLock = false;
 		this.angleVel = 0;
 		this.arrows = [];
-		this.lastReceivedInput = createInput()
+		this.input = createInput();
 		this.name = `${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
 	}
 	isDifferent(player) {
@@ -51,6 +51,7 @@ module.exports = class Player {
 			angleVel: this.angleVel,
 			spaceLock: this.spaceLock,
 			arrows: this.arrows,
+			input: this.input,
 			// timer: this.timer,
 		};
 	}

@@ -12,7 +12,7 @@ try {
 	}
 
 	window.debug = false;
-	window._prediction = true;
+	window._interpolate = true;
 
 	window.redness = 0;
 
@@ -51,46 +51,53 @@ try {
 
 	const hits = {};
 
+	function sendInput() {
+		send({ input: true, data: input });
+	}
+
 	function trackKeys(event) {
 		if (event.repeat) return;
 		if (event.code === 'KeyN' && event.type === 'keydown') {
 			window.debug = !window.debug;
 		}
-		if (event.code === 'KeyP' && event.type === 'keydown') {
-			window._prediction = !window._prediction;
+		if (event.code === 'KeyL' && event.type === 'keydown') {
+			window._interpolate = !window._interpolate;
 		}
 		if (event.code === 'ArrowLeft') {
 			input.arrowLeft = event.type === 'keydown'
+
+			sendInput();
 		}
 		if (event.code === 'ArrowRight') {
 			input.arrowRight = event.type === 'keydown'
+			sendInput();
 		}
 		if (event.code === 'Space' && event.type === 'keydown' && players[selfId] && players[selfId].timer <= 0) { // temporary client space spam fix
-			// players[selfId].timer = 1;
-			const id = Math.random();
-			// if (players[selfId]) {
-			// 	const data = [];
-			// 	for (const id of Object.keys(players)) {
-			// 		if (id !== selfId) {
-			// 			data.push({ type: 'circle', x: players[id].pos.x, y: players[id].pos.y, radius: players[id].radius });
-			// 		}
-			// 	}
-			// 	let { point } = players[selfId].ray.cast(data);
-			// 	// if (players[selfId].ray.getDist(point, players[selfId].ray.pos) > 200) {
-			// 	// 	point = null;
-			// 	// }
-			// 	if (point && players[selfId].ray.getDist(point, players[selfId].ray.pos) < 600) {
-			// 		hits[id] = { x: point.x, y: point.y, confirm: false };
-			// 		setTimeout(() => {
-			// 			delete hits[id]
-			// 		}, 2000);
-			// 	}
+			// // players[selfId].timer = 1;
+			// const id = Math.random();
+			// // if (players[selfId]) {
+			// // 	const data = [];
+			// // 	for (const id of Object.keys(players)) {
+			// // 		if (id !== selfId) {
+			// // 			data.push({ type: 'circle', x: players[id].pos.x, y: players[id].pos.y, radius: players[id].radius });
+			// // 		}
+			// // 	}
+			// // 	let { point } = players[selfId].ray.cast(data);
+			// // 	// if (players[selfId].ray.getDist(point, players[selfId].ray.pos) > 200) {
+			// // 	// 	point = null;
+			// // 	// }
+			// // 	if (point && players[selfId].ray.getDist(point, players[selfId].ray.pos) < 600) {
+			// // 		hits[id] = { x: point.x, y: point.y, confirm: false };
+			// // 		setTimeout(() => {
+			// // 			delete hits[id]
+			// // 		}, 2000);
+			// // 	}
+			// // }
+			// send({ type: 'shoot', hitId: id });
+			// clientShotPlayers = {};
+			// for (const id of Object.keys(players)) {
+			// 	clientShotPlayers[id] = players[id].pack()
 			// }
-			send({ type: 'shoot', hitId: id });
-			clientShotPlayers = {};
-			for (const id of Object.keys(players)) {
-				clientShotPlayers[id] = players[id].pack()
-			}
 		}
 		if (event.code == 'KeyQ' && event.type === 'keydown') {
 			window.stutter = !window.stutter
@@ -112,6 +119,8 @@ try {
 			return;
 		}
 		input[inputCodes[event.code].key] = event.type === "keydown";
+		sendInput()
+		inputMessageCount++;
 	}
 
 
@@ -158,11 +167,11 @@ try {
 
 
 	const players = {};
-	const unconfirmed_inputs = [];
+	// const unconfirmed_inputs = [];
 	const input = createInput();
-	let lastSentInput;
+	// let lastSentInput;
 	let selfId;
-	let startTime;
+	// let startTime;
 	let arena;
 	let tick;
 	let tickOffset;
@@ -210,15 +219,15 @@ try {
 
 	ws.addEventListener('message', (msg) => {
 		// setTimeout(() => {
-		// if (window.stutter) return;
+		if (window.stutter) return;
 		if (extraLag === 0) {
-			processMessage(msg);
-			// messages.push(msg)
+			// processMessage(msg);
+			messages.push(msg)
 		} else {
 			setTimeout(() => {
-				processMessage(msg);
+				// processMessage(msg);
 				// console.log('delay')
-				// messages.push(msg)
+				messages.push(msg)
 			}, extraLag);
 		}
 		// }, extraLag);
@@ -241,23 +250,20 @@ try {
 			tick = obj.tick;
 			arena = obj.arena;
 		}
-		if  (obj.inputsBuffered) {
-			inputsBuffered = obj.inputsBuffered
-		}
-		if (obj.hitId) {
-			if (hits[obj.hitId] == null) {
-				hits[obj.hitId] = {
-					x: obj.hitPos.x,
-					y: obj.hitPos.y,
-					confirm: true
-				}
-				setTimeout(() => {
-					delete hits[obj.hitId]
-				}, 2000);
-			} else {
-				hits[obj.hitId].confirm = true;
-			}
-		}
+		// if (obj.hitId) {
+		// 	if (hits[obj.hitId] == null) {
+		// 		hits[obj.hitId] = {
+		// 			x: obj.hitPos.x,
+		// 			y: obj.hitPos.y,
+		// 			confirm: true
+		// 		}
+		// 		setTimeout(() => {
+		// 			delete hits[obj.hitId]
+		// 		}, 2000);
+		// 	} else {
+		// 		hits[obj.hitId].confirm = true;
+		// 	}
+		// }
 		if (obj.type === 'shoot') {
 			shotPlayers = {};
 			for (const { data, id } of obj.players) {
@@ -280,7 +286,7 @@ try {
 			serverPing = obj.serverPing;
 		}
 		if (obj.arrowHit != undefined) {
-			window.redness = 0.6;
+			window.redness = 0.7;
 		}
 		if (obj.pung != undefined) {
 			ping = Math.round((Date.now() - obj.pung) / 2)
@@ -293,17 +299,20 @@ try {
 		}
 		if (obj.type === "state") {
 			stateMessageCount++;
+			let timeDiff;
 			if (lastReceivedStateTime == null) {
-				lastReceivedStateTime = Date.now();
+				lastReceivedStateTime = window.performance.now();
 			} else {
-				const space = Date.now() - lastReceivedStateTime;
+				const space = window.performance.now() - lastReceivedStateTime;
 				if (spacings.length > spacingLength) {
 					spacings.shift();
 				}
 				spacings.push(space);
 				spacing = spacings.reduce((a, b) => a + b) / spacings.length
-				lastReceivedStateTime = Date.now();
+				timeDiff = (window.performance.now() - lastReceivedStateTime) / 1000;
+				lastReceivedStateTime = window.performance.now();
 			}
+
 			// if (obj.rotator) {
 			// 	// rotator.buffer.push({ x: obj.rotator.x, y: obj.rotator.y })
 			// 	// if (rotator.buffer.length > 10) {
@@ -322,56 +331,12 @@ try {
 			}
 			const cplayers = obj.data.players;
 			for (const { id, data, last_processed_input } of cplayers) {
-				if (id === selfId) {
-					players[selfId].Snap(data);
-					if (_prediction) {
-						let j = 0;
-						while (j < unconfirmed_inputs.length) {
-							const { input, tick } = unconfirmed_inputs[j];
-							// console.log(tick, last_processed_input)
-							if (tick <= last_processed_input) {
-								// Already processed. so we can drop it
-								unconfirmed_inputs.splice(j, 1);
-							} else {
-								// Not processed by the server yet. Re-apply it.
-								applyInput(players[selfId], input, arena);
-								simulatePlayer(players[selfId], arena);
-								for (const playerId of Object.keys(players)) {
-									const { arrows } = players[playerId];
-									for (const otherId of Object.keys(players)) {
-										if (playerId === otherId) continue;
-										const player = players[otherId];
-										for (let i = 0; i < arrows.length; i++) {
-											const arrow = arrows[i];
-											const distX = arrow.x - player.x;
-											const distY = arrow.y - player.y;
-											const dist = distX * distX + distY * distY;
-											if (dist < (arrow.radius + player.radius) ** 2) {
-												// collision
-												// players[otherId].respawn();
-												arrows.splice(i, 1);
-												// broadcast({
-												// 	hitPos: { x: arrow.x, y: arrow.y },
-												// 	hitId: Math.random(),
-												// })
-												break;
-											}
-										}
-									}
-								}
-								// collidePlayers(players)
-								j++;
-							}
-						}
-
-						const startTick = tick - Math.ceil(ping * 1/60)
-					} 
-				} else {
-					players[id].Snap(data);
-					// maybe interpolation
-				}
+				players[id].Snap(data);
 			}
 
+			// if (timeDiff != undefined) {
+			// 	update(timeDiff, false)
+			// }
 		}
 	}
 
@@ -380,7 +345,7 @@ try {
 		; (function run() {
 			try {
 				requestAnimationFrame(run);
-				update();
+				update((window.performance.now() - lastTime) / 1000);
 				window.delta = getDelta(lastTime);
 				window.redness -= ((window.performance.now() - lastTime) / 1000) * 1.5;
 				if (window.redness <= 0) {
@@ -399,11 +364,11 @@ try {
 
 				// if (players[selfId] != null) {
 				// 	players[selfId].ray.setRay({ x: players[selfId].pos.x, y: players[selfId].pos.y }, window.angle);
+				// // }
+				// for (const playerId of Object.keys(players)) {
+				// 	// if (playerId === selfId) continue;
+				// 	players[playerId].ray.setRay({ x: players[playerId].pos.x, y: players[playerId].pos.y, }, players[playerId].interpAngle);
 				// }
-				for (const playerId of Object.keys(players)) {
-					// if (playerId === selfId) continue;
-					players[playerId].ray.setRay({ x: players[playerId].pos.x, y: players[playerId].pos.y, }, players[playerId].interpAngle);
-				}
 				// window.data = Object.keys(players).map((id) => {
 				// 	return players[id].angle;
 				// })
@@ -432,69 +397,6 @@ try {
 		) + tickOffset;
 	}
 
-	function processInputs() {
-		const expectedTick = getTick()
-
-		const difference = expectedTick - tick;
-
-		// if (difference > 5) { // most likely off tab
-		// 	input = { right: false, left: false, down: false, up: false}
-		// }
-
-		while (tick < expectedTick) {
-			let packageInput = {
-				data: copyInput(input),
-				tick,
-				id: selfId,
-				input: true
-			};
-
-			if (lastSentInput != null && sameInput(lastSentInput, input)) {
-				// send smaller package indicating that its the last input sent
-				packageInput = { lastInput: true, tick, id: selfId };
-			} else {
-				lastSentInput = copyInput(input);
-			}
-			send(packageInput);
-			inputMessageCount++;
-			if (_prediction) {
-				applyInput(players[selfId], input, arena);
-				// simulatePlayer(players[selfId], aren  a)
-				for (const playerId of Object.keys(players)) {
-					const { arrows } = players[playerId];
-					for (const otherId of Object.keys(players)) {
-						if (playerId === otherId) continue;
-						const player = players[otherId];
-						for (let i = 0; i < arrows.length; i++) {
-							const arrow = arrows[i];
-							const distX = arrow.x - player.x;
-							const distY = arrow.y - player.y;
-							const dist = distX * distX + distY * distY;
-							if (dist < (arrow.radius + player.radius) ** 2) {
-								// collision
-								// players[otherId].respawn();
-								arrows.splice(i, 1);
-								// broadcast({
-								// 	hitPos: { x: arrow.x, y: arrow.y },
-								// 	hitId: Math.random(),
-								// })
-								break;
-							}
-						}
-					}
-				}
-			}
-			// collidePlayers(players)
-			if (_prediction) {
-				unconfirmed_inputs.push({
-					input: copyInput(input),
-					tick: tick
-				});
-			}
-
-			tick++;
-		}
-	}
 
 	function sameInput(input1, input2) {
 		for (const key of Object.keys(input1)) {
@@ -543,16 +445,73 @@ try {
 		alert('Disconnected.')
 	}
 
-	function update() {
-		// for (const msg of messages) {
-		// 	processMessage(msg);
-		// }
-		// messages = [];
+	function update(dt, msg = true) {
+		window.dt = dt;
 		if (selfId == null || startTime == null || players[selfId] == null) {
+			if (msg) {
+				for (const msg of messages) {
+					processMessage(msg);
+				}
+				messages = [];
+			}
 			return;
 		}
-		// if (_prediction) {
-		processInputs();
+
+			if (msg) {
+			for (const msg of messages) {
+				processMessage(msg);
+			}
+			messages = [];
+		}
+
+		for (const player of Object.values(players)) {
+			player.xv += (player.input.right - player.input.left) * (120 * dt);
+			player.yv += (player.input.down - player.input.up) * (120 * dt);
+			player.x += player.xv;
+			player.y += player.yv;
+
+			player.xv *= Math.pow(0.65, dt * 60);
+			player.yv *= Math.pow(0.65, dt * 60);
+
+			if (player.input.arrowLeft) {
+				player.angleVel -= 3 * dt;
+			}
+			if (player.input.arrowRight) {
+				player.angleVel += 3 * dt;
+			}
+			player.angle += player.angleVel;
+			player.angleVel = 0;
+
+			player.timer -= dt;
+			if (player.timer <= 0) {
+				player.timer = 0;
+			}
+
+			boundPlayer(player, arena)
+
+			for (let i = 0; i < player.arrows.length; i++) {
+				const arrow = player.arrows[i];
+				if (!arrow.dead) {
+					arrow.x += Math.cos(arrow.angle) * (arrow.speed * (60 * dt));
+					arrow.y += Math.sin(arrow.angle) * (arrow.speed * (60 * dt));
+				}
+				arrow.life -= dt;
+				if (!arrow.dead && (arrow.x - arrow.radius < 0 || arrow.x + arrow.radius > arena.width || arrow.y - arrow.radius < 0 || arrow.y + arrow.radius > arena.height)) {
+					arrow.dead = true;
+					arrow.life = Math.min(arrow.life, 0.5);
+				}
+				if (arrow.dead) {
+					arrow.radius += 20 * dt;
+				}
+				if (arrow.life <= 0.5) {
+					arrow.alpha = Math.max((arrow.life * 2) / 1, 0);
+				}
+			}
+		}
+
+	
+		// if (_interpolate) {
+		// processInputs();
 
 	}
 
@@ -608,8 +567,8 @@ try {
 			ctx.fillStyle = 'white';
 			ctx.textAlign = 'left'
 			if (window.debug) {
-				ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}] | Unconfirmed Inputs: ${unconfirmed_inputs.length}`, 10, 870);
-				ctx.fillText(`GlobalTick#${tick} | Extralag: ${extraLag} | ServerPing[Tick]: ${serverPing} | Interpolation: ${window.delta.toFixed(1)} / 1 | Prediction: ${window._prediction.toString().toUpperCase()} | ServerInputsNotUsedYetLength: ${inputsBuffered}`, 10, 840)
+				ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}]`, 10, 870);
+				ctx.fillText(`GlobalTick#${tick} | Extralag: ${extraLag} | ServerPing[Tick]: ${serverPing} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()}`, 10, 840)
 			}
 			ctx.fillText(`Kills: ${_kills}`, 0, 20);
 			if (window.showSnapshots) {
@@ -644,18 +603,21 @@ try {
 
 			for (const playerId of Object.keys(players)) {
 				const { arrows } = players[playerId];
-				for (const { x, y, angle, radius, life } of arrows) {
-					ctx.globalAlpha = 1; // life 
-					ctx.fillStyle = '#d93311';
-					ctx.strokeStyle = '#a30800';
+				for (const { x, y, angle, radius, life, alpha } of arrows) {
+					ctx.globalAlpha = alpha; // life 
+					// ctx.fillStyle = '#d93311';
+					// ctx.strokeStyle = '#a30800';
+					ctx.fillStyle = 'black'
 					ctx.lineWidth = 4;
 					ctx.beginPath();
 					const pos = offset(x, y);
 					ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
 					ctx.fill()
-					ctx.stroke()
+					// ctx.stroke()
 				}
 			}
+			ctx.globalAlpha = 1;
+
 
 			for (const playerId of Object.keys(players)) {
 				const player = players[playerId];
@@ -692,8 +654,8 @@ try {
 				ctx.beginPath()
 				ctx.strokeStyle = '#363636';
 				ctx.arc(
-					(-player.radius / 1.4) + 10 * player.timer,
-					(-player.radius / 1.2) + 25 * player.timer,
+					(-player.radius / 1.4) + 10 * player.timer * 3,
+					(-player.radius / 1.2) + 25 * player.timer * 3,
 					(player.radius / 3.3),
 					0,
 					Math.PI * 2
@@ -702,8 +664,8 @@ try {
 				ctx.stroke();
 				ctx.beginPath();
 				ctx.arc(
-					(player.radius / 1.4) - 10 * player.timer,
-					(-player.radius / 1.2) + 25 * player.timer,
+					(player.radius / 1.4) - 10 * player.timer * 3,
+					(-player.radius / 1.2) + 25 * player.timer * 3,
 					(player.radius / 3.3),
 					0,
 					Math.PI * 2

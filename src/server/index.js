@@ -1,10 +1,9 @@
 console.log('Running server script...');
 
 const {
-	applyInput,
 	collidePlayers,
 	createInput,
-	simulatePlayer,
+	updatePlayer,
 } = require('../shared/func.js');
 const Raycast = require('../shared/raycast.js');
 const express = require('express');
@@ -41,26 +40,23 @@ server.on('upgrade', (request, socket, head) => {
 
 const players = {};
 const clients = {};
-let lastSentPlayers = {};
-let inputMessages = {};
 const arena = {
 	width: 2000,
-	height: 1000,
+	height: 1500,
 };
 const spacings = [];
-let lastSentPackageTime = null;
-// const rotator = { timer: 0, x: arena.width / 2, y: arena.height / 2, cx: arena.width / 2, cy: arena.height / 2 }
 const tickRate = 60;
 const pingRate = 10;
 const updateRate = 60;
 const startTime = Date.now();
 const history = {};
 const pings = {};
-const lastProcessedInputTick = {};
 const maximumAllowedPingForCompensation = 400;
 const historyMaxSize = Math.round(
 	maximumAllowedPingForCompensation / (1000 / updateRate)
 );
+let lastSentPackageTime = null;
+let lastSentPlayers = {};
 // console.log('max history size', historyMaxSize)
 let tick = 0;
 
@@ -186,10 +182,7 @@ function broadcast(obj, except = []) {
 }
 
 function validateInput(obj) {
-	if (obj.tick < presentTick() && clients[obj.id] != undefined && presentTick() + Math.ceil(updateRate * 0.5) >= obj.tick) {
-		return true;
-	}
-	return false;
+	return true;
 }
 
 function newMessage(obj, socket, clientId) {
@@ -200,81 +193,21 @@ function newMessage(obj, socket, clientId) {
 			serverPing: pings[clientId],
 		});
 	}
-	if (obj.type === 'shoot' && players[clientId].timer <= 0) {
-		players[clientId].timer = 1;
-		// player attempted to shoot
-		// const cPlayers = {};
-		// for (const playerId of Object.keys(players)) {
-		// 	if (playerId === clientId) {
-		// 		cPlayers[clientId] = players[clientId];
-		// 		continue;
-		// 	}
-		// 	const hist = getSnapshot(tick - pings[clientId] * 2).players;
-		// 	if (hist[playerId] != null) {
-		// 		cPlayers[playerId] = hist[playerId];
-		// 	}
-		// }
-
-		// const player = cPlayers[clientId];
-		// // if (player.timer <= 0) {
-		// // 	return;
-		// // }
-		// const ray = new Raycast({ x: player.x, y: player.y }, player.angle);
-
-		// const data = [];
-		// for (const id of Object.keys(cPlayers)) {
-		// 	if (id !== clientId) {
-		// 		data.push({ type: 'circle', id, x: cPlayers[id].x, y: cPlayers[id].y, radius: cPlayers[id].radius });
-		// 	}
-		// }
-		// let { point, id } = ray.cast(data);
-
-		// // if (ray.getDist(ray.pos, point) > 200) {
-		// // 	point = null;
-		// // }
-
-		// if (point && cPlayers[id] && ray.getDist({ x: player.x, y: player.y }, point) <600) {
-		// 	players[id].respawn();
-		// 	broadcast({
-		// 		hitPos: point,
-		// 		hitId: obj.hitId,
-		// 	})
-		// }
-
-		// const packed = [];
-		// for (const id of Object.keys(cPlayers)) {
-		// 	packed.push({ data: cPlayers[id], id })
-		// }
-
-
-		// send(socket, {
-		// 	type: 'shoot',
-		// 	players: packed,
-		// })
-	}
 	if (obj.debug !== undefined) {
 		console.log(obj.debug)
 	}
-	if (obj.lastInput && validateInput(obj)) {
-		if (inputMessages[obj.id] == null) {
-			inputMessages[obj.id] = [];
-		}
-		inputMessages[obj.id].push({
-			id: obj.id,
-			data: players[obj.id].lastReceivedInput,
-			tick: obj.tick,
-		})
-	}
+	// if (obj.lastInput && validateInput(obj)) {
+	// 	if (inputMessages[obj.id] == null) {
+	// 		inputMessages[obj.id] = [];
+	// 	}
+	// 	inputMessages[obj.id].push({
+	// 		id: obj.id,
+	// 		data: players[obj.id].lastReceivedInput,
+	// 		tick: obj.tick,
+	// 	})
+	// }
 	if (obj.input && validateInput(obj)) {
-		if (inputMessages[obj.id] == null) {
-			inputMessages[obj.id] = [];
-		}
-		inputMessages[obj.id].push({
-			id: obj.id,
-			data: obj.data,
-			tick: obj.tick
-		});
-		players[obj.id].lastReceivedInput = obj.data;
+		players[clientId].input = obj.data;
 	}
 	if (obj.ping != null) {
 		send(socket, {
@@ -283,50 +216,19 @@ function newMessage(obj, socket, clientId) {
 	}
 }
 
-function processInputs() {
-	// comes in order (inputMessages)
-	// const ids = [];
-	for (const id of Object.keys(inputMessages)) {
-		for (const { data, tick } of inputMessages[id]) {
-			if (data) {
-				// ids.push(id);
-				applyInput(players[id], data, arena);
-				lastProcessedInputTick[id] = tick;
-				// break;
-			}
-		}
-	}
-	for (const id of Object.keys(inputMessages)) {
-		// if (inputMessages[id].length > 0) {
-		// 	inputMessages[id].splice(0, 1)
-		// }
-		inputMessages[id] = []
-	}
+function updateWorld() {
 
 	for (const playerId of Object.keys(players)) {
-		simulatePlayer(players[playerId], arena)
+		updatePlayer(players[playerId], players[playerId].input, arena)
 	}
 	// check arrow collison
 	// very expensive operation
 	// todo fix speed :D
 	for (const playerId of Object.keys(players)) {
 		const { arrows } = players[playerId];
-		const cPlayers = {};
-		for (const id of Object.keys(players)) {
-			if (playerId === id) {
-				continue;
-			}
-			const history = getSnapshot(tick - pings[playerId] * 2)
-			if (history) {
-				const hist = history.players;
-				if (hist[id] != null) {
-					cPlayers[id] = hist[id];
-				}
-			}
-		}
-		for (const otherId of Object.keys(cPlayers)) {
+		for (const otherId of Object.keys(players)) {
 			if (playerId === otherId) continue;
-			const player = cPlayers[otherId];
+			const player = players[otherId];
 			for (let i = 0; i < arrows.length; i++) {
 				const arrow = arrows[i];
 				const distX = arrow.x - player.x;
@@ -387,9 +289,7 @@ function takeSnapshots() {
 
 	while (tick < expectedTick) {
 		// take a snapshot
-		processInputs();
-		updateServerControlledObjects();
-		// collidePlayers(players);
+		updateWorld();
 		history[tick] = {
 			players: copyPlayers()
 		};
@@ -400,12 +300,6 @@ function takeSnapshots() {
 	}
 }
 
-function updateServerControlledObjects() {
-	const delta = 1 / updateRate;
-	// rotator.timer += delta * 3;
-	// rotator.x = rotator.cx + Math.cos(rotator.timer) * 250;
-	// rotator.y = rotator.cy + Math.sin(rotator.timer) * 250;
-}
 
 function sendWorldState() {
 	const state = { players: [] };
@@ -416,12 +310,8 @@ function sendWorldState() {
 		state.players.push({
 			id: clientId,
 			data: player.pack(),
-			last_processed_input: lastProcessedInputTick[clientId]
 		});
 
-		send(clients[clientId], {
-			inputsBuffered: inputMessages[clientId] != null ? inputMessages[clientId].length: -1,
-		})
 		// }
 	}
 

@@ -11,13 +11,13 @@ class CPlayer {
 		this.bufferQueue = [];
 		this.buffer = [];
 		this.isSelf = isSelf;
-		this.ray = new Raycast({ x: this.x, y: this.y }, 0);
+		// this.ray = new Raycast({ x: this.x, y: this.y }, 0);
 		this.interpAngle = pack.angle;
 	}
 	smooth(delta, isSelf) {
 
 
-		if (isSelf && !_prediction) {
+		if (isSelf && !_interpolate) {
 			this.pos.x = this.x;
 			this.pos.y = this.y;
 			this.interpAngle = this.angle;
@@ -57,6 +57,7 @@ class CPlayer {
 		this.xv = data.xv;
 		this.yv = data.yv;
 		this.dying = data.dying;
+		this.input = data.input;
 		this.timer = data.timer;
 		this.spaceLock = data.spaceLock;
 		this.arrows = data.arrows;

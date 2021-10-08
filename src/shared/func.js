@@ -13,27 +13,40 @@ function copyInput(input) {
 	return copy;
 }
 
-function simulatePlayer(player, arena) {
-	if (player.dying) {
-		player.radius -= 60 * (1 / 60);
-		if (player.radius <= 20) {
-			player.radius = 20;
-			player.respawn = true;
-		}
+// function simulatePlayer(player, arena) {
+// 	if (player.dying) {
+// 		player.radius -= 60 * (1 / 60);
+// 		if (player.radius <= 20) {
+// 			player.radius = 20;
+// 			player.respawn = true;
+// 		}
+// 	}
+// }
+
+function createArrow(player) {
+	return {
+		x: player.x + Math.cos(player.angle) * player.radius,
+		y: player.y + Math.sin(player.angle) * player.radius,
+		angle: player.angle,
+		radius: 35,
+		speed: 12,
+		life: 1.5,
+		alpha: 1,
+		dead: false,
 	}
 }
 
-function applyInput(player, input, arena) {
+function updatePlayer(player, input, arena) {
 	if (!player) return;
 	if (!player.dying) {
-		player.xv += (input.right - input.left) * (150 * 1 / 60);
-		player.yv += (input.down - input.up) * (150 * 1 / 60);
-		if (input.space && !player.spaceLock) {
-			player.timer = 1;
+		player.xv += (input.right - input.left) * (120 * 1 / 60);
+		player.yv += (input.down - input.up) * (120 * 1 / 60);
+		if (input.space && player.timer <= 0) { // spacelock isnt being used rn
 			// create arrowx
-			player.xv += Math.cos(player.angle) * 5;
-			player.yv += Math.sin(player.angle) * 5;
-			player.arrows.push({ x: player.x, y: player.y, angle: player.angle, radius: 35, speed: 15, life: 5, })
+			player.xv -= Math.cos(player.angle) * 5;
+			player.yv -= Math.sin(player.angle) * 5;
+			player.timer = 0.9;
+			player.arrows.push(createArrow(player))
 			player.spaceLock = true;
 		}
 		player.x += player.xv;
@@ -42,10 +55,10 @@ function applyInput(player, input, arena) {
 
 		// player.angle = input.angle;
 		if (input.arrowLeft) {
-			player.angleVel -= 0.05;
+			player.angleVel -= 3 * (1 / 60);
 		}
 		if (input.arrowRight) {
-			player.angleVel += 0.05;
+			player.angleVel += 3 * (1 / 60);
 		}
 		player.angle += player.angleVel;
 		player.angleVel = 0;
@@ -56,22 +69,38 @@ function applyInput(player, input, arena) {
 		if (player.angle < -Math.PI) {
 			player.angle += Math.PI * 2
 		}
-		player.xv *= 0.65;
-		player.yv *= 0.65;
+		player.xv *= Math.pow(0.65, (1 / 60) * 60);
+		player.yv *= Math.pow(0.65, (1 / 60) * 60);
 		if (!input.space) {
 			player.spaceLock = false;
 		}
 		// player.angleVel *= 0;
+	} else {
+		player.radius -= 60 * (1 / 60);
+		if (player.radius <= 20) {
+			player.radius = 20;
+			player.respawn = true;
+		}
 	}
 	boundPlayer(player, arena)
 
 	for (let i = player.arrows.length - 1; i >= 0; i--) {
 		const arrow = player.arrows[i];
-		arrow.x += Math.cos(arrow.angle) * arrow.speed;
-		arrow.y += Math.sin(arrow.angle) * arrow.speed;
+		if (!arrow.dead) {
+			arrow.x += Math.cos(arrow.angle) * (arrow.speed * (60 * (1 / 60)));
+			arrow.y += Math.sin(arrow.angle) * (arrow.speed * (60 * (1 / 60)));
+		}
 		arrow.life -= 1 / 60;
-		if (arrow.x - arrow.radius < 0 || arrow.x + arrow.radius > arena.width || arrow.y - arrow.radius < 0 || arrow.y + arrow.radius > arena.height) {
-			arrow.life = 0;
+		if (arrow.life <= 0.5) {
+			arrow.alpha = Math.max((arrow.life * 2) / 1, 0);
+		}
+		if (!arrow.dead && (arrow.x - arrow.radius < 0 || arrow.x + arrow.radius > arena.width || arrow.y - arrow.radius < 0 || arrow.y + arrow.radius > arena.height)) {
+			// arrow.life = 0;
+			arrow.dead = true;
+			arrow.life = Math.min(arrow.life, 0.5);
+		}
+		if (arrow.dead) {
+			arrow.radius += 20 * (1/60)
 		}
 		if (arrow.life <= 0) {
 			player.arrows.splice(i, 1);
@@ -127,5 +156,5 @@ function boundPlayer(player, arena) {
 }
 
 if (module) {
-	module.exports = { simulatePlayer, copyInput, boundPlayer, collidePlayers, applyInput, createInput }
+	module.exports = { updatePlayer, copyInput, boundPlayer, collidePlayers, createInput }
 }
