@@ -67,12 +67,12 @@ try {
 		if (event.code === 'KeyP' && event.type === 'keydown') {
 			window._predict = !window._predict;
 		}
-		if (event.code === 'ArrowLeft') {
+		if (event.code === 'ArrowLeft' || event.code === 'KeyQ') {
 			input.arrowLeft = event.type === 'keydown'
 
 			sendInput();
 		}
-		if (event.code === 'ArrowRight') {
+		if (event.code === 'ArrowRight' || event.code === 'KeyE') {
 			input.arrowRight = event.type === 'keydown'
 			sendInput();
 		}
@@ -103,21 +103,21 @@ try {
 		// 	// 	clientShotPlayers[id] = players[id].pack()
 		// 	// }
 		// }
-		if (event.code == 'KeyQ' && event.type === 'keydown') {
-			window.stutter = !window.stutter
-		}
+		// if (event.code == 'Key' && event.type === 'keydown') {
+		// 	window.stutter = !window.stutter
+		// }
 		if (event.code == 'KeyT' && event.type === 'keydown') {
 			window.showSnapshots = !window.showSnapshots;
 		}
-		if (event.code === 'KeyZ' && event.type == 'keydown') {
-			extraLag = 0;
-		}
-		if (event.code === 'KeyX' && event.type == 'keydown') {
-			extraLag += 25;
-		}
-		if (event.code === 'KeyC' && event.type === 'keydown') {
-			extraLag += 1000;
-		}
+		// if (event.code === 'KeyZ' && event.type == 'keydown') {
+		// 	extraLag = 0;
+		// }
+		// if (event.code === 'KeyX' && event.type == 'keydown') {
+		// 	extraLag += 25;
+		// }
+		// if (event.code === 'KeyC' && event.type === 'keydown') {
+		// 	extraLag += 1000;
+		// }
 		if (inputCodes[event.code] === undefined) return;
 		input[inputCodes[event.code].key] = event.type === "keydown";
 		sendInput()
