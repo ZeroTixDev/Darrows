@@ -1,18 +1,21 @@
 const { createInput } = require('../shared/func.js');
 
 module.exports = class Player {
-	constructor() {
+	constructor(id) {
 		this.radius = 45;
 		this.x = Math.round(Math.random() * 500) + this.radius
 		this.y = Math.round(Math.random() * 500) + this.radius
 		this.xv = 0;
 		this.yv = 0;
+		this.id = id;
 		this.dying = false;
 		this.timer = 0;
 		this.angle = 0;
+		this.timerMax = 1;
+		this.arrowing = false;
 		this.spaceLock = false;
+		this.timer = 0;
 		this.angleVel = 0;
-		this.arrows = [];
 		this.input = createInput();
 		this.name = `${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
 	}
@@ -32,10 +35,11 @@ module.exports = class Player {
 		this.angleVel = 0;
 		this.spaceLock = false;
 		this.timer = 0;
-		this.arrows = [];
 		this.dying = false;
 		this.respawn = false;
-		this.radius = 50;
+		this.radius = 45;
+		this.arrowing = false;
+		this.timer = 0;
 	}
 	pack() {
 		return {
@@ -48,10 +52,12 @@ module.exports = class Player {
 			yv: this.yv,
 			angle: this.angle,
 			name: this.name,
+			timer: this.timer,
+			arrowing: this.arrowing,
 			angleVel: this.angleVel,
 			spaceLock: this.spaceLock,
-			arrows: this.arrows,
 			input: this.input,
+			timerMax: this.timerMax,
 			// timer: this.timer,
 		};
 	}

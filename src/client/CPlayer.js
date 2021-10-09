@@ -17,7 +17,7 @@ class CPlayer {
 	smooth(delta, isSelf) {
 
 
-		if (isSelf && !_interpolate) {
+		if (!_interpolate) {
 			this.pos.x = this.x;
 			this.pos.y = this.y;
 			this.interpAngle = this.angle;
@@ -47,25 +47,28 @@ class CPlayer {
 	}
 	Snap(data) {
 		// snapshots
+		for (const key of Object.keys(data)) {
+			this[key] = data[key]
+		}
 
-
-		this.angleVel = data.angleVel;
-		this.angle = data.angle;
-		// this.ray.setRay({ x: this.ray.pos.x, y: this.ray.pos.y,}, this.angle)
-		this.x = data.x;
-		this.y = data.y;
-		this.xv = data.xv;
-		this.yv = data.yv;
-		this.dying = data.dying;
-		this.input = data.input;
-		this.timer = data.timer;
-		this.spaceLock = data.spaceLock;
-		this.arrows = data.arrows;
+		// this.angleVel = data.angleVel;
+		// this.angle = data.angle;
+		// // this.ray.setRay({ x: this.ray.pos.x, y: this.ray.pos.y,}, this.angle)
+		// this.x = data.x;
+		// this.y = data.y;
+		// this.xv = data.xv;
+		// this.yv = data.yv;
+		// this.arrowing = data.arrowing;
+		// this.dying = data.dying;
+		// this.input = data.input;
+		// this.timer = data.timer;
+		// this.spaceLock = data.spaceLock;
+		// this.arrows = data.arrows;
 		// this.timer = data.timer;
 		// this.pos.x = data.x;
 		// this.pos.y = data.y;
 		this.server = { x: this.x, angle: this.angle, y: this.y, xv: this.xv, yv: this.yv };
-		this.radius = data.radius;
+		// this.radius = data.radius;
 		// this.name = this.bufferQueue.length;
 	}
 	pack() {

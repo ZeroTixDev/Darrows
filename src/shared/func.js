@@ -25,43 +25,66 @@ function copyInput(input) {
 
 function createArrow(player) {
 	return {
-		x: player.x + Math.cos(player.angle) * player.radius,
-		y: player.y + Math.sin(player.angle) * player.radius,
+		x: player.x + Math.cos(player.angle) * (player.radius - player.arrowing * 20),
+		y: player.y + Math.sin(player.angle) * (player.radius - player.arrowing * 20),
 		angle: player.angle,
-		radius: 35,
-		speed: 12,
+		radius: 10,
 		life: 1.5,
+		speed: 10 + (player.arrowing / 3) * 10,
 		alpha: 1,
 		dead: false,
+		parent: player.id,
 	}
 }
 
-function updatePlayer(player, input, arena) {
+function updatePlayer(player, input, arena, arrows) {
 	if (!player) return;
 	if (!player.dying) {
-		player.xv += (input.right - input.left) * (120 * 1 / 60);
-		player.yv += (input.down - input.up) * (120 * 1 / 60);
-		if (input.space && player.timer <= 0) { // spacelock isnt being used rn
-			// create arrowx
-			player.xv -= Math.cos(player.angle) * 5;
-			player.yv -= Math.sin(player.angle) * 5;
-			player.timer = 0.9;
-			player.arrows.push(createArrow(player))
-			player.spaceLock = true;
+		player.xv += (input.right - input.left) * (160 * 1 / 60);
+		player.yv += (input.down - input.up) * (160 * 1 / 60);
+		// if (input.space && player.timer <= 0) { // spacelock isnt being used rn
+		// 	// create arrowx
+		// 	player.xv -= Math.cos(player.angle) * 5;
+		// 	player.yv -= Math.sin(player.angle) * 5;
+		// 	player.timer = 0.9;
+		// 	player.arrows.push(createArrow(player))
+		// 	player.spaceLock = true;
+		// }
+
+		if (input.space && player.timer <= 0) {
+			player.arrowing += (1 / 60) * 2;
+			if (player.arrowing >= 3) {
+				player.arrowing = 3;
+			}
+			if (input.arrowLeft) {
+				player.angleVel -= 3 * (1 / 60);
+			}
+			if (input.arrowRight) {
+				player.angleVel += 3 * (1 / 60);
+			}
+			player.angle += player.angleVel;
+			player.angleVel = 0;
+		} else {
+			if (player.arrowing > 0) {
+				// shoot
+				arrows[Math.random()] = (createArrow(player))
+				player.timer = player.timerMax;
+				// console.log('shoot', player.arrows)
+			}
+			player.arrowing = 0;
 		}
+
+		player.timer -= (1/60);
+		if (player.timer <= 0) {
+			player.timer = 0;
+		}
+
+
 		player.x += player.xv;
 		player.y += player.yv;
 
 
 		// player.angle = input.angle;
-		if (input.arrowLeft) {
-			player.angleVel -= 3 * (1 / 60);
-		}
-		if (input.arrowRight) {
-			player.angleVel += 3 * (1 / 60);
-		}
-		player.angle += player.angleVel;
-		player.angleVel = 0;
 		// player.angleVel *= 0.1;
 		if (player.angle > Math.PI) {
 			player.angle -= Math.PI * 2;
@@ -83,29 +106,6 @@ function updatePlayer(player, input, arena) {
 		}
 	}
 	boundPlayer(player, arena)
-
-	for (let i = player.arrows.length - 1; i >= 0; i--) {
-		const arrow = player.arrows[i];
-		if (!arrow.dead) {
-			arrow.x += Math.cos(arrow.angle) * (arrow.speed * (60 * (1 / 60)));
-			arrow.y += Math.sin(arrow.angle) * (arrow.speed * (60 * (1 / 60)));
-		}
-		arrow.life -= 1 / 60;
-		if (arrow.life <= 0.5) {
-			arrow.alpha = Math.max((arrow.life * 2) / 1, 0);
-		}
-		if (!arrow.dead && (arrow.x - arrow.radius < 0 || arrow.x + arrow.radius > arena.width || arrow.y - arrow.radius < 0 || arrow.y + arrow.radius > arena.height)) {
-			// arrow.life = 0;
-			arrow.dead = true;
-			arrow.life = Math.min(arrow.life, 0.5);
-		}
-		if (arrow.dead) {
-			arrow.radius += 20 * (1/60)
-		}
-		if (arrow.life <= 0) {
-			player.arrows.splice(i, 1);
-		}
-	}
 	player.timer -= 1 / 60;
 	if (player.timer <= 0) {
 		player.timer = 0;

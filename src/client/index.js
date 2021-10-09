@@ -13,6 +13,7 @@ try {
 
 	window.debug = false;
 	window._interpolate = true;
+	window._predict = false;
 
 	window.redness = 0;
 
@@ -63,6 +64,9 @@ try {
 		if (event.code === 'KeyL' && event.type === 'keydown') {
 			window._interpolate = !window._interpolate;
 		}
+		if (event.code === 'KeyP' && event.type === 'keydown') {
+			window._predict = !window._predict;
+		}
 		if (event.code === 'ArrowLeft') {
 			input.arrowLeft = event.type === 'keydown'
 
@@ -72,33 +76,33 @@ try {
 			input.arrowRight = event.type === 'keydown'
 			sendInput();
 		}
-		if (event.code === 'Space' && event.type === 'keydown' && players[selfId] && players[selfId].timer <= 0) { // temporary client space spam fix
-			// // players[selfId].timer = 1;
-			// const id = Math.random();
-			// // if (players[selfId]) {
-			// // 	const data = [];
-			// // 	for (const id of Object.keys(players)) {
-			// // 		if (id !== selfId) {
-			// // 			data.push({ type: 'circle', x: players[id].pos.x, y: players[id].pos.y, radius: players[id].radius });
-			// // 		}
-			// // 	}
-			// // 	let { point } = players[selfId].ray.cast(data);
-			// // 	// if (players[selfId].ray.getDist(point, players[selfId].ray.pos) > 200) {
-			// // 	// 	point = null;
-			// // 	// }
-			// // 	if (point && players[selfId].ray.getDist(point, players[selfId].ray.pos) < 600) {
-			// // 		hits[id] = { x: point.x, y: point.y, confirm: false };
-			// // 		setTimeout(() => {
-			// // 			delete hits[id]
-			// // 		}, 2000);
-			// // 	}
-			// // }
-			// send({ type: 'shoot', hitId: id });
-			// clientShotPlayers = {};
-			// for (const id of Object.keys(players)) {
-			// 	clientShotPlayers[id] = players[id].pack()
-			// }
-		}
+		// if (event.code === 'Space' && event.type === 'keydown' && players[selfId] && players[selfId].timer <= 0) { // temporary client space spam fix
+		// 	// // players[selfId].timer = 1;
+		// 	// const id = Math.random();
+		// 	// // if (players[selfId]) {
+		// 	// // 	const data = [];
+		// 	// // 	for (const id of Object.keys(players)) {
+		// 	// // 		if (id !== selfId) {
+		// 	// // 			data.push({ type: 'circle', x: players[id].pos.x, y: players[id].pos.y, radius: players[id].radius });
+		// 	// // 		}
+		// 	// // 	}
+		// 	// // 	let { point } = players[selfId].ray.cast(data);
+		// 	// // 	// if (players[selfId].ray.getDist(point, players[selfId].ray.pos) > 200) {
+		// 	// // 	// 	point = null;
+		// 	// // 	// }
+		// 	// // 	if (point && players[selfId].ray.getDist(point, players[selfId].ray.pos) < 600) {
+		// 	// // 		hits[id] = { x: point.x, y: point.y, confirm: false };
+		// 	// // 		setTimeout(() => {
+		// 	// // 			delete hits[id]
+		// 	// // 		}, 2000);
+		// 	// // 	}
+		// 	// // }
+		// 	// send({ type: 'shoot', hitId: id });
+		// 	// clientShotPlayers = {};
+		// 	// for (const id of Object.keys(players)) {
+		// 	// 	clientShotPlayers[id] = players[id].pack()
+		// 	// }
+		// }
 		if (event.code == 'KeyQ' && event.type === 'keydown') {
 			window.stutter = !window.stutter
 		}
@@ -115,9 +119,6 @@ try {
 			extraLag += 1000;
 		}
 		if (inputCodes[event.code] === undefined) return;
-		if (inputCodes[event.code].key === 'space' && players[selfId].timer > 0 && event.type === 'keydown') {
-			return;
-		}
 		input[inputCodes[event.code].key] = event.type === "keydown";
 		sendInput()
 		inputMessageCount++;
@@ -167,6 +168,7 @@ try {
 
 
 	const players = {};
+	const arrows = {}
 	// const unconfirmed_inputs = [];
 	const input = createInput();
 	// let lastSentInput;
@@ -329,6 +331,18 @@ try {
 					players[pack.id] = new CPlayer(pack, pack.id === selfId)
 				}
 			}
+			for (const arrowId of Object.keys(arrows)) {
+				if (obj.data.arrows[arrowId] == undefined) {
+					delete arrows[arrowId]
+				}
+			}
+			for (const arrowId of Object.keys(obj.data.arrows)) {
+				if (arrows[arrowId] == undefined) {
+					arrows[arrowId] = new CArrow(obj.data.arrows[arrowId]);
+				} else {
+					arrows[arrowId].Snap(obj.data.arrows[arrowId]);
+				}
+			}
 			const cplayers = obj.data.players;
 			for (const { id, data, last_processed_input } of cplayers) {
 				players[id].Snap(data);
@@ -360,6 +374,10 @@ try {
 
 				for (const playerId of Object.keys(players)) {
 					players[playerId].smooth(delta, playerId === selfId)
+				}
+
+				for (const arrowId of Object.keys(arrows)) {
+					arrows[arrowId].smooth(delta)
 				}
 
 				// if (players[selfId] != null) {
@@ -457,59 +475,60 @@ try {
 			return;
 		}
 
-			if (msg) {
+		if (msg) {
 			for (const msg of messages) {
 				processMessage(msg);
 			}
 			messages = [];
 		}
+		if (window._predict) {
+			for (const player of Object.values(players)) {
+				// player.xv += (player.input.right - player.input.left) * (160 * dt);
+				// player.yv += (player.input.down - player.input.up) * (160 * dt);
+				// player.x += player.xv;
+				// player.y += player.yv;
 
-		for (const player of Object.values(players)) {
-			player.xv += (player.input.right - player.input.left) * (120 * dt);
-			player.yv += (player.input.down - player.input.up) * (120 * dt);
-			player.x += player.xv;
-			player.y += player.yv;
+				// player.xv *= Math.pow(0.65, dt * 60);
+				// player.yv *= Math.pow(0.65, dt * 60);
 
-			player.xv *= Math.pow(0.65, dt * 60);
-			player.yv *= Math.pow(0.65, dt * 60);
+				// if (player.input.arrowLeft) {
+				// 	player.angleVel -= 3 * dt;
+				// }
+				// if (player.input.arrowRight) {
+				// 	player.angleVel += 3 * dt;
+				// }
+				// player.angle += player.angleVel;
+				// player.angleVel = 0;
 
-			if (player.input.arrowLeft) {
-				player.angleVel -= 3 * dt;
-			}
-			if (player.input.arrowRight) {
-				player.angleVel += 3 * dt;
-			}
-			player.angle += player.angleVel;
-			player.angleVel = 0;
+				// player.timer -= dt;
+				// if (player.timer <= 0) {
+				// 	player.timer = 0;
+				// }
 
-			player.timer -= dt;
-			if (player.timer <= 0) {
-				player.timer = 0;
-			}
+				// boundPlayer(player, arena)
 
-			boundPlayer(player, arena)
-
-			for (let i = 0; i < player.arrows.length; i++) {
-				const arrow = player.arrows[i];
-				if (!arrow.dead) {
-					arrow.x += Math.cos(arrow.angle) * (arrow.speed * (60 * dt));
-					arrow.y += Math.sin(arrow.angle) * (arrow.speed * (60 * dt));
-				}
-				arrow.life -= dt;
-				if (!arrow.dead && (arrow.x - arrow.radius < 0 || arrow.x + arrow.radius > arena.width || arrow.y - arrow.radius < 0 || arrow.y + arrow.radius > arena.height)) {
-					arrow.dead = true;
-					arrow.life = Math.min(arrow.life, 0.5);
-				}
-				if (arrow.dead) {
-					arrow.radius += 20 * dt;
-				}
-				if (arrow.life <= 0.5) {
-					arrow.alpha = Math.max((arrow.life * 2) / 1, 0);
-				}
+				// for (let i = 0; i < player.arrows.length; i++) {
+				// 	const arrow = player.arrows[i];
+				// 	if (!arrow.dead) {
+				// 		arrow.x += Math.cos(arrow.angle) * (arrow.speed * (60 * dt));
+				// 		arrow.y += Math.sin(arrow.angle) * (arrow.speed * (60 * dt));
+				// 	}
+				// 	arrow.life -= dt;
+				// 	if (!arrow.dead && (arrow.x - arrow.radius < 0 || arrow.x + arrow.radius > arena.width || arrow.y - arrow.radius < 0 || arrow.y + arrow.radius > arena.height)) {
+				// 		arrow.dead = true;
+				// 		arrow.life = Math.min(arrow.life, 0.5);
+				// 	}
+				// 	if (arrow.dead) {
+				// 		arrow.radius += 20 * dt;
+				// 	}
+				// 	if (arrow.life <= 0.5) {
+				// 		arrow.alpha = Math.max((arrow.life * 2) / 1, 0);
+				// 	}
+				// }
 			}
 		}
 
-	
+
 		// if (_interpolate) {
 		// processInputs();
 
@@ -546,7 +565,7 @@ try {
 
 	function render() {
 		try {
-			ctx.fillStyle = '#5e3c10'
+			ctx.fillStyle = '#b3b3b3'
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 
@@ -554,7 +573,7 @@ try {
 			// ctx.fillStyle = 'black'
 			// ctx.fillText(msgpack, 0, 20)
 
-			ctx.fillStyle = '#6e4c20';
+			ctx.fillStyle = '#d6d6d6';
 			const a = offset(0, 0);
 
 			if (!a) return;
@@ -564,13 +583,14 @@ try {
 
 			ctx.font = '18px Arial'
 
-			ctx.fillStyle = 'white';
+			ctx.fillStyle = 'black';
 			ctx.textAlign = 'left'
 			if (window.debug) {
 				ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}]`, 10, 870);
-				ctx.fillText(`GlobalTick#${tick} | Extralag: ${extraLag} | ServerPing[Tick]: ${serverPing} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()}`, 10, 840)
+				ctx.fillText(`GlobalTick#${tick} | Extralag: ${extraLag} | ServerPing[Tick]: ${serverPing} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length}`, 10, 840)
 			}
-			ctx.fillText(`Kills: ${_kills}`, 0, 20);
+			ctx.font = '20px Arial'
+			ctx.fillText(`Eliminations: ${_kills}`, 20, 20);
 			if (window.showSnapshots) {
 				ctx.globalAlpha = 0.5;
 				for (const playerId of Object.keys(shotPlayers)) {
@@ -601,20 +621,43 @@ try {
 				ctx.globalAlpha = 1;
 			}
 
-			for (const playerId of Object.keys(players)) {
-				const { arrows } = players[playerId];
-				for (const { x, y, angle, radius, life, alpha } of arrows) {
-					ctx.globalAlpha = alpha; // life 
-					// ctx.fillStyle = '#d93311';
-					// ctx.strokeStyle = '#a30800';
-					ctx.fillStyle = 'black'
-					ctx.lineWidth = 4;
-					ctx.beginPath();
-					const pos = offset(x, y);
-					ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-					ctx.fill()
-					// ctx.stroke()
+
+			for (const arrowId of Object.keys(arrows)) {
+				// console.log(arrows[arrowId])
+				const { angle, radius, life, alpha } = arrows[arrowId]
+				const { x, y } = arrows[arrowId].pos;
+				ctx.globalAlpha = alpha; // life 
+				// ctx.fillStyle = '#d93311';
+				// ctx.strokeStyle = '#a30800';
+				ctx.fillStyle = 'black'
+				ctx.lineWidth = 4;
+				// ctx.beginPath();
+				const pos = offset(x, y);
+				// ctx.beginPath()
+				// ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+				// ctx.fill()
+				ctx.translate(pos.x, pos.y);
+				ctx.rotate(angle + Math.PI / 2);
+				ctx.fillStyle = '#ff0000';
+				ctx.fillRect(-5, -15, 10, 30);
+				ctx.rotate(-(angle + Math.PI / 2));
+				ctx.translate(-pos.x, -pos.y);
+
+				if (window.showSnapshots) {
+					const pos = offset(arrows[arrowId].x, arrows[arrowId].y);
+					ctx.globalAlpha = 0.5;
+					ctx.fillStyle = 'green';
+					ctx.translate(pos.x, pos.y);
+					ctx.rotate(angle + Math.PI / 2);
+					// ctx.fillStyle = '#ff0000';
+					ctx.fillRect(-5, 0, 10, 30);
+					ctx.rotate(-(angle + Math.PI / 2));
+					ctx.translate(-pos.x, -pos.y);
+					ctx.globalAlpha = 1;
+
 				}
+				// ctx.fill()
+				// ctx.stroke()
 			}
 			ctx.globalAlpha = 1;
 
@@ -625,18 +668,37 @@ try {
 				if (window.showSnapshots) {
 				}
 
+				const pos = offset(player.pos.x, player.pos.y)
+
 
 
 				// ctx.fillStyle = "#a37958";
-				ctx.fillStyle = '#7d7d7d';
-				ctx.strokeStyle = '#363636';
+				ctx.fillStyle = '#292929';
+				if (player.timer > 0) {
+					ctx.fillStyle = '#616161'
+				}
+				// ctx.strokeStyle = '#363636';
 				ctx.lineWidth = 2.5;
 				ctx.beginPath();
 				// const pos = offset(player.pos.x, player.pos.y)
-				const pos = offset(player.pos.x, player.pos.y)
+
 				ctx.arc(pos.x, pos.y, player.radius, 0, Math.PI * 2);
 				ctx.fill();
-				ctx.stroke();
+				// ctx.stroke();
+
+				// if (player.timer > 0) {
+				// 	ctx.fillStyle = "#8a8a8a";
+				// 	ctx.beginPath();
+				// 	ctx.arc(
+				// 		pos.x,
+				// 		pos.y,
+				// 		player.radius * (player.timer / player.timerMax),
+				// 		0,
+				// 		Math.PI * 2 ,
+				// 	);
+				// 	ctx.fill();
+				// }
+
 
 				if (player.dying) {
 					ctx.fillStyle = '#d40000';
@@ -651,27 +713,60 @@ try {
 				ctx.translate(pos.x, pos.y);
 				ctx.rotate(player.interpAngle + Math.PI / 2);
 
-				ctx.beginPath()
-				ctx.strokeStyle = '#363636';
-				ctx.arc(
-					(-player.radius / 1.4) + 10 * player.timer * 3,
-					(-player.radius / 1.2) + 25 * player.timer * 3,
-					(player.radius / 3.3),
-					0,
-					Math.PI * 2
-				);
-				ctx.fill();
-				ctx.stroke();
-				ctx.beginPath();
-				ctx.arc(
-					(player.radius / 1.4) - 10 * player.timer * 3,
-					(-player.radius / 1.2) + 25 * player.timer * 3,
-					(player.radius / 3.3),
-					0,
-					Math.PI * 2
-				);
-				ctx.fill();
-				ctx.stroke();
+				if (player.arrowing <= 0) {
+					// ctx.beginPath()
+					// ctx.strokeStyle = '#363636';
+					// ctx.arc(
+					// 	(-player.radius / 1.4) + 10 * player.timer * 3,
+					// 	(-player.radius / 1.2) + 25 * player.timer * 3,
+					// 	(player.radius / 3.3),
+					// 	0,
+					// 	Math.PI * 2
+					// );
+					// ctx.fill();
+					// ctx.stroke();
+					// ctx.beginPath();
+					// ctx.arc(
+					// 	(player.radius / 1.4) - 10 * player.timer * 3,
+					// 	(-player.radius / 1.2) + 25 * player.timer * 3,
+					// 	(player.radius / 3.3),
+					// 	0,
+					// 	Math.PI * 2
+					// );
+					// ctx.fill();
+					// ctx.stroke();
+					// ^hands
+				} else {
+					ctx.beginPath();
+					ctx.strokeStyle = 'white';
+					ctx.lineWidth = 1;
+					ctx.lineTo(Math.cos(1.25 * Math.PI) * (60), Math.sin(1.25 * Math.PI) * (60));
+					ctx.lineTo(-5, -30 + player.arrowing * 25);
+					ctx.lineTo(5, -30 + player.arrowing * 25);
+					ctx.lineTo(Math.cos(1.75 * Math.PI) * (60), Math.sin(1.75 * Math.PI) * (60));
+					ctx.stroke();
+
+					ctx.beginPath();
+					ctx.arc(0, 0, 60, 1.25 * Math.PI, 1.75 * Math.PI, false);
+					ctx.lineWidth = 5;
+					ctx.strokeStyle = '#ff2626';
+					ctx.stroke();
+
+					ctx.fillStyle = '#ff0000';
+					ctx.fillRect(-5, -60 + player.arrowing * 25, 10, 30);
+
+					// ctx.beginPath();
+					// ctx.fillStyle = '#7d7d7d';
+					// ctx.strokeStyle = '#363636';
+					// ctx.lineWidth = 2;
+					// ctx.arc(15 , (-player.radius - 20) , (player.radius / 3.5), 0, Math.PI * 2);
+					// ctx.fill();
+					// ctx.stroke();
+					// ctx.beginPath();
+					// ctx.arc(12 , (-player.radius - 8 + player.arrowing * 25), (player.radius / 3.5) , 0, Math.PI * 2);
+					// ctx.fill();
+					// ctx.stroke();
+				}
 
 				// ctx.restore();
 				ctx.rotate(-(player.interpAngle + Math.PI / 2));
@@ -686,11 +781,11 @@ try {
 					ctx.fill();
 					ctx.globalAlpha = 1;
 				}
-				ctx.fillStyle = 'white';
+				ctx.fillStyle = 'black';
 				ctx.textAlign = 'center';
 				ctx.textBaseline = 'middle'
-				ctx.font = '22px Trebuchet MS'
-				ctx.fillText(player.name, pos.x, pos.y)
+				ctx.font = '22px Arial'
+				ctx.fillText(`Agent ${player.name}`, pos.x, pos.y + player.radius * 1.5)
 
 				// if (playerId === selfId) {
 				// ctx.beginPath();
@@ -717,16 +812,16 @@ try {
 			ctx.globalAlpha = 1;
 
 			ctx.globalAlpha = killedNotifTime;
-			ctx.fillStyle = '#080808';
-			ctx.fillRect(600, 700, 400, 50);
+			ctx.fillStyle = '#0d0d0d';
+			// ctx.fillRect(600, 700, 400, 50);
 			ctx.textAlign = 'left';
 			ctx.textBaseline = 'middle';
 			ctx.fillStyle = 'rgb(255, 0, 0)';
-			ctx.font = '30px Arial'
-			ctx.fillText(`Eliminiated`, 650, 725)
+			ctx.font = '20px Arial'
+			ctx.fillText(`Eliminiated`, 700, 725)
 			const xOff = ctx.measureText('Eliminated ').width;
-			ctx.fillStyle = 'white'
-			ctx.fillText(` Agent ${killedPlayerName}`, 650 + xOff, 725);
+			ctx.fillStyle = 'black'
+			ctx.fillText(` Agent ${killedPlayerName}`, 700 + xOff, 725);
 			ctx.globalAlpha = 1;
 
 			// if (players[selfId].ray != null) {

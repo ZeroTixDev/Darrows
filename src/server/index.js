@@ -40,12 +40,13 @@ server.on('upgrade', (request, socket, head) => {
 
 const players = {};
 const clients = {};
+const arrows = {}
 const arena = {
 	width: 2000,
 	height: 1500,
 };
 const spacings = [];
-const tickRate = 60;
+// const tickRate = 60;
 const pingRate = 10;
 const updateRate = 60;
 const startTime = Date.now();
@@ -98,7 +99,7 @@ function lowest(arr) {
 
 setInterval(() => {
 	ServerTick()
-}, 1000 / tickRate);
+}, 16);
 
 setInterval(() => {
 	for (const clientId of Object.keys(clients)) {
@@ -113,7 +114,7 @@ wss.on('connection', (socket, _request) => {
 	const clientId = createId();
 	clients[clientId] = socket;
 	pings[clientId] = 0;
-	players[clientId] = new Player();
+	players[clientId] = new Player(clientId);
 
 	console.log('new client', clientId);
 
@@ -219,41 +220,63 @@ function newMessage(obj, socket, clientId) {
 function updateWorld() {
 
 	for (const playerId of Object.keys(players)) {
-		updatePlayer(players[playerId], players[playerId].input, arena)
+		updatePlayer(players[playerId], players[playerId].input, arena, arrows)
+	}
+
+	const dIds = [];
+	for (const arrowId of Object.keys(arrows)) {
+		const arrow = arrows[arrowId]
+		if (!arrow.dead) {
+			arrow.x += Math.cos(arrow.angle) * (arrow.speed * (60 * (1 / 60)));
+			arrow.y += Math.sin(arrow.angle) * (arrow.speed * (60 * (1 / 60)));
+		}
+		arrow.life -= 1 / 60;
+		if (arrow.life <= 0.5) {
+			arrow.alpha = Math.max((arrow.life * 2) / 1, 0);
+		}
+		if (!arrow.dead && (arrow.x - arrow.radius < 0 || arrow.x + arrow.radius > arena.width || arrow.y - arrow.radius < 0 || arrow.y + arrow.radius > arena.height)) {
+			// arrow.life = 0;
+			arrow.dead = true;
+			arrow.life = Math.min(arrow.life, 0.5);
+		}
+		if (arrow.dead) {
+			arrow.radius += 20 * (1/60)
+		}
+		if (arrow.life <= 0) {
+			dIds.push(arrowId)
+			// player.arrows.splice(i, 1);
+		}
+	}
+
+	for (const id of dIds) {
+		delete arrows[id]
+		// console.log('arrows length', Object.keys(arrows).length)
 	}
 	// check arrow collison
 	// very expensive operation
 	// todo fix speed :D
-	for (const playerId of Object.keys(players)) {
-		const { arrows } = players[playerId];
-		for (const otherId of Object.keys(players)) {
-			if (playerId === otherId) continue;
-			const player = players[otherId];
-			for (let i = 0; i < arrows.length; i++) {
-				const arrow = arrows[i];
-				const distX = arrow.x - player.x;
-				const distY = arrow.y - player.y;
-				const dist = distX * distX + distY * distY;
-				if (dist < (arrow.radius + player.radius) ** 2) {
-					// collision
-					players[otherId].dying = true;
-					setTimeout(() => {
-						if (players[otherId]) {
-							players[otherId].spawn()
-						}
-					}, 500)
-					arrows.splice(i, 1);
-					// broadcast({
-					// 	hitPos: { x: arrow.x, y: arrow.y },
-					// 	hitId: Math.random(),
-					// })
-					send(clients[otherId], {
-						arrowHit: true,
-					});
-					send(clients[playerId], {
-						kill: players[otherId].name,
+	for (const arrowId of Object.keys(arrows)) {
+		const arrow = arrows[arrowId]
+		for (const playerId of Object.keys(players)) {
+			if (playerId === arrow.parent) continue;
+			const player = players[playerId];
+			const distX = arrow.x - player.x;
+			const distY = arrow.y - player.y;
+			const dist = distX * distX + distY * distY;
+			if (!arrow.dead && dist < (arrow.radius + player.radius) ** 2) {
+				// collision
+				player.dying = true;
+				setTimeout(() => {
+					if (players[playerId]) {
+						players[playerId].spawn()
+					}
+				}, 500)
+				arrow.dead = true;
+				arrow.life = Math.min(arrow.life, 0.5);
+				if (clients[arrow.parent]) {
+					send(clients[arrow.parent], {
+						kill: players[playerId].name,
 					})
-					break;
 				}
 			}
 		}
@@ -302,7 +325,7 @@ function takeSnapshots() {
 
 
 function sendWorldState() {
-	const state = { players: [] };
+	const state = { players: [], arrows };
 
 	for (const clientId of Object.keys(clients)) {
 		const player = players[clientId];
@@ -328,7 +351,7 @@ function sendWorldState() {
 		lastSentPackageTime = Date.now();
 	}
 
-	broadcast({ type: 'state', data: state, spacing: [lowest(spacings).toFixed(1), avg(spacings).toFixed(1), highest(spacings).toFixed(1)],  });
+	broadcast({ type: 'state', data: state, spacing: [lowest(spacings).toFixed(1), avg(spacings).toFixed(1), highest(spacings).toFixed(1)], });
 
 	// console.log(state)
 
