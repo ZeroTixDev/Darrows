@@ -94,8 +94,8 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		if (player.angle < -Math.PI) {
 			player.angle += Math.PI * 2
 		}
-		player.xv *= Math.pow(0.7, (1 / 60) * 60);
-		player.yv *= Math.pow(0.7, (1 / 60) * 60);
+		player.xv *= Math.pow(0.72, (1 / 60) * 60);
+		player.yv *= Math.pow(0.72, (1 / 60) * 60);
 		if (!input.space) {
 			player.spaceLock = false;
 		}
