@@ -362,67 +362,85 @@ try {
 
 	let lastTime = window.performance.now()
 
-		; (function run() {
-			try {
-				requestAnimationFrame(run);
-				update((window.performance.now() - lastTime) / 1000);
-				window.delta = getDelta(lastTime);
-				window.redness -= ((window.performance.now() - lastTime) / 1000) * 1.5;
-				if (window.redness <= 0) {
-					window.redness = 0;
-				}
-				killedNotifTime -= ((window.performance.now() - lastTime) / 1000) * 1.5;
-				if (killedNotifTime <= 0) {
-					killedNotifTime = 0;
-				}
-				lastTime = window.performance.now();
+	let xoff = 0;
+	let yoff = 0;
 
 
-				for (const playerId of Object.keys(players)) {
-					players[playerId].smooth(delta, playerId === selfId)
-				}
-
-				for (const arrowId of Object.keys(arrows)) {
-					arrows[arrowId].smooth(delta)
-				}
-
-				if (players[selfId] != undefined) {
-					if (camera.x == null) {
-						camera.x = players[selfId].pos.x;
-					}
-					if (camera.y == null) {
-						camera.y = players[selfId].pos.y;
-					}
-
-					// if (!players[selfId].arrowing) {
-						camera.x = players[selfId].pos.x;
-						camera.y = players[selfId].pos.y;
-					// } else {
-					// 	camera.x += (players[selfId].pos.x + Math.cos(players[selfId].interpAngle) * 50 - camera.x) * delta / 2;
-					// 	camera.y += (players[selfId].pos.y + Math.sin(players[selfId].interpAngle) * 50 - camera.y) * delta / 2;
-					// }
-				}
-
-				// if (players[selfId] != null) {
-				// 	players[selfId].ray.setRay({ x: players[selfId].pos.x, y: players[selfId].pos.y }, window.angle);
-				// // }
-				// for (const playerId of Object.keys(players)) {
-				// 	// if (playerId === selfId) continue;
-				// 	players[playerId].ray.setRay({ x: players[playerId].pos.x, y: players[playerId].pos.y, }, players[playerId].interpAngle);
-				// }
-				// window.data = Object.keys(players).map((id) => {
-				// 	return players[id].angle;
-				// })
-				// simulateRotator();
-				// const dt = Math.min(delta * 20, 1);
-				// rotator.x = lerp(rotator.x, rotator.sx, delta);
-				// rotator.y = lerp(rotator.y, rotator.sy, delta)
-				render();
-			} catch (err) {
-				document.body.innerHTML = `${err}`
-				console.error(err)
+	; (function run() {
+		try {
+			requestAnimationFrame(run);
+			update((window.performance.now() - lastTime) / 1000);
+			const diff = (window.performance.now() - lastTime) / 1000;
+			window.delta = getDelta(lastTime);
+			window.redness -= ((window.performance.now() - lastTime) / 1000) * 1.5;
+			if (window.redness <= 0) {
+				window.redness = 0;
 			}
-		})()
+			killedNotifTime -= ((window.performance.now() - lastTime) / 1000) * 1.5;
+			if (killedNotifTime <= 0) {
+				killedNotifTime = 0;
+			}
+			lastTime = window.performance.now();
+
+
+			for (const playerId of Object.keys(players)) {
+				players[playerId].smooth(delta, playerId === selfId)
+			}
+
+			for (const arrowId of Object.keys(arrows)) {
+				arrows[arrowId].smooth(delta)
+			}
+
+			if (players[selfId] != undefined) {
+				if (camera.x == null) {
+					camera.x = players[selfId].pos.x;
+				}
+				if (camera.y == null) {
+					camera.y = players[selfId].pos.y;
+				}
+
+				// if (!players[selfId].arrowing) {
+				camera.x = players[selfId].pos.x;
+				camera.y = players[selfId].pos.y;
+
+				let targetX = 0;
+				let targetY = 0;
+				if (players[selfId].arrowing) {
+					targetX = -Math.cos(players[selfId].interpAngle) * 75;
+					targetY = -Math.sin(players[selfId].interpAngle) * 75;
+				} else {
+					targetX = 0;
+					targetY = 0;
+				}
+				const dtC = Math.min(diff, 1);
+				xoff = lerp(xoff, targetX, dtC);
+				yoff = lerp(yoff, targetY, dtC)
+				// } else {
+				// 	camera.x += (players[selfId].pos.x + Math.cos(players[selfId].interpAngle) * 50 - camera.x) * delta / 2;
+				// 	camera.y += (players[selfId].pos.y + Math.sin(players[selfId].interpAngle) * 50 - camera.y) * delta / 2;
+				// }
+			}
+
+			// if (players[selfId] != null) {
+			// 	players[selfId].ray.setRay({ x: players[selfId].pos.x, y: players[selfId].pos.y }, window.angle);
+			// // }
+			// for (const playerId of Object.keys(players)) {
+			// 	// if (playerId === selfId) continue;
+			// 	players[playerId].ray.setRay({ x: players[playerId].pos.x, y: players[playerId].pos.y, }, players[playerId].interpAngle);
+			// }
+			// window.data = Object.keys(players).map((id) => {
+			// 	return players[id].angle;
+			// })
+			// simulateRotator();
+			// const dt = Math.min(delta * 20, 1);
+			// rotator.x = lerp(rotator.x, rotator.sx, delta);
+			// rotator.y = lerp(rotator.y, rotator.sy, delta)
+			render();
+		} catch (err) {
+			document.body.innerHTML = `${err}`
+			console.error(err)
+		}
+	})()
 
 
 	// function simulateRotator() {
@@ -561,12 +579,6 @@ try {
 	function offset(x, y) {
 		const player = players[selfId];
 		if (!player) return;
-		let xoff = 0;
-		let yoff = 0;
-		if (player.arrowing) {
-			xoff = -Math.cos(players[selfId].interpAngle) * 50;
-			yoff = -Math.sin(players[selfId].interpAngle) * 50;
-		}
 		return {
 			x: x - (camera.x) + canvas.width / 2 + xoff,
 			y: y - (camera.y) + canvas.height / 2 + yoff,

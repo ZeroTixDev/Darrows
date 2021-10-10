@@ -44,7 +44,8 @@ const players = {};
 const clients = {};
 const arrows = {};
 const obstacles = [ 
-	new Obstacle(750, 500, 500, 500)
+	new Obstacle(750, 500, 100, 500),
+	new Obstacle(1150, 500, 100, 500),
 ]
 const arena = {
 	width: 2000,
