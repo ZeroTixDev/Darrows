@@ -32,7 +32,7 @@ function createArrow(player) {
 		angle: player.angle,
 		radius: 10,
 		life: 1.5,
-		speed: 10 + (player.arrowing / 3) * 18,
+		speed: 10 + (player.arrowing / 3) * 20,
 		alpha: 1,
 		dead: false,
 		parent: player.id,

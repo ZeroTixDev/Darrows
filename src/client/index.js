@@ -873,6 +873,32 @@ try {
 			ctx.globalAlpha = 1;
 
 
+			// minimap
+			
+			const mwidth = 200;
+			const mheight = 200;
+			
+			ctx.globalAlpha = 0.5;
+			ctx.fillStyle = '#707070';
+			ctx.fillRect(0, canvas.height - mheight, mwidth, mheight);
+
+			ctx.fillStyle = '#595959'
+			for (const { x, y ,width, height } of obstacles) {
+				ctx.fillRect((x/arena.width) * mwidth, (canvas.height - mheight) + (y/arena.height) * mheight, (width/arena.width) * mwidth, (height/arena.height) * mheight)
+			}
+
+			ctx.fillStyle = '#303030';
+			for (const player of Object.values(players)) {
+				ctx.beginPath();
+				ctx.arc((player.pos.x/arena.width) * mwidth, (canvas.height - mheight) + (player.pos.y/arena.height) * mheight, 5, 0, Math.PI * 2)
+				ctx.fill()
+			}
+
+			ctx.globalAlpha = 1;
+			//text		
+
+
+
 			ctx.font = '18px Arial'
 
 			ctx.fillStyle = 'black';
@@ -881,8 +907,10 @@ try {
 				ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}]`, 10, 870);
 				ctx.fillText(`GlobalTick#${tick} | Extralag: ${extraLag} | ServerPing[Tick]: ${serverPing} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length}`, 10, 840)
 			}
-			ctx.font = '20px Arial'
-			ctx.fillText(`Eliminations: ${_kills}`, 20, 20);
+			ctx.font = '25px Arial'
+			
+			ctx.fillText(`x${_kills}`, canvas.width - 10 - ctx.measureText(`x${_kills}`).width, canvas.height - 20);
+
 			// if (players[selfId].ray != null) {
 			// data.push({ type: 'line',  start: { x: arena.width, y: 0 }, end: { x: arena.width, y: arena.height }});
 
