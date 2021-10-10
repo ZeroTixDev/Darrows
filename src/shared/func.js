@@ -31,7 +31,7 @@ function createArrow(player) {
 		y: player.y + Math.sin(player.angle) * (player.radius - player.arrowing * 20),
 		angle: player.angle,
 		radius: 10,
-		life: 1.5,
+		life: 2.5,
 		speed: 8 + (player.arrowing / 3) * 22,
 		alpha: 1,
 		dead: false,
@@ -59,10 +59,10 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 				player.arrowing = 3;
 			}
 			if (input.arrowLeft) {
-				player.angleVel -= 2.8 * (1 / 60);
+				player.angleVel -= 2.9 * (1 / 60);
 			}
 			if (input.arrowRight) {
-				player.angleVel += 2.8 * (1 / 60);
+				player.angleVel += 2.9 * (1 / 60);
 			}
 			player.angle += player.angleVel;
 			player.angleVel = 0;
