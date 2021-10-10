@@ -394,13 +394,13 @@ try {
 						camera.y = players[selfId].pos.y;
 					}
 
-					if (!players[selfId].arrowing) {
+					// if (!players[selfId].arrowing) {
 						camera.x = players[selfId].pos.x;
 						camera.y = players[selfId].pos.y;
-					} else {
-						camera.x += (players[selfId].pos.x + Math.cos(players[selfId].interpAngle) * 50 - camera.x) * delta / 2;
-						camera.y += (players[selfId].pos.y + Math.sin(players[selfId].interpAngle) * 50 - camera.y) * delta / 2;
-					}
+					// } else {
+					// 	camera.x += (players[selfId].pos.x + Math.cos(players[selfId].interpAngle) * 50 - camera.x) * delta / 2;
+					// 	camera.y += (players[selfId].pos.y + Math.sin(players[selfId].interpAngle) * 50 - camera.y) * delta / 2;
+					// }
 				}
 
 				// if (players[selfId] != null) {
@@ -561,9 +561,15 @@ try {
 	function offset(x, y) {
 		const player = players[selfId];
 		if (!player) return;
+		let xoff = 0;
+		let yoff = 0;
+		if (player.arrowing) {
+			xoff = -Math.cos(players[selfId].interpAngle) * 75;
+			yoff = -Math.sin(players[selfId].interpAngle) * 75;
+		}
 		return {
-			x: x - (camera.x) + canvas.width / 2,
-			y: y - (camera.y) + canvas.height / 2,
+			x: x - (camera.x) + canvas.width / 2 + xoff,
+			y: y - (camera.y) + canvas.height / 2 + yoff,
 		};
 	}
 
