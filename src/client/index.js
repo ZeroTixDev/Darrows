@@ -564,8 +564,8 @@ try {
 		let xoff = 0;
 		let yoff = 0;
 		if (player.arrowing) {
-			xoff = -Math.cos(players[selfId].interpAngle) * 75;
-			yoff = -Math.sin(players[selfId].interpAngle) * 75;
+			xoff = -Math.cos(players[selfId].interpAngle) * 50;
+			yoff = -Math.sin(players[selfId].interpAngle) * 50;
 		}
 		return {
 			x: x - (camera.x) + canvas.width / 2 + xoff,
