@@ -32,7 +32,7 @@ function createArrow(player) {
 		angle: player.angle,
 		radius: 10,
 		life: 1.5,
-		speed: 10 + (player.arrowing / 3) * 15,
+		speed: 10 + (player.arrowing / 3) * 18,
 		alpha: 1,
 		dead: false,
 		parent: player.id,
@@ -42,8 +42,8 @@ function createArrow(player) {
 function updatePlayer(player, input, arena, obstacles, arrows) {
 	if (!player) return;
 	if (!player.dying) {
-		player.xv += (input.right - input.left) * ((player.arrowing > 0 ? 70: 100) * 1 / 60);
-		player.yv += (input.down - input.up) * ((player.arrowing > 0 ? 70: 100) * 1 / 60);
+		player.xv += (input.right - input.left) * ((player.arrowing > 0 ? 70: 110) * 1 / 60);
+		player.yv += (input.down - input.up) * ((player.arrowing > 0 ? 70: 110) * 1 / 60);
 		// if (input.space && player.timer <= 0) { // spacelock isnt being used rn
 		// 	// create arrowx
 		// 	player.xv -= Math.cos(player.angle) * 5;
@@ -94,8 +94,8 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		if (player.angle < -Math.PI) {
 			player.angle += Math.PI * 2
 		}
-		player.xv *= Math.pow(0.65, (1 / 60) * 60);
-		player.yv *= Math.pow(0.65, (1 / 60) * 60);
+		player.xv *= Math.pow(0.7, (1 / 60) * 60);
+		player.yv *= Math.pow(0.7, (1 / 60) * 60);
 		if (!input.space) {
 			player.spaceLock = false;
 		}

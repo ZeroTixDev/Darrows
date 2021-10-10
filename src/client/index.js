@@ -406,8 +406,8 @@ try {
 				let targetX = 0;
 				let targetY = 0;
 				if (players[selfId].arrowing) {
-					targetX = -Math.cos(players[selfId].interpAngle) * 100;
-					targetY = -Math.sin(players[selfId].interpAngle) * 100;
+					targetX = -Math.cos(players[selfId].interpAngle) * 75;
+					targetY = -Math.sin(players[selfId].interpAngle) * 75;
 				} else {
 					targetX = 0;
 					targetY = 0;
@@ -671,16 +671,18 @@ try {
 				ctx.lineWidth = 4;
 				// ctx.beginPath();
 				const pos = offset(x, y);
-				// ctx.beginPath()
-				// ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-				// ctx.fill()
+			
 				ctx.translate(pos.x, pos.y);
 				ctx.rotate(angle + Math.PI / 2);
 				ctx.fillStyle = '#ff0000';
-				ctx.fillRect(-5, -15, 10, 30);
+				ctx.fillRect(-6.25, -18.75, 12.5, 37.5);
 				ctx.rotate(-(angle + Math.PI / 2));
 				ctx.translate(-pos.x, -pos.y);
 
+				// ctx.fillStyle = 'black'
+				// 	ctx.beginPath()
+				// ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+				// ctx.fill()
 				if (window.showSnapshots) {
 					const pos = offset(arrows[arrowId].x, arrows[arrowId].y);
 					ctx.globalAlpha = 0.5;

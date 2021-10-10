@@ -2,7 +2,7 @@ const { createInput } = require('../shared/func.js');
 
 module.exports = class Player {
 	constructor(id) {
-		this.radius = 45;
+		this.radius = 40;
 		this.x = Math.round(Math.random() * 2000) + this.radius
 		this.y = Math.round(Math.random() * 1500) + this.radius
 		this.xv = 0;
@@ -37,7 +37,7 @@ module.exports = class Player {
 		this.timer = 0;
 		this.dying = false;
 		this.respawn = false;
-		this.radius = 45;
+		this.radius = 40;
 		this.arrowing = false;
 		this.timer = 0;
 	}
