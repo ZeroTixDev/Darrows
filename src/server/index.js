@@ -4,6 +4,7 @@ const {
 	collidePlayers,
 	createInput,
 	updatePlayer,
+	collideArrowObstacle,
 } = require('../shared/func.js');
 const Raycast = require('../shared/raycast.js');
 const express = require('express');
@@ -14,6 +15,7 @@ const uuid = require('uuid');
 // const Loop = require('accurate-game-loop')
 // const gameloop = require('node-gameloop')
 const Player = require('./player.js');
+const Obstacle = require('./obstacle.js');
 const wss = new WebSocket.Server({
 	noServer: true
 });
@@ -40,7 +42,10 @@ server.on('upgrade', (request, socket, head) => {
 
 const players = {};
 const clients = {};
-const arrows = {}
+const arrows = {};
+const obstacles = [ 
+	new Obstacle(750, 500, 500, 500)
+]
 const arena = {
 	width: 2000,
 	height: 1500,
@@ -122,6 +127,7 @@ wss.on('connection', (socket, _request) => {
 		type: 'init',
 		players: _allPlayerPacks(),
 		arena,
+		obstacles: obstacles.map((ob) => ob.pack()),
 		selfId: clientId,
 		tick: presentTick(),
 	});
@@ -220,7 +226,7 @@ function newMessage(obj, socket, clientId) {
 function updateWorld() {
 
 	for (const playerId of Object.keys(players)) {
-		updatePlayer(players[playerId], players[playerId].input, arena, arrows)
+		updatePlayer(players[playerId], players[playerId].input, arena, obstacles, arrows)
 	}
 
 	const dIds = [];
@@ -278,9 +284,22 @@ function updateWorld() {
 						kill: players[playerId].name,
 					})
 				}
+				send(clients[playerId], {
+					arrowHit: true,
+				})
+			}
+		}
+		if (!arrow.dead) {
+			for (const obstacle of obstacles) {
+				if (collideArrowObstacle(arrow, obstacle).type) {
+					arrow.dead = true;
+					arrow.life = Math.min(arrow.life, 0.5)
+				}
 			}
 		}
 	}
+
+	
 }
 // for (const id of Object.keys(inputMessages)) {
 // 	inputMessages[id] = []

@@ -169,6 +169,7 @@ try {
 
 	const players = {};
 	const arrows = {}
+	let obstacles = []
 	// const unconfirmed_inputs = [];
 	const input = createInput();
 	// let lastSentInput;
@@ -195,6 +196,8 @@ try {
 	let angle = 0;
 	let serverSpacing = Array(3).fill(0)
 	let messages = [];
+
+	const camera = { x: null, y: null }
 
 	// const rotator = { x: 0, y: 0, sx: 0, sy: 0, buffer: [], canUpdate: false };
 	window.extraLag = 0;
@@ -251,6 +254,9 @@ try {
 			tickOffset = obj.tick;
 			tick = obj.tick;
 			arena = obj.arena;
+			obstacles = obj.obstacles;
+			// camera.x = players[selfId].pos.x;
+			// camera.y = players[selfId].pos.y;
 		}
 		// if (obj.hitId) {
 		// 	if (hits[obj.hitId] == null) {
@@ -380,6 +386,23 @@ try {
 					arrows[arrowId].smooth(delta)
 				}
 
+				if (players[selfId] != undefined) {
+					if (camera.x == null) {
+						camera.x = players[selfId].pos.x;
+					}
+					if (camera.y == null) {
+						camera.y = players[selfId].pos.y;
+					}
+
+					if (!players[selfId].arrowing) {
+						camera.x = players[selfId].pos.x;
+						camera.y = players[selfId].pos.y;
+					} else {
+						camera.x += (players[selfId].pos.x + Math.cos(players[selfId].interpAngle) * 50 - camera.x) * delta / 2;
+						camera.y += (players[selfId].pos.y + Math.sin(players[selfId].interpAngle) * 50 - camera.y) * delta / 2;
+					}
+				}
+
 				// if (players[selfId] != null) {
 				// 	players[selfId].ray.setRay({ x: players[selfId].pos.x, y: players[selfId].pos.y }, window.angle);
 				// // }
@@ -397,6 +420,7 @@ try {
 				render();
 			} catch (err) {
 				document.body.innerHTML = `${err}`
+				console.error(err)
 			}
 		})()
 
@@ -538,8 +562,8 @@ try {
 		const player = players[selfId];
 		if (!player) return;
 		return {
-			x: x - player.pos.x + canvas.width / 2,
-			y: y - player.pos.y + canvas.height / 2,
+			x: x - (camera.x) + canvas.width / 2,
+			y: y - (camera.y) + canvas.height / 2,
 		};
 	}
 
@@ -581,16 +605,7 @@ try {
 
 			window.data = clientShotPlayers;
 
-			ctx.font = '18px Arial'
 
-			ctx.fillStyle = 'black';
-			ctx.textAlign = 'left'
-			if (window.debug) {
-				ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}]`, 10, 870);
-				ctx.fillText(`GlobalTick#${tick} | Extralag: ${extraLag} | ServerPing[Tick]: ${serverPing} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length}`, 10, 840)
-			}
-			ctx.font = '20px Arial'
-			ctx.fillText(`Eliminations: ${_kills}`, 20, 20);
 			if (window.showSnapshots) {
 				ctx.globalAlpha = 0.5;
 				for (const playerId of Object.keys(shotPlayers)) {
@@ -621,6 +636,11 @@ try {
 				ctx.globalAlpha = 1;
 			}
 
+			for (const { x, y, width, height } of obstacles) {
+				const pos = offset(x, y);
+				ctx.fillStyle = '#b3b3b3';
+				ctx.fillRect(pos.x, pos.y, width, height)
+			}
 
 			for (const arrowId of Object.keys(arrows)) {
 				// console.log(arrows[arrowId])
@@ -746,6 +766,14 @@ try {
 					ctx.lineTo(Math.cos(1.75 * Math.PI) * (60), Math.sin(1.75 * Math.PI) * (60));
 					ctx.stroke();
 
+					ctx.globalAlpha = 0.5;
+					ctx.beginPath();
+					ctx.strokeStyle = '#ff0000'
+					ctx.lineTo(0, -60 + player.arrowing * 25);
+					ctx.lineTo(0, -150);
+					ctx.stroke();
+					ctx.globalAlpha = 1;
+
 					ctx.beginPath();
 					ctx.arc(0, 0, 60, 1.25 * Math.PI, 1.75 * Math.PI, false);
 					ctx.lineWidth = 5;
@@ -824,6 +852,17 @@ try {
 			ctx.fillText(` Agent ${killedPlayerName}`, 700 + xOff, 725);
 			ctx.globalAlpha = 1;
 
+
+			ctx.font = '18px Arial'
+
+			ctx.fillStyle = 'black';
+			ctx.textAlign = 'left'
+			if (window.debug) {
+				ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}]`, 10, 870);
+				ctx.fillText(`GlobalTick#${tick} | Extralag: ${extraLag} | ServerPing[Tick]: ${serverPing} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length}`, 10, 840)
+			}
+			ctx.font = '20px Arial'
+			ctx.fillText(`Eliminations: ${_kills}`, 20, 20);
 			// if (players[selfId].ray != null) {
 			// data.push({ type: 'line',  start: { x: arena.width, y: 0 }, end: { x: arena.width, y: arena.height }});
 

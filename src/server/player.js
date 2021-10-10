@@ -3,8 +3,8 @@ const { createInput } = require('../shared/func.js');
 module.exports = class Player {
 	constructor(id) {
 		this.radius = 45;
-		this.x = Math.round(Math.random() * 500) + this.radius
-		this.y = Math.round(Math.random() * 500) + this.radius
+		this.x = Math.round(Math.random() * 2000) + this.radius
+		this.y = Math.round(Math.random() * 1500) + this.radius
 		this.xv = 0;
 		this.yv = 0;
 		this.id = id;
@@ -28,8 +28,8 @@ module.exports = class Player {
 		return false;
 	}
 	spawn() {
-		this.x = Math.round(Math.random() * 500) + this.radius
-		this.y = Math.round(Math.random() * 500) + this.radius
+		this.x = Math.round(Math.random() * 2000) + this.radius
+		this.y = Math.round(Math.random() * 1500) + this.radius
 		this.xv = 0;
 		this.yv = 0;
 		this.angleVel = 0;

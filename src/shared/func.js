@@ -1,7 +1,9 @@
 
-function createInput() {
-	return { up: false, right: false, left: false, down: false, arrowLeft: false, arrowRight: false, space: false }
-}
+	const { Circle, Vector, Response, testPolygonCircle } = require('sat')
+
+const createInput = require('./createInput.js')
+
+
 
 // console.log('example input', createInput())
 
@@ -30,18 +32,18 @@ function createArrow(player) {
 		angle: player.angle,
 		radius: 10,
 		life: 1.5,
-		speed: 10 + (player.arrowing / 3) * 10,
+		speed: 10 + (player.arrowing / 3) * 15,
 		alpha: 1,
 		dead: false,
 		parent: player.id,
 	}
 }
 
-function updatePlayer(player, input, arena, arrows) {
+function updatePlayer(player, input, arena, obstacles, arrows) {
 	if (!player) return;
 	if (!player.dying) {
-		player.xv += (input.right - input.left) * (160 * 1 / 60);
-		player.yv += (input.down - input.up) * (160 * 1 / 60);
+		player.xv += (input.right - input.left) * ((player.arrowing > 0 ? 70: 100) * 1 / 60);
+		player.yv += (input.down - input.up) * ((player.arrowing > 0 ? 70: 100) * 1 / 60);
 		// if (input.space && player.timer <= 0) { // spacelock isnt being used rn
 		// 	// create arrowx
 		// 	player.xv -= Math.cos(player.angle) * 5;
@@ -57,10 +59,10 @@ function updatePlayer(player, input, arena, arrows) {
 				player.arrowing = 3;
 			}
 			if (input.arrowLeft) {
-				player.angleVel -= 3 * (1 / 60);
+				player.angleVel -= Math.PI * (1 / 60);
 			}
 			if (input.arrowRight) {
-				player.angleVel += 3 * (1 / 60);
+				player.angleVel += Math.PI * (1 / 60);
 			}
 			player.angle += player.angleVel;
 			player.angleVel = 0;
@@ -74,7 +76,7 @@ function updatePlayer(player, input, arena, arrows) {
 			player.arrowing = 0;
 		}
 
-		player.timer -= (1/60);
+		player.timer -= (1 / 60);
 		if (player.timer <= 0) {
 			player.timer = 0;
 		}
@@ -105,12 +107,41 @@ function updatePlayer(player, input, arena, arrows) {
 			player.respawn = true;
 		}
 	}
+
+	for (const obstacle of obstacles) {
+		boundPlayerObstacle(player, obstacle)
+	}
+
+
 	boundPlayer(player, arena)
+
+
+
+
 	player.timer -= 1 / 60;
 	if (player.timer <= 0) {
 		player.timer = 0;
 	}
 	// boundPlayer(player);
+}
+
+
+function boundPlayerObstacle(player, obstacle) {
+	const rectHalfSizeX = obstacle.width / 2;
+	const rectHalfSizeY = obstacle.height / 2;
+	const rectCenterX = obstacle.x + rectHalfSizeX;
+	const rectCenterY = obstacle.y + rectHalfSizeY;
+	const distX = Math.abs(player.x - rectCenterX);
+	const distY = Math.abs(player.y - rectCenterY);
+	if (distX < rectHalfSizeX + player.radius && distY < rectHalfSizeY + player.radius) {
+		const playerSat = new Circle(new Vector(player.x, player.y), player.radius);
+		const res = new Response();
+		const collision = testPolygonCircle(obstacle.sat, playerSat, res);
+		if (collision) {
+			player.x += res.overlapV.x;
+			player.y += res.overlapV.y;
+		}
+	}
 }
 
 function collidePlayers(players) {
@@ -155,6 +186,24 @@ function boundPlayer(player, arena) {
 	}
 }
 
+function collideArrowObstacle(arrow, obstacle) {
+	const rectHalfSizeX = obstacle.width / 2;
+	const rectHalfSizeY = obstacle.height / 2;
+	const rectCenterX = obstacle.x + rectHalfSizeX;
+	const rectCenterY = obstacle.y + rectHalfSizeY;
+	const distX = Math.abs(arrow.x - rectCenterX);
+	const distY = Math.abs(arrow.y - rectCenterY);
+	if (distX < rectHalfSizeX + arrow.radius && distY < rectHalfSizeY + arrow.radius) {
+		const arrowSat = new Circle(new Vector(arrow.x, arrow.y), arrow.radius);
+		const res = new Response();
+		const collision = testPolygonCircle(obstacle.sat, arrowSat, res);
+		if (collision) {
+			return { type: true, data: res };
+		}
+	}
+	return { type: false };
+}
+
 if (module) {
-	module.exports = { updatePlayer, copyInput, boundPlayer, collidePlayers, createInput }
+	module.exports = { updatePlayer, copyInput, boundPlayer, collideArrowObstacle, collidePlayers, createInput }
 }
