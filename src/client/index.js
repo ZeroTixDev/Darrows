@@ -406,13 +406,13 @@ try {
 				let targetX = 0;
 				let targetY = 0;
 				if (players[selfId].arrowing) {
-					targetX = -Math.cos(players[selfId].interpAngle) * 75;
-					targetY = -Math.sin(players[selfId].interpAngle) * 75;
+					targetX = -Math.cos(players[selfId].interpAngle) * 100;
+					targetY = -Math.sin(players[selfId].interpAngle) * 100;
 				} else {
 					targetX = 0;
 					targetY = 0;
 				}
-				const dtC = Math.min(diff, 1);
+				const dtC = Math.min(diff * 2, 1);
 				xoff = lerp(xoff, targetX, dtC);
 				yoff = lerp(yoff, targetY, dtC)
 				// } else {
