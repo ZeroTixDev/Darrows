@@ -17,19 +17,21 @@ try {
 
 	window.redness = 0;
 
+	let chatOpen = false;
+
 	let killedPlayerName = '';
 	let killedNotifTime = 0;
 	let _kills = 0;
 
-	const canvas = document.createElement('canvas');
+	const gui = ref.gui
+	const canvas = ref.canvas
 	const ctx = canvas.getContext('2d')
 	const width = 1600;
 	const height = 900;
 	const updateRate = 60;
 	canvas.width = width;
 	canvas.height = height;
-	resizeCanvas(canvas)
-	document.body.appendChild(canvas);
+	resize([canvas, gui])
 	const inputs = ["KeyW", "KeyA", "KeyS", "KeyD"];
 	const inputCodes = {
 		[inputs[0]]: { key: "up" },
@@ -58,6 +60,28 @@ try {
 
 	function trackKeys(event) {
 		if (event.repeat) return;
+		if (event.code === 'Enter') {
+			if (chatOpen) {
+				if (event.type === 'keydown') {
+					// close chat
+					ref.chatDiv.classList.add('hidden')
+					// send message
+					send({ chat: ref.chat.value })
+					ref.chat.value = '';
+					chatOpen = false;
+					return;
+				}
+			} else {
+				if  (event.type === 'keydown') {
+					chatOpen = true;
+					ref.chatDiv.classList.remove('hidden')
+					ref.chat.focus()
+					// open chat
+					return;
+				}
+			}
+		}
+		if (chatOpen) return;
 		if (event.code === 'KeyN' && event.type === 'keydown') {
 			window.debug = !window.debug;
 		}
@@ -125,10 +149,24 @@ try {
 	}
 
 
-	function resizeCanvas(canvas) {
-		canvas.style.transform = `scale(${Math.min(window.innerWidth / width, window.innerHeight / height)})`;
-		canvas.style.left = `${(window.innerWidth - width) / 2}px`;
-		canvas.style.top = `${(window.innerHeight - height) / 2}px`;
+	function resize(elements) {
+		for (const element of elements) {
+			if (element.width !== width) {
+				element.width = width;
+				element.style.width = `${width}px`;
+			}
+			if (element.height !== height) {
+				element.height = height;
+				element.style.height = `${height}px`;
+			}
+			element.style.transform = `scale(${
+				Math.min(window.innerWidth / width, window.innerHeight / height)
+				})`;
+			element.style.left = `${(window.innerWidth - width) / 2}px`;
+			element.style.top = `${(window.innerHeight - height) / 2}px`;
+		}
+		return Math.min(window.innerWidth / width, window.innerHeight / height);
+
 	};
 
 	function getScale() {
@@ -137,7 +175,7 @@ try {
 
 
 	window.addEventListener('resize', () => {
-		resizeCanvas(canvas)
+		resize([canvas, gui])
 	})
 
 	window.mouse = { x: 0, y: 0 };
@@ -285,6 +323,11 @@ try {
 				pung: obj.ping,
 			})
 		}
+		if (obj.type === 'chat') {
+			if (players[obj.id]) {
+				players[obj.id].chat(obj.msg)
+			}
+		}
 		if (obj.kill != undefined) {
 			_kills++;
 			killedNotifTime = 2;
@@ -385,6 +428,16 @@ try {
 
 			for (const playerId of Object.keys(players)) {
 				players[playerId].smooth(delta, playerId === selfId)
+			}
+
+			for (const playerId of Object.keys(players)) {
+				const player = players[playerId];
+
+				player.chatMessageTimer -= diff;
+				
+				if (player.chatMessageTimer <= 0) {
+					player.chatMessageTimer = 0;
+				}
 			}
 
 			for (const arrowId of Object.keys(arrows)) {
@@ -802,6 +855,12 @@ try {
 				ctx.textBaseline = 'middle'
 				ctx.font = '22px Arial'
 				ctx.fillText(`Agent ${player.name}`, pos.x, pos.y + player.radius * 1.5)
+
+				if (player.chatMessageTimer > 0) {
+					ctx.globalAlpha = player.chatMessageTimer > 0.5 ? 1: (player.chatMessageTimer * 2) / 1;
+					ctx.fillText(player.chatMessage, pos.x, pos.y - player.radius * 1.5)
+					ctx.globalAlpha = 1;
+				}
 
 				// if (playerId === selfId) {
 				// ctx.beginPath();

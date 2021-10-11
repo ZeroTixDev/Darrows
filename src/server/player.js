@@ -17,6 +17,9 @@ module.exports = class Player {
 		this.timer = 0;
 		this.angleVel = 0;
 		this.input = createInput();
+		this.chatMessage = '';
+		this.chatMessageTimer = 0;
+		this.chatMessageTime = 8;
 		this.name = `${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
 	}
 	isDifferent(player) {

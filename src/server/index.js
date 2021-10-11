@@ -134,6 +134,13 @@ wss.on('connection', (socket, _request) => {
 		tick: presentTick(),
 	});
 
+	for (const playerId of Object.keys(players)) {
+		const player = players[playerId];
+		if (player.chatMessage != '' && player.chatMessageTimer > 0) {
+			send(socket, { type: 'chat', msg: player.chatMessage, id: playerId })
+		}
+	}
+
 	broadcast({
 		type: 'newPlayer',
 		id: clientId,
@@ -205,6 +212,15 @@ function newMessage(obj, socket, clientId) {
 	if (obj.debug !== undefined) {
 		console.log(obj.debug)
 	}
+
+	if (obj.chat != undefined) {
+		if (players[clientId]) {
+			players[clientId].chatMessage = obj.chat;
+			players[clientId].chatMessageTimer = players[clientId].chatMessageTime;
+
+			broadcast({ type: 'chat', msg: obj.chat, id: clientId })
+		}
+	}
 	// if (obj.lastInput && validateInput(obj)) {
 	// 	if (inputMessages[obj.id] == null) {
 	// 		inputMessages[obj.id] = [];
@@ -229,6 +245,14 @@ function updateWorld() {
 
 	for (const playerId of Object.keys(players)) {
 		updatePlayer(players[playerId], players[playerId].input, arena, obstacles, arrows)
+	}
+
+	for (const playerId of Object.keys(players)) {
+		const player = players[playerId];
+		player.chatMessageTimer -= 1/60;
+		if (player.chatMessageTimer <= 0) {
+			player.chatMessgaeTimer = 0;
+		}
 	}
 
 	const dIds = [];

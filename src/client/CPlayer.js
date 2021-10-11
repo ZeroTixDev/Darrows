@@ -13,6 +13,13 @@ class CPlayer {
 		this.isSelf = isSelf;
 		// this.ray = new Raycast({ x: this.x, y: this.y }, 0);
 		this.interpAngle = pack.angle;
+		this.chatMessage = '';
+		this.chatMessageTimer = 0;
+		this.chatMessageTime = 8;
+	}
+	chat(msg) {
+		this.chatMessageTimer = this.chatMessageTime;
+		this.chatMessage = msg;
 	}
 	smooth(delta, isSelf) {
 
