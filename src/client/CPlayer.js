@@ -48,6 +48,9 @@ class CPlayer {
 	Snap(data) {
 		// snapshots
 		for (const key of Object.keys(data)) {
+			// if (key === 'angle' && window._predict) {
+			// 	continue;
+			// }
 			this[key] = data[key]
 		}
 

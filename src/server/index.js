@@ -365,7 +365,7 @@ function sendWorldState() {
 	if (lastSentPackageTime == null) {
 		lastSentPackageTime = Date.now();
 	} else {
-		if (spacings.length > 10) {
+		if (spacings.length > 120) {
 			spacings.shift()
 		}
 		spacings.push(Date.now() - lastSentPackageTime);

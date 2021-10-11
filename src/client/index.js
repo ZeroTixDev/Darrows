@@ -180,7 +180,7 @@ try {
 	let tickOffset;
 	let spacing = 0;
 	let spacings = [];
-	let spacingLength = 30;
+	let spacingLength = 120;
 	let lastReceivedStateTime;
 	let serverPing = -1;
 
@@ -524,50 +524,18 @@ try {
 			messages = [];
 		}
 		if (window._predict) {
-			for (const player of Object.values(players)) {
-				// player.xv += (player.input.right - player.input.left) * (160 * dt);
-				// player.yv += (player.input.down - player.input.up) * (160 * dt);
-				// player.x += player.xv;
-				// player.y += player.yv;
-
-				// player.xv *= Math.pow(0.65, dt * 60);
-				// player.yv *= Math.pow(0.65, dt * 60);
-
-				// if (player.input.arrowLeft) {
-				// 	player.angleVel -= 3 * dt;
-				// }
-				// if (player.input.arrowRight) {
-				// 	player.angleVel += 3 * dt;
-				// }
-				// player.angle += player.angleVel;
-				// player.angleVel = 0;
-
-				// player.timer -= dt;
-				// if (player.timer <= 0) {
-				// 	player.timer = 0;
-				// }
-
-				// boundPlayer(player, arena)
-
-				// for (let i = 0; i < player.arrows.length; i++) {
-				// 	const arrow = player.arrows[i];
-				// 	if (!arrow.dead) {
-				// 		arrow.x += Math.cos(arrow.angle) * (arrow.speed * (60 * dt));
-				// 		arrow.y += Math.sin(arrow.angle) * (arrow.speed * (60 * dt));
-				// 	}
-				// 	arrow.life -= dt;
-				// 	if (!arrow.dead && (arrow.x - arrow.radius < 0 || arrow.x + arrow.radius > arena.width || arrow.y - arrow.radius < 0 || arrow.y + arrow.radius > arena.height)) {
-				// 		arrow.dead = true;
-				// 		arrow.life = Math.min(arrow.life, 0.5);
-				// 	}
-				// 	if (arrow.dead) {
-				// 		arrow.radius += 20 * dt;
-				// 	}
-				// 	if (arrow.life <= 0.5) {
-				// 		arrow.alpha = Math.max((arrow.life * 2) / 1, 0);
-				// 	}
-				// }
-			}
+			// for (const player of Object.values(players)) {
+			// 	if (player.arrowing > 0) {
+			// 		if (input.arrowLeft) {
+			// 			player.angleVel -= 2.9 * dt;
+			// 		}
+			// 		if (input.arrowRight) {
+			// 			player.angleVel += 2.9 * dt;
+			// 		}
+			// 		player.angle += player.angleVel;
+			// 		player.angleVel = 0;
+			// 	}
+			// }
 		}
 
 
@@ -671,7 +639,7 @@ try {
 				ctx.lineWidth = 4;
 				// ctx.beginPath();
 				const pos = offset(x, y);
-			
+
 				ctx.translate(pos.x, pos.y);
 				ctx.rotate(angle + Math.PI / 2);
 				ctx.fillStyle = '#ff0000';
@@ -874,23 +842,23 @@ try {
 
 
 			// minimap
-			
+
 			const mwidth = 200;
 			const mheight = 200;
-			
+
 			ctx.globalAlpha = 0.5;
 			ctx.fillStyle = '#707070';
 			ctx.fillRect(0, canvas.height - mheight, mwidth, mheight);
 
 			ctx.fillStyle = '#595959'
-			for (const { x, y ,width, height } of obstacles) {
-				ctx.fillRect((x/arena.width) * mwidth, (canvas.height - mheight) + (y/arena.height) * mheight, (width/arena.width) * mwidth, (height/arena.height) * mheight)
+			for (const { x, y, width, height } of obstacles) {
+				ctx.fillRect((x / arena.width) * mwidth, (canvas.height - mheight) + (y / arena.height) * mheight, (width / arena.width) * mwidth, (height / arena.height) * mheight)
 			}
 
 			ctx.fillStyle = '#303030';
 			for (const player of Object.values(players)) {
 				ctx.beginPath();
-				ctx.arc((player.pos.x/arena.width) * mwidth, (canvas.height - mheight) + (player.pos.y/arena.height) * mheight, 5, 0, Math.PI * 2)
+				ctx.arc((player.pos.x / arena.width) * mwidth, (canvas.height - mheight) + (player.pos.y / arena.height) * mheight, 5, 0, Math.PI * 2)
 				ctx.fill()
 			}
 
@@ -905,10 +873,10 @@ try {
 			ctx.textAlign = 'left'
 			if (window.debug) {
 				ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}]`, 10, 870);
-				ctx.fillText(`GlobalTick#${tick} | Extralag: ${extraLag} | ServerPing[Tick]: ${serverPing} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length}`, 10, 840)
+				ctx.fillText(`GlobalTick#${tick} | Extralag: ${extraLag} | ServerPing[Tick]: ${serverPing} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length} | Predict: ${window._predict}`, 10, 840)
 			}
 			ctx.font = '25px Arial'
-			
+
 			ctx.fillText(`x${_kills}`, canvas.width - 10 - ctx.measureText(`x${_kills}`).width, canvas.height - 20);
 
 			// if (players[selfId].ray != null) {
