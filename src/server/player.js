@@ -4,7 +4,7 @@ module.exports = class Player {
 	constructor(id) {
 		this.radius = 40;
 		this.x = Math.round(Math.random() * 2000) + this.radius
-		this.y = Math.round(Math.random() * 1500) + this.radius
+		this.y = Math.round(Math.random() * 2000) + this.radius
 		this.xv = 0;
 		this.yv = 0;
 		this.id = id;
@@ -20,6 +20,7 @@ module.exports = class Player {
 		this.chatMessage = '';
 		this.chatMessageTimer = 0;
 		this.chatMessageTime = 8;
+		this.kills = 0;
 		this.name = `${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
 	}
 	isDifferent(player) {
@@ -32,7 +33,7 @@ module.exports = class Player {
 	}
 	spawn() {
 		this.x = Math.round(Math.random() * 2000) + this.radius
-		this.y = Math.round(Math.random() * 1500) + this.radius
+		this.y = Math.round(Math.random() * 2000) + this.radius
 		this.xv = 0;
 		this.yv = 0;
 		this.angleVel = 0;
@@ -44,22 +45,35 @@ module.exports = class Player {
 		this.arrowing = false;
 		this.timer = 0;
 	}
+	differencePack(player) {
+		if (!player) {
+			return this.pack()
+		}
+		const pack = this.pack();
+		const diffPack = {};
+		for (const key of Object.keys(pack)) {
+			if (pack[key] === player[key]) {
+				continue;
+			}
+			diffPack[key] = pack[key];
+		}
+		return diffPack;
+	}
 	pack() {
 		return {
-			x: this.x,
-			y: this.y,
+			x: Math.round(this.x * 10)/10,
+			y: Math.round(this.y * 10)/10,
 			dying: this.dying,
 			radius: this.radius,
-			timer: this.timer,
-			xv: this.xv,
-			yv: this.yv,
+			timer: Math.round(this.timer * 100) / 100,
+			// xv: this.xv,
+			// yv: this.yv,
 			angle: this.angle,
 			name: this.name,
-			timer: this.timer,
+			// timer: this.timer,
 			arrowing: this.arrowing,
-			angleVel: this.angleVel,
-			spaceLock: this.spaceLock,
-			input: this.input,
+			// angleVel: this.angleVel,
+			// spaceLock: this.spaceLock,
 			timerMax: this.timerMax,
 			// timer: this.timer,
 		};

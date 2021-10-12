@@ -43,14 +43,16 @@ server.on('upgrade', (request, socket, head) => {
 const players = {};
 const clients = {};
 const arrows = {};
-const obstacles = [ 
-	new Obstacle(750, 500, 100, 200),
-	new Obstacle(1150, 500, 100, 200),
-	new Obstacle(950, 900, 100, 100)
+const obstacles = [
+	new Obstacle(750, 400, 50, 200),
+	new Obstacle(1150, 400, 50, 200),
+	new Obstacle(1250, 900, 200, 200),
+	new Obstacle(500, 1200, 300, 50),
+	new Obstacle(800, 1200, 50, 300),
 ]
 const arena = {
 	width: 2000,
-	height: 1500,
+	height: 2000,
 };
 const spacings = [];
 // const tickRate = 60;
@@ -65,6 +67,8 @@ const historyMaxSize = Math.round(
 );
 let lastSentPackageTime = null;
 let lastSentPlayers = {};
+let leaderId = null;
+let leaderKills = null;
 // console.log('max history size', historyMaxSize)
 let tick = 0;
 
@@ -134,6 +138,10 @@ wss.on('connection', (socket, _request) => {
 		tick: presentTick(),
 	});
 
+	if (leaderId != null) {
+		send(socket, { leader:  { name: players[leaderId].name, kills: players[leaderId].kills, id: leaderId }})
+	}
+
 	for (const playerId of Object.keys(players)) {
 		const player = players[playerId];
 		if (player.chatMessage != '' && player.chatMessageTimer > 0) {
@@ -160,6 +168,10 @@ wss.on('connection', (socket, _request) => {
 		delete clients[clientId];
 		delete players[clientId];
 		delete pings[clientId];
+
+		if (leaderId === clientId) {
+			leaderId = null;
+		}
 
 		broadcast({ type: 'leave', id: clientId })
 	});
@@ -249,11 +261,13 @@ function updateWorld() {
 
 	for (const playerId of Object.keys(players)) {
 		const player = players[playerId];
-		player.chatMessageTimer -= 1/60;
+		player.chatMessageTimer -= 1 / 60;
 		if (player.chatMessageTimer <= 0) {
 			player.chatMessgaeTimer = 0;
 		}
 	}
+
+	collidePlayers(players, arena, obstacles)
 
 	const dIds = [];
 	for (const arrowId of Object.keys(arrows)) {
@@ -272,7 +286,7 @@ function updateWorld() {
 			arrow.life = Math.min(arrow.life, 0.5);
 		}
 		if (arrow.dead) {
-			arrow.radius += 20 * (1/60)
+			arrow.radius += 20 * (1 / 60)
 		}
 		if (arrow.life <= 0) {
 			dIds.push(arrowId)
@@ -295,7 +309,7 @@ function updateWorld() {
 			const distX = arrow.x - player.x;
 			const distY = arrow.y - player.y;
 			const dist = distX * distX + distY * distY;
-			if (!arrow.dead && dist < (arrow.radius + player.radius) ** 2) {
+			if (!player.dying && !arrow.dead && dist < (arrow.radius + player.radius) ** 2) {
 				// collision
 				player.dying = true;
 				setTimeout(() => {
@@ -305,9 +319,11 @@ function updateWorld() {
 				}, 500)
 				arrow.dead = true;
 				arrow.life = Math.min(arrow.life, 0.5);
-				if (clients[arrow.parent]) {
+				if (clients[arrow.parent] && players[arrow.parent]) {
+					players[arrow.parent].kills++;
 					send(clients[arrow.parent], {
 						kill: players[playerId].name,
+						kills: players[arrow.parent].kills,
 					})
 				}
 				send(clients[playerId], {
@@ -325,7 +341,7 @@ function updateWorld() {
 		}
 	}
 
-	
+
 }
 // for (const id of Object.keys(inputMessages)) {
 // 	inputMessages[id] = []
@@ -374,13 +390,13 @@ function sendWorldState() {
 
 	for (const clientId of Object.keys(clients)) {
 		const player = players[clientId];
-		// if (lastSentPlayers[clientId] == null || player.isDifferent(lastSentPlayers[clientId])) {
-		state.players.push({
-			id: clientId,
-			data: player.pack(),
-		});
+		if (lastSentPlayers[clientId] == null || player.isDifferent(lastSentPlayers[clientId])) {
+			state.players.push({
+				id: clientId,
+				data: player.differencePack(lastSentPlayers[clientId]),
+			});
 
-		// }
+		}
 	}
 
 
@@ -396,7 +412,38 @@ function sendWorldState() {
 		lastSentPackageTime = Date.now();
 	}
 
-	broadcast({ type: 'state', data: state, spacing: [lowest(spacings).toFixed(1), avg(spacings).toFixed(1), highest(spacings).toFixed(1)], });
+	let leaderChange = false;
+
+	for (const playerId of Object.keys(players)) {
+		const player = players[playerId];
+		if (leaderId == null) {
+			leaderId = playerId;
+			leaderKills = player.kills;
+			leaderChange = true;
+			continue;
+		}
+		if (player.kills > players[leaderId].kills) {
+			leaderId = playerId;
+			leaderKills = players[leaderId].kills;
+			leaderChange = true;
+		}
+		if (playerId === leaderId && player.kills > leaderKills) {
+			leaderChange = true;
+			leaderKills = player.kills;
+		}
+	}
+
+	const obj = {
+		type: 'state', data: state,
+		spacing: [lowest(spacings).toFixed(1), avg(spacings).toFixed(1), highest(spacings).toFixed(1)],
+	}
+
+	if (leaderChange) {
+		obj.leader = { name: players[leaderId].name, kills: leaderKills, id: leaderId };
+	}
+
+
+	broadcast(obj);
 
 	// console.log(state)
 

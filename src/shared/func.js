@@ -1,5 +1,5 @@
 
-	const { Circle, Vector, Response, testPolygonCircle } = require('sat')
+const { Circle, Vector, Response, testPolygonCircle } = require('sat')
 
 const createInput = require('./createInput.js')
 
@@ -42,8 +42,8 @@ function createArrow(player) {
 function updatePlayer(player, input, arena, obstacles, arrows) {
 	if (!player) return;
 	if (!player.dying) {
-		player.xv += (input.right - input.left) * ((player.arrowing > 0 ? 70: 110) * 1 / 60);
-		player.yv += (input.down - input.up) * ((player.arrowing > 0 ? 70: 110) * 1 / 60);
+		player.xv += (input.right - input.left) * ((player.arrowing > 0 ? 70 : 110) * 1 / 60);
+		player.yv += (input.down - input.up) * ((player.arrowing > 0 ? 70 : 110) * 1 / 60);
 		// if (input.space && player.timer <= 0) { // spacelock isnt being used rn
 		// 	// create arrowx
 		// 	player.xv -= Math.cos(player.angle) * 5;
@@ -108,12 +108,10 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		}
 	}
 
-	for (const obstacle of obstacles) {
-		boundPlayerObstacle(player, obstacle)
-	}
 
 
-	boundPlayer(player, arena)
+
+	boundPlayer(player, arena, obstacles)
 
 
 
@@ -144,7 +142,7 @@ function boundPlayerObstacle(player, obstacle) {
 	}
 }
 
-function collidePlayers(players) {
+function collidePlayers(players, arena, obstacles) {
 	for (const i of Object.keys(players)) {
 		const player1 = players[i];
 		for (const j of Object.keys(players)) {
@@ -157,16 +155,24 @@ function collidePlayers(players) {
 				player1.radius * 2 * (player2.radius * 2)
 			) {
 				const magnitude = Math.sqrt(distX * distX + distY * distY) || 1;
-				const xv = distX / magnitude;
-				const yv = distY / magnitude;
-				player1.x = player2.x + (player1.radius + 0.05 + player2.radius) * xv;
-				player1.y = player2.y + (player1.radius + 0.05 + player2.radius) * yv;
+				const xv = (distX / magnitude) ;
+				const yv = (distY / magnitude) ;
+				const oldP = { x: player1.x, y: player1.y }
+				player1.x = player2.x + ((player1.radius + 0.05 + player2.radius) * (xv)) 
+				player1.y = player2.y + ((player1.radius + 0.05 + player2.radius) * (yv)) ;
+				player2.x = oldP.x - ((player1.radius + 0.05 + player2.radius) * (xv)) ;
+				player2.y = oldP.y - ((player1.radius + 0.05 + player2.radius) * (yv)) 
+				boundPlayer(player2, arena, obstacles)
 			}
 		}
+		boundPlayer(player1, arena, obstacles)
 	}
 }
 
-function boundPlayer(player, arena) {
+function boundPlayer(player, arena, obstacles) {
+	for (const obstacle of obstacles) {
+		boundPlayerObstacle(player, obstacle)
+	}
 	if (player.x - player.radius < 0) {
 		player.x = player.radius;
 		player.xv = 0;

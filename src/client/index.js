@@ -72,7 +72,7 @@ try {
 					return;
 				}
 			} else {
-				if  (event.type === 'keydown') {
+				if (event.type === 'keydown') {
 					chatOpen = true;
 					ref.chatDiv.classList.remove('hidden')
 					ref.chat.focus()
@@ -235,6 +235,8 @@ try {
 	let serverSpacing = Array(3).fill(0)
 	let messages = [];
 
+	let leader = null;
+
 	const camera = { x: null, y: null }
 
 	// const rotator = { x: 0, y: 0, sx: 0, sy: 0, buffer: [], canUpdate: false };
@@ -310,6 +312,9 @@ try {
 		// 		hits[obj.hitId].confirm = true;
 		// 	}
 		// }
+		if (obj.leader) {
+			leader = obj.leader;
+		}
 		if (obj.type === 'shoot') {
 			shotPlayers = {};
 			for (const { data, id } of obj.players) {
@@ -329,7 +334,7 @@ try {
 			}
 		}
 		if (obj.kill != undefined) {
-			_kills++;
+			_kills = obj.kills;
 			killedNotifTime = 2;
 			killedPlayerName = obj.kill;
 		}
@@ -434,7 +439,7 @@ try {
 				const player = players[playerId];
 
 				player.chatMessageTimer -= diff;
-				
+
 				if (player.chatMessageTimer <= 0) {
 					player.chatMessageTimer = 0;
 				}
@@ -735,8 +740,14 @@ try {
 
 				// ctx.fillStyle = "#a37958";
 				ctx.fillStyle = '#292929';
+				if (playerId === leader.id) {
+					ctx.fillStyle =' #deae12'
+				}
 				if (player.timer > 0) {
 					ctx.fillStyle = '#616161'
+					if (playerId === leader.id) {
+						ctx.fillStyle = '#c2ac65'
+					}
 				}
 				// ctx.strokeStyle = '#363636';
 				ctx.lineWidth = 2.5;
@@ -857,7 +868,7 @@ try {
 				ctx.fillText(`Agent ${player.name}`, pos.x, pos.y + player.radius * 1.5)
 
 				if (player.chatMessageTimer > 0) {
-					ctx.globalAlpha = player.chatMessageTimer > 0.5 ? 1: (player.chatMessageTimer * 2) / 1;
+					ctx.globalAlpha = player.chatMessageTimer > 0.5 ? 1 : (player.chatMessageTimer * 2) / 1;
 					ctx.fillText(player.chatMessage, pos.x, pos.y - player.radius * 1.5)
 					ctx.globalAlpha = 1;
 				}
@@ -905,7 +916,7 @@ try {
 			const mwidth = 200;
 			const mheight = 200;
 
-			ctx.globalAlpha = 0.5;
+			ctx.globalAlpha = 0.75;
 			ctx.fillStyle = '#707070';
 			ctx.fillRect(0, canvas.height - mheight, mwidth, mheight);
 
@@ -914,10 +925,15 @@ try {
 				ctx.fillRect((x / arena.width) * mwidth, (canvas.height - mheight) + (y / arena.height) * mheight, (width / arena.width) * mwidth, (height / arena.height) * mheight)
 			}
 
-			ctx.fillStyle = '#303030';
-			for (const player of Object.values(players)) {
+
+			for (const playerId of Object.keys(players)) {
+				const player = players[playerId];
+				ctx.fillStyle = '#000000';
+				if (playerId === leader.id) {
+					ctx.fillStyle = '#ffc400'
+				}
 				ctx.beginPath();
-				ctx.arc((player.pos.x / arena.width) * mwidth, (canvas.height - mheight) + (player.pos.y / arena.height) * mheight, 5, 0, Math.PI * 2)
+				ctx.arc((player.pos.x / arena.width) * mwidth, (canvas.height - mheight) + (player.pos.y / arena.height) * mheight, 4, 0, Math.PI * 2)
 				ctx.fill()
 			}
 
@@ -937,6 +953,33 @@ try {
 			ctx.font = '25px Arial'
 
 			ctx.fillText(`x${_kills}`, canvas.width - 10 - ctx.measureText(`x${_kills}`).width, canvas.height - 20);
+
+			if (leader != null) {
+				ctx.globalAlpha = 0.9;
+				// ctx.fillStyle = '#303030';
+				// ctx.fillRect(canvas.width - 350, 0, 350, 100)
+
+				ctx.fillStyle = 'black'
+
+				ctx.fillText('Current King', canvas.width - ctx.measureText('Current King').width * 1.75, 20);
+
+				ctx.strokeStyle = 'black';
+				ctx.lineWidth = 3;
+				ctx.beginPath();
+				ctx.lineTo(canvas.width - ctx.measureText('Current King').width * 2.3, 45);
+				ctx.lineTo(canvas.width - ctx.measureText('Current King').width / 5, 45);
+				ctx.stroke()
+				const width = ctx.measureText('Current King').width
+				ctx.textAlign = 'center'
+				// ctx.fillStyle = '#ffac05'
+				// if (leader.id === selfId) {
+				// 	ctx.fillStyle = '#fffb05'
+				// }
+				ctx.fillStyle = 'black'
+				ctx.font = '22px Arial'
+				ctx.fillText(`Agent ${leader.name} with ${leader.kills} eliminations`, canvas.width - width * 1.25, 70);
+				ctx.globalAlpha =1;
+			}
 
 			// if (players[selfId].ray != null) {
 			// data.push({ type: 'line',  start: { x: arena.width, y: 0 }, end: { x: arena.width, y: arena.height }});
