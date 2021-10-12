@@ -17,7 +17,6 @@ class CArrow {
 
 		this.pos.x = lerp(this.pos.x, this.x, delta );
 		this.pos.y = lerp(this.pos.y, this.y, delta );
-		// console.log(this)
 
 	}
 	Snap(data) {

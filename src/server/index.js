@@ -6,141 +6,53 @@ const {
 	updatePlayer,
 	collideArrowObstacle,
 } = require('../shared/func.js');
-const Raycast = require('../shared/raycast.js');
-const express = require('express');
-const path = require('path')
-const WebSocket = require('ws');
+const createId = require('./util/createId.js');
 const msgpack = require('msgpack-lite')
-const uuid = require('uuid');
-// const Loop = require('accurate-game-loop')
-// const gameloop = require('node-gameloop')
 const Player = require('./player.js');
 const Obstacle = require('./obstacle.js');
-const wss = new WebSocket.Server({
-	noServer: true
-});
-const app = express();
-const PORT = process.env.PORT || 80;
-const server = app.listen(PORT,
-	() => console.log(`Server started on Port ${PORT}`));
 
-app.use(express.static('src/client'));
-
-app.get('/', (request, result) => {
-	result.sendFile(path.join(__dirname, '../client/index.html'));
-});
-
-app.get('/shared/:fileName', (request, result) => {
-	result.sendFile(path.join(__dirname, String('../shared/' + request.params.fileName)));
-});
-
-server.on('upgrade', (request, socket, head) => {
-	wss.handleUpgrade(request, socket, head, (socket) => {
-		wss.emit('connection', socket, request);
-	});
-});
-
-const players = {};
+const wss = require('./setupServer.js')();
+const { players, arrows, obstacles, arena } = require('./util/createState.js')();
+const { lowest, avg, highest } = require('./util/numArray.js')();
 const clients = {};
-const arrows = {};
-const obstacles = [
-	new Obstacle(750, 400, 50, 200),
-	new Obstacle(1150, 400, 50, 200),
-	new Obstacle(1250, 900, 200, 200),
-	new Obstacle(500, 1200, 300, 50),
-	new Obstacle(800, 1200, 50, 300),
-]
-const arena = {
-	width: 2000,
-	height: 2000,
-};
+
 const spacings = [];
-// const tickRate = 60;
-const pingRate = 10;
 const updateRate = 60;
 const startTime = Date.now();
-const history = {};
-const pings = {};
-const maximumAllowedPingForCompensation = 400;
-const historyMaxSize = Math.round(
-	maximumAllowedPingForCompensation / (1000 / updateRate)
-);
+const leader = { id: null, kills: null }
 let lastSentPackageTime = null;
 let lastSentPlayers = {};
-let leaderId = null;
-let leaderKills = null;
-// console.log('max history size', historyMaxSize)
 let tick = 0;
 
 const encode = (msg) => msgpack.encode(msg);
-const decode = (msg) => msgpack.decode(msg)
-
-
-// new Loop(() => {
-// 	ServerTick();
-// }, tickRate).start();
-
-// gameloop.setGameLoop(ServerTick, Math.round(1000 / tickRate)); 
-
-function highest(arr) {
-	let h = -Infinity;
-	for (let i = 0; i < arr.length; i++) {
-		if (arr[i] > h) {
-			h = arr[i]
-		}
-	}
-	return h;
-}
-
-function avg(arr) {
-	return arr.reduce((a, b) => a + b, 0) / arr.length
-}
-
-function lowest(arr) {
-	let h = Infinity;
-	for (let i = 0; i < arr.length; i++) {
-		if (arr[i] < h) {
-			h = arr[i]
-		}
-	}
-	return h;
-}
-
-// accurate-game-loop for heroku*
+const decode = (msg) => msgpack.decode(msg);
 
 setInterval(() => {
 	ServerTick()
 }, 16);
 
-setInterval(() => {
-	for (const clientId of Object.keys(clients)) {
-		send(clients[clientId], {
-			ping: tick,
-		})
-	}
-	// console.log(tick)
-}, 1000 / pingRate)
-
 wss.on('connection', (socket, _request) => {
 	const clientId = createId();
 	clients[clientId] = socket;
-	pings[clientId] = 0;
 	players[clientId] = new Player(clientId);
-
-	console.log('new client', clientId);
-
-	send(socket, {
+	const payload = {
 		type: 'init',
 		players: _allPlayerPacks(),
 		arena,
 		obstacles: obstacles.map((ob) => ob.pack()),
 		selfId: clientId,
 		tick: presentTick(),
-	});
-
-	if (leaderId != null) {
-		send(socket, { leader:  { name: players[leaderId].name, kills: players[leaderId].kills, id: leaderId }})
+	};
+	if (leader.id != null) {
+		payload.leader =  { 
+			name: players[leader.id].name, 
+			kills: players[leader.id].kills, 
+			id: leader.id
+		}
 	}
+
+	send(socket, payload);
+
 
 	for (const playerId of Object.keys(players)) {
 		const player = players[playerId];
@@ -164,22 +76,17 @@ wss.on('connection', (socket, _request) => {
 	});
 
 	socket.on('close', () => {
-		console.log('client left', clientId);
 		delete clients[clientId];
 		delete players[clientId];
-		delete pings[clientId];
 
-		if (leaderId === clientId) {
-			leaderId = null;
+		if (leader.id === clientId) {
+			leader.id = null;
 		}
 
 		broadcast({ type: 'leave', id: clientId })
 	});
 });
 
-function createId() {
-	return uuid.v4().slice(0, 6)
-}
 
 function presentTick() {
 	return Math.ceil((Date.now() - startTime) * (updateRate / 1000));
@@ -214,17 +121,6 @@ function validateInput(obj) {
 }
 
 function newMessage(obj, socket, clientId) {
-	// console.log(obj, 'obj')
-	if (obj.pung != undefined) {
-		pings[clientId] = Math.floor((presentTick() - obj.pung) / 2);
-		send(socket, {
-			serverPing: pings[clientId],
-		});
-	}
-	if (obj.debug !== undefined) {
-		console.log(obj.debug)
-	}
-
 	if (obj.chat != undefined) {
 		if (players[clientId]) {
 			players[clientId].chatMessage = obj.chat;
@@ -233,16 +129,6 @@ function newMessage(obj, socket, clientId) {
 			broadcast({ type: 'chat', msg: obj.chat, id: clientId })
 		}
 	}
-	// if (obj.lastInput && validateInput(obj)) {
-	// 	if (inputMessages[obj.id] == null) {
-	// 		inputMessages[obj.id] = [];
-	// 	}
-	// 	inputMessages[obj.id].push({
-	// 		id: obj.id,
-	// 		data: players[obj.id].lastReceivedInput,
-	// 		tick: obj.tick,
-	// 	})
-	// }
 	if (obj.input && validateInput(obj)) {
 		players[clientId].input = obj.data;
 	}
@@ -290,13 +176,11 @@ function updateWorld() {
 		}
 		if (arrow.life <= 0) {
 			dIds.push(arrowId)
-			// player.arrows.splice(i, 1);
 		}
 	}
 
 	for (const id of dIds) {
 		delete arrows[id]
-		// console.log('arrows length', Object.keys(arrows).length)
 	}
 	// check arrow collison
 	// very expensive operation
@@ -343,11 +227,7 @@ function updateWorld() {
 
 
 }
-// for (const id of Object.keys(inputMessages)) {
-// 	inputMessages[id] = []
-// }
-// collidePlayers(players)
-// }
+
 
 function copyPlayers() {
 	const p = {};
@@ -357,16 +237,6 @@ function copyPlayers() {
 	return p;
 }
 
-function oldestHistory() {
-	return history[Object.keys(history)[0]];
-}
-
-function getSnapshot(tick) {
-	if (tick < Object.keys(history)[0]) {
-		return oldestHistory();
-	}
-	return history[tick];
-}
 
 function takeSnapshots() {
 	const expectedTick = presentTick();
@@ -374,12 +244,6 @@ function takeSnapshots() {
 	while (tick < expectedTick) {
 		// take a snapshot
 		updateWorld();
-		history[tick] = {
-			players: copyPlayers()
-		};
-		if (Object.keys(history).length > historyMaxSize) {
-			delete history[Object.keys(history)[0]];
-		}
 		tick++;
 	}
 }
@@ -416,20 +280,20 @@ function sendWorldState() {
 
 	for (const playerId of Object.keys(players)) {
 		const player = players[playerId];
-		if (leaderId == null) {
-			leaderId = playerId;
-			leaderKills = player.kills;
+		if (leader.id == null) {
+			leader.id = playerId;
+			leader.kills = player.kills;
 			leaderChange = true;
 			continue;
 		}
-		if (player.kills > players[leaderId].kills) {
-			leaderId = playerId;
-			leaderKills = players[leaderId].kills;
+		if (player.kills > players[leader.id].kills) {
+			leader.id = playerId;
+			leader.kills = players[leader.id].kills;
 			leaderChange = true;
 		}
-		if (playerId === leaderId && player.kills > leaderKills) {
+		if (playerId === leader.id && player.kills > leader.kills) {
 			leaderChange = true;
-			leaderKills = player.kills;
+			leader.kills = player.kills;
 		}
 	}
 
@@ -439,13 +303,12 @@ function sendWorldState() {
 	}
 
 	if (leaderChange) {
-		obj.leader = { name: players[leaderId].name, kills: leaderKills, id: leaderId };
+		obj.leader = { name: players[leader.id].name, kills: leader.kills, id: leader.id };
 	}
 
 
 	broadcast(obj);
 
-	// console.log(state)
 
 }
 

@@ -1,10 +1,5 @@
 try {
-	// import CPlayer from './CPlayer.js';
-	// import msgpack from './msgpack.min.js'
 
-	function lerp(start, end, dt) {
-		return (1 - dt) * start + dt * end;
-	}
 	window.delta = 0;
 	const serverDelta = 1 / 30;
 	function getDelta(last) {
@@ -39,10 +34,6 @@ try {
 		[inputs[2]]: { key: "down" },
 		[inputs[3]]: { key: "right" },
 		Space: { key: 'space' }
-		// ArrowUp: { key: 'up' },
-		// ArrowLeft: { key: 'left' },
-		// ArrowRight: { key: 'right' },
-		// ArrowDown: { key: 'down' },
 	}
 
 	window.stutter = false;
@@ -50,7 +41,6 @@ try {
 	window.addEventListener("keydown", trackKeys);
 	window.addEventListener("keyup", trackKeys);
 	window.showSnapshots = false;
-	// window.timer = 0;
 
 	const hits = {};
 
@@ -63,9 +53,7 @@ try {
 		if (event.code === 'Enter') {
 			if (chatOpen) {
 				if (event.type === 'keydown') {
-					// close chat
 					ref.chatDiv.classList.add('hidden')
-					// send message
 					send({ chat: ref.chat.value })
 					ref.chat.value = '';
 					chatOpen = false;
@@ -76,7 +64,6 @@ try {
 					chatOpen = true;
 					ref.chatDiv.classList.remove('hidden')
 					ref.chat.focus()
-					// open chat
 					return;
 				}
 			}
@@ -100,48 +87,9 @@ try {
 			input.arrowRight = event.type === 'keydown'
 			sendInput();
 		}
-		// if (event.code === 'Space' && event.type === 'keydown' && players[selfId] && players[selfId].timer <= 0) { // temporary client space spam fix
-		// 	// // players[selfId].timer = 1;
-		// 	// const id = Math.random();
-		// 	// // if (players[selfId]) {
-		// 	// // 	const data = [];
-		// 	// // 	for (const id of Object.keys(players)) {
-		// 	// // 		if (id !== selfId) {
-		// 	// // 			data.push({ type: 'circle', x: players[id].pos.x, y: players[id].pos.y, radius: players[id].radius });
-		// 	// // 		}
-		// 	// // 	}
-		// 	// // 	let { point } = players[selfId].ray.cast(data);
-		// 	// // 	// if (players[selfId].ray.getDist(point, players[selfId].ray.pos) > 200) {
-		// 	// // 	// 	point = null;
-		// 	// // 	// }
-		// 	// // 	if (point && players[selfId].ray.getDist(point, players[selfId].ray.pos) < 600) {
-		// 	// // 		hits[id] = { x: point.x, y: point.y, confirm: false };
-		// 	// // 		setTimeout(() => {
-		// 	// // 			delete hits[id]
-		// 	// // 		}, 2000);
-		// 	// // 	}
-		// 	// // }
-		// 	// send({ type: 'shoot', hitId: id });
-		// 	// clientShotPlayers = {};
-		// 	// for (const id of Object.keys(players)) {
-		// 	// 	clientShotPlayers[id] = players[id].pack()
-		// 	// }
-		// }
-		// if (event.code == 'Key' && event.type === 'keydown') {
-		// 	window.stutter = !window.stutter
-		// }
 		if (event.code == 'KeyT' && event.type === 'keydown') {
 			window.showSnapshots = !window.showSnapshots;
 		}
-		// if (event.code === 'KeyZ' && event.type == 'keydown') {
-		// 	extraLag = 0;
-		// }
-		// if (event.code === 'KeyX' && event.type == 'keydown') {
-		// 	extraLag += 25;
-		// }
-		// if (event.code === 'KeyC' && event.type === 'keydown') {
-		// 	extraLag += 1000;
-		// }
 		if (inputCodes[event.code] === undefined) return;
 		input[inputCodes[event.code].key] = event.type === "keydown";
 		sendInput()
@@ -184,43 +132,27 @@ try {
 		const bound = canvas.getBoundingClientRect();
 		mouse.x = Math.round((event.pageX - bound.left) / getScale());
 		mouse.y = Math.round((event.pageY - bound.top) / getScale());
-		// input.angle = Math.atan2(window.mouse.y - canvas.height / 2, window.mouse.x - canvas.width / 2)
 	});
 
 	canvas.addEventListener('contextmenu', (event) => {
 		return event.preventDefault();
 	})
 
-	canvas.addEventListener('mousedown', () => {
-		// send({ type: 'shoot' });
-		// window.angle = 0;
-	})
-
-	// window.angle = 0;
-
 	const ws = new WebSocket(location.origin.replace(/^http/, 'ws'));
 	ws.binaryType = 'arraybuffer'
 
 	let text = ``
 
-
-
 	const players = {};
 	const arrows = {}
 	let obstacles = []
-	// const unconfirmed_inputs = [];
 	const input = createInput();
-	// let lastSentInput;
 	let selfId;
-	// let startTime;
 	let arena;
-	let tick;
-	let tickOffset;
 	let spacing = 0;
 	let spacings = [];
 	let spacingLength = 120;
 	let lastReceivedStateTime;
-	let serverPing = -1;
 
 	let stateMessageDisplay = 0;
 	let stateMessageCount = 0;
@@ -239,7 +171,6 @@ try {
 
 	const camera = { x: null, y: null }
 
-	// const rotator = { x: 0, y: 0, sx: 0, sy: 0, buffer: [], canUpdate: false };
 	window.extraLag = 0;
 	window.inputsBuffered = 0;
 
@@ -263,19 +194,14 @@ try {
 	});
 
 	ws.addEventListener('message', (msg) => {
-		// setTimeout(() => {
 		if (window.stutter) return;
 		if (extraLag === 0) {
-			// processMessage(msg);
 			messages.push(msg)
 		} else {
 			setTimeout(() => {
-				// processMessage(msg);
-				// console.log('delay')
 				messages.push(msg)
 			}, extraLag);
 		}
-		// }, extraLag);
 	});
 
 	let shotPlayers = {}
@@ -291,27 +217,9 @@ try {
 			}
 
 			startTime = Date.now();
-			tickOffset = obj.tick;
-			tick = obj.tick;
 			arena = obj.arena;
 			obstacles = obj.obstacles;
-			// camera.x = players[selfId].pos.x;
-			// camera.y = players[selfId].pos.y;
 		}
-		// if (obj.hitId) {
-		// 	if (hits[obj.hitId] == null) {
-		// 		hits[obj.hitId] = {
-		// 			x: obj.hitPos.x,
-		// 			y: obj.hitPos.y,
-		// 			confirm: true
-		// 		}
-		// 		setTimeout(() => {
-		// 			delete hits[obj.hitId]
-		// 		}, 2000);
-		// 	} else {
-		// 		hits[obj.hitId].confirm = true;
-		// 	}
-		// }
 		if (obj.leader) {
 			leader = obj.leader;
 		}
@@ -320,13 +228,6 @@ try {
 			for (const { data, id } of obj.players) {
 				shotPlayers[id] = new CPlayer(data, id === selfId);
 			}
-		}
-		if (obj.ping != undefined) { // server ping (tick)
-			// byteCount += 50000000;
-			// serverPing = 10000;
-			send({
-				pung: obj.ping,
-			})
 		}
 		if (obj.type === 'chat') {
 			if (players[obj.id]) {
@@ -337,9 +238,6 @@ try {
 			_kills = obj.kills;
 			killedNotifTime = 2;
 			killedPlayerName = obj.kill;
-		}
-		if (obj.serverPing != undefined) {
-			serverPing = obj.serverPing;
 		}
 		if (obj.arrowHit != undefined) {
 			window.redness = 0.7;
@@ -369,14 +267,6 @@ try {
 				lastReceivedStateTime = window.performance.now();
 			}
 
-			// if (obj.rotator) {
-			// 	// rotator.buffer.push({ x: obj.rotator.x, y: obj.rotator.y })
-			// 	// if (rotator.buffer.length > 10) {
-			// 	// 	rotator.canUpdate = true;
-			// 	// }
-			// 	rotator.sx = obj.rotator.x;
-			// 	rotator.sy = obj.rotator.y;
-			// }
 			if (obj.spacing) {
 				serverSpacing = obj.spacing;
 			}
@@ -401,10 +291,6 @@ try {
 			for (const { id, data, last_processed_input } of cplayers) {
 				players[id].Snap(data);
 			}
-
-			// if (timeDiff != undefined) {
-			// 	update(timeDiff, false)
-			// }
 		}
 	}
 
@@ -457,7 +343,6 @@ try {
 					camera.y = players[selfId].pos.y;
 				}
 
-				// if (!players[selfId].arrowing) {
 				camera.x = players[selfId].pos.x;
 				camera.y = players[selfId].pos.y;
 
@@ -473,48 +358,21 @@ try {
 				const dtC = Math.min(diff * 2, 1);
 				xoff = lerp(xoff, targetX, dtC);
 				yoff = lerp(yoff, targetY, dtC)
-				// } else {
-				// 	camera.x += (players[selfId].pos.x + Math.cos(players[selfId].interpAngle) * 50 - camera.x) * delta / 2;
-				// 	camera.y += (players[selfId].pos.y + Math.sin(players[selfId].interpAngle) * 50 - camera.y) * delta / 2;
-				// }
+
+				if (Math.abs(targetX - xoff) < 0.5) {
+					xoff = targetX;
+				}
+				if (Math.abs(targetY - yoff) < 0.5) {
+					yoff = targetY;
+				}
 			}
 
-			// if (players[selfId] != null) {
-			// 	players[selfId].ray.setRay({ x: players[selfId].pos.x, y: players[selfId].pos.y }, window.angle);
-			// // }
-			// for (const playerId of Object.keys(players)) {
-			// 	// if (playerId === selfId) continue;
-			// 	players[playerId].ray.setRay({ x: players[playerId].pos.x, y: players[playerId].pos.y, }, players[playerId].interpAngle);
-			// }
-			// window.data = Object.keys(players).map((id) => {
-			// 	return players[id].angle;
-			// })
-			// simulateRotator();
-			// const dt = Math.min(delta * 20, 1);
-			// rotator.x = lerp(rotator.x, rotator.sx, delta);
-			// rotator.y = lerp(rotator.y, rotator.sy, delta)
 			render();
 		} catch (err) {
 			document.body.innerHTML = `${err}`
 			console.error(err)
 		}
 	})()
-
-
-	// function simulateRotator() {
-	// 	if (rotator.canUpdate && rotator.buffer[0] != undefined) {
-	// 		rotator.sx = rotator.buffer[0].x;
-	// 		rotator.sy = rotator.buffer[0].y;
-	// 		rotator.buffer.shift()
-	// 	}
-	// }
-
-	function getTick() {
-		return Math.ceil(
-			(Date.now() - startTime) * (updateRate / 1000)
-		) + tickOffset;
-	}
-
 
 	function sameInput(input1, input2) {
 		for (const key of Object.keys(input1)) {
@@ -526,7 +384,6 @@ try {
 	}
 
 	function send(obj) {
-		// setTimeout(() => {
 		if (window.stutter) return;
 		if (extraLag > 0) {
 			setTimeout(() => {
@@ -539,23 +396,7 @@ try {
 			uploadByteCount += pack.byteLength;
 			ws.send(pack)
 		}
-		// }, extraLag);
 	}
-
-	let lastGlobalTick = 0;
-
-	function handleVisibilityChange() {
-		if (document.hidden) {
-			// document.title = 'Paused';
-			lastGlobalTick = tick;
-		} else {
-			// document.title = 'Playing';
-			const value = (getTick() - lastGlobalTick)
-			tick += value;
-		}
-	}
-
-	document.addEventListener('visibilitychange', handleVisibilityChange, false);
 
 
 
@@ -582,24 +423,15 @@ try {
 			messages = [];
 		}
 		if (window._predict) {
-			// for (const player of Object.values(players)) {
-			// 	if (player.arrowing > 0) {
-			// 		if (input.arrowLeft) {
-			// 			player.angleVel -= 2.9 * dt;
-			// 		}
-			// 		if (input.arrowRight) {
-			// 			player.angleVel += 2.9 * dt;
-			// 		}
-			// 		player.angle += player.angleVel;
-			// 		player.angleVel = 0;
-			// 	}
-			// }
+
 		}
 
 
-		// if (_interpolate) {
-		// processInputs();
+		
+	}
 
+	function lerp(start, end, dt) {
+		return (1 - dt) * start + dt * end;
 	}
 
 	function offset(x, y) {
@@ -636,10 +468,6 @@ try {
 			ctx.fillStyle = '#b3b3b3'
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-
-
-			// ctx.fillStyle = 'black'
-			// ctx.fillText(msgpack, 0, 20)
 
 			ctx.fillStyle = '#d6d6d6';
 			const a = offset(0, 0);
@@ -756,21 +584,6 @@ try {
 
 				ctx.arc(pos.x, pos.y, player.radius, 0, Math.PI * 2);
 				ctx.fill();
-				// ctx.stroke();
-
-				// if (player.timer > 0) {
-				// 	ctx.fillStyle = "#8a8a8a";
-				// 	ctx.beginPath();
-				// 	ctx.arc(
-				// 		pos.x,
-				// 		pos.y,
-				// 		player.radius * (player.timer / player.timerMax),
-				// 		0,
-				// 		Math.PI * 2 ,
-				// 	);
-				// 	ctx.fill();
-				// }
-
 
 				if (player.dying) {
 					ctx.fillStyle = '#d40000';
@@ -835,17 +648,6 @@ try {
 					ctx.fillStyle = '#ff0000';
 					ctx.fillRect(-5, -60 + player.arrowing * 25, 10, 30);
 
-					// ctx.beginPath();
-					// ctx.fillStyle = '#7d7d7d';
-					// ctx.strokeStyle = '#363636';
-					// ctx.lineWidth = 2;
-					// ctx.arc(15 , (-player.radius - 20) , (player.radius / 3.5), 0, Math.PI * 2);
-					// ctx.fill();
-					// ctx.stroke();
-					// ctx.beginPath();
-					// ctx.arc(12 , (-player.radius - 8 + player.arrowing * 25), (player.radius / 3.5) , 0, Math.PI * 2);
-					// ctx.fill();
-					// ctx.stroke();
 				}
 
 				// ctx.restore();
@@ -872,13 +674,6 @@ try {
 					ctx.fillText(player.chatMessage, pos.x, pos.y - player.radius * 1.5)
 					ctx.globalAlpha = 1;
 				}
-
-				// if (playerId === selfId) {
-				// ctx.beginPath();
-				// ctx.strokeStyle = 'black';
-				// ctx.arc(pos.x, pos.y, player.radius, 0, (Math.PI * 2) * (player.timer / 1));
-				// ctx.stroke();
-				// }
 			}
 
 
@@ -948,7 +743,7 @@ try {
 			ctx.textAlign = 'left'
 			if (window.debug) {
 				ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}]`, 10, 870);
-				ctx.fillText(`GlobalTick#${tick} | Extralag: ${extraLag} | ServerPing[Tick]: ${serverPing} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length} | Predict: ${window._predict}`, 10, 840)
+				ctx.fillText(`Extralag: ${extraLag} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length} | Predict: ${window._predict}`, 10, 840)
 			}
 			ctx.font = '25px Arial'
 
@@ -981,61 +776,7 @@ try {
 				ctx.globalAlpha =1;
 			}
 
-			// if (players[selfId].ray != null) {
-			// data.push({ type: 'line',  start: { x: arena.width, y: 0 }, end: { x: arena.width, y: arena.height }});
 
-			// console.log(players)
-
-			// window.data = point;
-			// window.data = 0;
-			// ctx.strokeStyle = 'rgb(255, 0, 0)';
-			// ctx.lineWidth = 2;
-			// for (const playerId of Object.keys(players)) {
-			// 	const data = [];
-			// 	for (const id of Object.keys(players)) {
-			// 		if (id !== playerId) {
-			// 			data.push({ type: 'circle', x: players[id].pos.x, y: players[id].pos.y, radius: players[id].radius });
-			// 		}
-			// 	}
-			// 	let { point } = players[playerId].ray.cast(data);
-
-			// 	ctx.beginPath()
-			// 	const p = offset(players[playerId].ray.pos.x + players[playerId].ray.direction.x * players[playerId].radius, players[playerId].ray.pos.y + players[playerId].ray.direction.y * players[playerId].radius);
-			// 	ctx.moveTo(p.x, p.y);
-			// 	ctx.lineTo(p.x, p.y);
-			// 	let end = offset(players[playerId].ray.pos.x + players[playerId].ray.direction.x * 100, players[playerId].ray.pos.y + players[playerId].ray.direction.y * 100);
-			// 	ctx.lineTo(end.x, end.y);
-			// 	ctx.stroke()
-			// 	if (point && players[playerId].ray.getDist(point, players[playerId].ray.pos) < 600) {
-			// 		ctx.strokeStyle = '#4d1010'
-			// 		ctx.globalAlpha = 0.6;
-			// 		const pos = offset(point.x, point.y);
-			// 		ctx.beginPath();
-			// 		ctx.lineTo(end.x, end.y);
-			// 		ctx.lineTo(pos.x, pos.y);
-			// 		ctx.stroke();
-			// 		ctx.globalAlpha = 1;
-			// 		ctx.strokeStyle = 'rgb(255, 0, 0)';
-			// 		ctx.fillStyle = 'black';
-			// 		ctx.beginPath();
-			// 		ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
-			// 		ctx.fill()
-			// 	}
-			// }
-
-			// for (const { x, y, confirm } of Object.values(hits)) {
-			// 	ctx.font = '40px Arial';
-			// 	ctx.textAlign = 'center';
-			// 	ctx.textBaseline = 'middle';
-			// 	if (confirm) {
-			// 		ctx.fillStyle = '#ff0000';
-			// 		ctx.font = '30px Arial';
-			// 	} else {
-			// 		ctx.fillStyle = 'black';
-			// 	}
-			// 	const pos = offset(x, y);
-			// 	ctx.fillText('X', pos.x, pos.y);
-			// }
 
 
 		} catch (err) {
