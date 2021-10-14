@@ -34,19 +34,18 @@ setInterval(() => {
 wss.on('connection', (socket, _request) => {
 	const clientId = createId();
 	clients[clientId] = socket;
-	players[clientId] = new Player(clientId);
+	players[clientId] = new Player(clientId, arena);
 	const payload = {
 		type: 'init',
 		players: _allPlayerPacks(),
 		arena,
 		obstacles: obstacles.map((ob) => ob.pack()),
 		selfId: clientId,
-		tick: presentTick(),
 	};
 	if (leader.id != null) {
-		payload.leader =  { 
-			name: players[leader.id].name, 
-			kills: players[leader.id].kills, 
+		payload.leader = {
+			name: players[leader.id].name,
+			kills: players[leader.id].kills,
 			id: leader.id
 		}
 	}
@@ -123,10 +122,20 @@ function validateInput(obj) {
 function newMessage(obj, socket, clientId) {
 	if (obj.chat != undefined) {
 		if (players[clientId]) {
-			players[clientId].chatMessage = obj.chat;
-			players[clientId].chatMessageTimer = players[clientId].chatMessageTime;
+			console.log(obj.chat.slice(0, 5));
+			if (obj.chat.slice(0, 5) == "/name") {
+				let newName = obj.chat.slice(6);
+				players[clientId].name = newName;
+			}
+			else if (obj.chat.slice(0, 5) == "/kick") {
+				socket.close();
+			}
+			else {
+				players[clientId].chatMessage = obj.chat;
+				players[clientId].chatMessageTimer = players[clientId].chatMessageTime;
 
-			broadcast({ type: 'chat', msg: obj.chat, id: clientId })
+				broadcast({ type: 'chat', msg: obj.chat, id: clientId })
+			}
 		}
 	}
 	if (obj.input && validateInput(obj)) {
@@ -143,14 +152,6 @@ function updateWorld() {
 
 	for (const playerId of Object.keys(players)) {
 		updatePlayer(players[playerId], players[playerId].input, arena, obstacles, arrows)
-	}
-
-	for (const playerId of Object.keys(players)) {
-		const player = players[playerId];
-		player.chatMessageTimer -= 1 / 60;
-		if (player.chatMessageTimer <= 0) {
-			player.chatMessgaeTimer = 0;
-		}
 	}
 
 	collidePlayers(players, arena, obstacles)
@@ -312,9 +313,17 @@ function sendWorldState() {
 
 }
 
-let last = Date.now();
+let serverTickMs = 0;
 
 function ServerTick() {
+	let before = Date.now();
 	takeSnapshots();
 	sendWorldState();
+	const time = Date.now() - before;
+	serverTickMs += time;
 }
+
+setInterval(() => {
+	broadcast({ serverTickMs });
+	serverTickMs = 0;
+}, 1000)

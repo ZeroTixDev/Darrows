@@ -111,7 +111,7 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 
 
 
-	boundPlayer(player, arena, obstacles)
+	// boundPlayer(player, arena, obstacles)
 
 
 
@@ -119,6 +119,11 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 	player.timer -= 1 / 60;
 	if (player.timer <= 0) {
 		player.timer = 0;
+	}
+
+	player.chatMessageTimer -= 1 / 60;
+	if (player.chatMessageTimer <= 0) {
+		player.chatMessgaeTimer = 0;
 	}
 	// boundPlayer(player);
 }

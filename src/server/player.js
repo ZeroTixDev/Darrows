@@ -1,10 +1,11 @@
 const { createInput } = require('../shared/func.js');
 
 module.exports = class Player {
-	constructor(id) {
+	constructor(id, arena) {
 		this.radius = 40;
-		this.x = Math.round(Math.random() * 2000) + this.radius
-		this.y = Math.round(Math.random() * 2000) + this.radius
+		this.x = Math.round(Math.random() * arena.width) + this.radius
+		this.y = Math.round(Math.random() * arena.height) + this.radius;
+		this._arena = arena;
 		this.xv = 0;
 		this.yv = 0;
 		this.id = id;
@@ -21,7 +22,7 @@ module.exports = class Player {
 		this.chatMessageTimer = 0;
 		this.chatMessageTime = 8;
 		this.kills = 0;
-		this.name = `${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
+		this.name = `Agent ${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
 	}
 	isDifferent(player) {
 		for (const key of Object.keys(player)) {
@@ -32,8 +33,8 @@ module.exports = class Player {
 		return false;
 	}
 	spawn() {
-		this.x = Math.round(Math.random() * 2000) + this.radius
-		this.y = Math.round(Math.random() * 2000) + this.radius
+		this.x = Math.round(Math.random() * this._arena.width) + this.radius
+		this.y = Math.round(Math.random() * this._arena.height) + this.radius
 		this.xv = 0;
 		this.yv = 0;
 		this.angleVel = 0;

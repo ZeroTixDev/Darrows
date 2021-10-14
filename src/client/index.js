@@ -9,7 +9,7 @@ try {
 	window.debug = false;
 	window._interpolate = true;
 	window._predict = false;
-
+	window.serverTickMs = 0;
 	window.redness = 0;
 
 	let chatOpen = false;
@@ -222,6 +222,9 @@ try {
 		}
 		if (obj.leader) {
 			leader = obj.leader;
+		}
+		if (obj.serverTickMs != undefined) {
+			serverTickMs = obj.serverTickMs;
 		}
 		if (obj.type === 'shoot') {
 			shotPlayers = {};
@@ -667,7 +670,7 @@ try {
 				ctx.textAlign = 'center';
 				ctx.textBaseline = 'middle'
 				ctx.font = '22px Arial'
-				ctx.fillText(`Agent ${player.name}`, pos.x, pos.y + player.radius * 1.5)
+				ctx.fillText(`${player.name}`, pos.x, pos.y + player.radius * 1.5)
 
 				if (player.chatMessageTimer > 0) {
 					ctx.globalAlpha = player.chatMessageTimer > 0.5 ? 1 : (player.chatMessageTimer * 2) / 1;
@@ -702,7 +705,7 @@ try {
 			ctx.fillText(`Eliminiated`, 700, 725)
 			const xOff = ctx.measureText('Eliminated ').width;
 			ctx.fillStyle = 'black'
-			ctx.fillText(` Agent ${killedPlayerName}`, 700 + xOff, 725);
+			ctx.fillText(` ${killedPlayerName}`, 700 + xOff, 725);
 			ctx.globalAlpha = 1;
 
 
@@ -739,11 +742,11 @@ try {
 
 			ctx.font = '18px Arial'
 
-			ctx.fillStyle = 'black';
+			ctx.fillStyle = 'red';
 			ctx.textAlign = 'left'
 			if (window.debug) {
-				ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}]`, 10, 870);
-				ctx.fillText(`Extralag: ${extraLag} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length} | Predict: ${window._predict}`, 10, 840)
+				ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}]`, 210, 870);
+				ctx.fillText(`Extralag: ${extraLag} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length} | ServerTickTime: ${serverTickMs}ms | EstimatedServerTickTimePerFrame: ${Math.round(serverTickMs/60)}ms`, 210, 840)
 			}
 			ctx.font = '25px Arial'
 
@@ -772,7 +775,7 @@ try {
 				// }
 				ctx.fillStyle = 'black'
 				ctx.font = '22px Arial'
-				ctx.fillText(`Agent ${leader.name} with ${leader.kills} eliminations`, canvas.width - width * 1.25, 70);
+				ctx.fillText(`${leader.name} with ${leader.kills} eliminations`, canvas.width - width * 1.25, 70);
 				ctx.globalAlpha =1;
 			}
 
