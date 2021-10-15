@@ -742,7 +742,7 @@ try {
 
 			ctx.font = '18px Arial'
 
-			ctx.fillStyle = 'red';
+			ctx.fillStyle = 'rgb(100, 0, 0)';
 			ctx.textAlign = 'left'
 			if (window.debug) {
 				ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s) | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}]`, 210, 870);
