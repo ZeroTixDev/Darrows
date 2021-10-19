@@ -133,18 +133,18 @@ function newMessage(obj, socket, clientId) {
 				players[clientId].name = newName;
 			} else if (obj.chat.slice(0, 5) == "/kick") {
 				socket.close();
-			} else if (obj.chat.slice(0, 5) == '/fric') {
-				players[clientId].fric = Number(obj.chat.slice(6).trim())
-				send(socket, {
-					fric: players[clientId].fric,
-					speed: players[clientId].speed,
-				})
-			} else if (obj.chat.slice(0, 6) == '/speed') {
-				players[clientId].speed = Number(obj.chat.slice(7).trim());
-				send(socket, {
-					fric: players[clientId].fric,
-					speed: players[clientId].speed,
-				})
+			// } else if (obj.chat.slice(0, 5) == '/fric') {
+			// 	players[clientId].fric = Number(obj.chat.slice(6).trim())
+			// 	send(socket, {
+			// 		fric: players[clientId].fric,
+			// 		speed: players[clientId].speed,
+			// 	})
+			// } else if (obj.chat.slice(0, 6) == '/speed') {
+			// 	players[clientId].speed = Number(obj.chat.slice(7).trim());
+			// 	send(socket, {
+			// 		fric: players[clientId].fric,
+			// 		speed: players[clientId].speed,
+			// 	})
 			} else {
 				players[clientId].chatMessage = obj.chat;
 				players[clientId].chatMessageTimer = players[clientId].chatMessageTime;

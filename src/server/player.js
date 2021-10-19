@@ -8,6 +8,8 @@ module.exports = class Player {
 		this._arena = arena;
 		this.xv = 0;
 		this.yv = 0;
+		this.bxv = 0;
+		this.byv = 0;
 		this.id = id;
 		this.dying = false;
 		this.timer = 0;
@@ -20,10 +22,12 @@ module.exports = class Player {
 		this.input = createInput();
 		this.chatMessage = '';
 		this.chatMessageTimer = 0;
-		this.fric = 0.96;
+		this.fric = 0.955;
+    this.bfric = 0.985;
 		this.chatMessageTime = 8;
 		this.kills = 0;
-		this.speed = 20;
+		this.speed = 25;
+
 		this.name = `Agent ${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
 	}
 	spawn() {
@@ -31,6 +35,8 @@ module.exports = class Player {
 		this.y = Math.round(Math.random() * this._arena.height) + this.radius
 		this.xv = 0;
 		this.yv = 0;
+		this.bxv = 0;
+		this.byv = 0;
 		this.angleVel = 0;
 		this.spaceLock = false;
 		this.timer = 0;
@@ -56,8 +62,8 @@ module.exports = class Player {
 	}
 	pack() {
 		return {
-			x: Math.round(this.x * 10)/10,
-			y: Math.round(this.y * 10)/10,
+			x: Math.round(this.x * 10) / 10,
+			y: Math.round(this.y * 10) / 10,
 			dying: this.dying,
 			radius: this.radius,
 			timer: Math.round(this.timer * 100) / 100,

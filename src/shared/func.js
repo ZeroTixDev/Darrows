@@ -82,7 +82,6 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		player.x += player.xv;
 		player.y += player.yv;
 
-
 		// player.angle = input.angle;
 		// player.angleVel *= 0.1;
 		if (player.angle > Math.PI) {
@@ -93,6 +92,7 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		}
 		player.xv *= Math.pow(player.fric, (1 / 60) * 60);
 		player.yv *= Math.pow(player.fric, (1 / 60) * 60);
+    
 		if (!input.space) {
 			player.spaceLock = false;
 		}
@@ -140,6 +140,22 @@ function boundPlayerObstacle(player, obstacle) {
 		if (collision) {
 			player.x += res.overlapV.x;
 			player.y += res.overlapV.y;
+
+			if (Math.abs(res.overlapV.y) > Math.abs(res.overlapV.x)) {
+        if (obstacle.type == "obstacle"){
+				  player.yv = 0;
+        }
+        else if (obstacle.type == "bounce"){
+          player.yv = Math.sign(res.overlapV.y) * obstacle.effect;
+        }
+			} else {
+				if (obstacle.type == "obstacle"){
+				  player.xv = 0;
+        }
+        else if (obstacle.type == "bounce"){
+          player.xv = Math.sign(res.overlapV.x) * obstacle.effect;
+        }
+			}
 			
 		}
 	}

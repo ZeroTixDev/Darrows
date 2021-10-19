@@ -28,9 +28,14 @@
 				ctx.globalAlpha = 1
 			}
 
-			for (const { x, y, width, height } of obstacles) {
+			for (const { x, y, width, height, type } of obstacles) {
 				const pos = offset(x, y);
-				ctx.fillStyle = '#b3b3b3';
+        if (type == "obstacle"){
+				  ctx.fillStyle = '#b3b3b3';
+        }
+        else if (type == "bounce"){
+          ctx.fillStyle = '#32a852';
+        }
 				ctx.fillRect(pos.x, pos.y, width, height)
 			}
 
@@ -236,7 +241,13 @@
 			ctx.fillRect(0, canvas.height - mheight, mwidth, mheight);
 
 			ctx.fillStyle = '#595959'
-			for (const { x, y, width, height } of obstacles) {
+			for (const { x, y, width, height, type } of obstacles) {
+        if (type == "obstacle"){
+				  ctx.fillStyle = '#595959';
+        }
+        else if (type == "bounce"){
+          ctx.fillStyle = '#185227';
+        }
 				ctx.fillRect((x / arena.width) * mwidth, (canvas.height - mheight) + (y / arena.height) * mheight, (width / arena.width) * mwidth, (height / arena.height) * mheight)
 			}
 
