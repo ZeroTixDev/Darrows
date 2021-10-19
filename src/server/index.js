@@ -20,8 +20,8 @@ const spacings = [];
 const updateRate = 60;
 const startTime = Date.now();
 const leader = { id: null, kills: null }
+let lastSent = { players: {}, arrows: {} };
 let lastSentPackageTime = null;
-let lastSentPlayers = {};
 let tick = 0;
 
 const encode = (msg) => msgpack.encode(msg);
@@ -59,6 +59,11 @@ wss.on('connection', (socket, _request) => {
 			send(socket, { type: 'chat', msg: player.chatMessage, id: playerId })
 		}
 	}
+
+	send(socket, {
+		fric: players[clientId].fric,
+		speed: players[clientId].speed,
+	})
 
 	broadcast({
 		type: 'newPlayer',
@@ -126,11 +131,21 @@ function newMessage(obj, socket, clientId) {
 			if (obj.chat.slice(0, 5) == "/name") {
 				let newName = obj.chat.slice(6);
 				players[clientId].name = newName;
-			}
-			else if (obj.chat.slice(0, 5) == "/kick") {
+			} else if (obj.chat.slice(0, 5) == "/kick") {
 				socket.close();
-			}
-			else {
+			} else if (obj.chat.slice(0, 5) == '/fric') {
+				players[clientId].fric = Number(obj.chat.slice(6).trim())
+				send(socket, {
+					fric: players[clientId].fric,
+					speed: players[clientId].speed,
+				})
+			} else if (obj.chat.slice(0, 6) == '/speed') {
+				players[clientId].speed = Number(obj.chat.slice(7).trim());
+				send(socket, {
+					fric: players[clientId].fric,
+					speed: players[clientId].speed,
+				})
+			} else {
 				players[clientId].chatMessage = obj.chat;
 				players[clientId].chatMessageTimer = players[clientId].chatMessageTime;
 
@@ -159,22 +174,7 @@ function updateWorld() {
 	const dIds = [];
 	for (const arrowId of Object.keys(arrows)) {
 		const arrow = arrows[arrowId]
-		if (!arrow.dead) {
-			arrow.x += Math.cos(arrow.angle) * (arrow.speed * (60 * (1 / 60)));
-			arrow.y += Math.sin(arrow.angle) * (arrow.speed * (60 * (1 / 60)));
-		}
-		arrow.life -= 1 / 60;
-		if (arrow.life <= 0.5) {
-			arrow.alpha = Math.max((arrow.life * 2) / 1, 0);
-		}
-		if (!arrow.dead && (arrow.x - arrow.radius < 0 || arrow.x + arrow.radius > arena.width || arrow.y - arrow.radius < 0 || arrow.y + arrow.radius > arena.height)) {
-			// arrow.life = 0;
-			arrow.dead = true;
-			arrow.life = Math.min(arrow.life, 0.5);
-		}
-		if (arrow.dead) {
-			arrow.radius += 20 * (1 / 60)
-		}
+		arrow.update(arena)
 		if (arrow.life <= 0) {
 			dIds.push(arrowId)
 		}
@@ -202,8 +202,7 @@ function updateWorld() {
 						players[playerId].spawn()
 					}
 				}, 500)
-				arrow.dead = true;
-				arrow.life = Math.min(arrow.life, 0.5);
+				arrow.die()
 				if (clients[arrow.parent] && players[arrow.parent]) {
 					players[arrow.parent].kills++;
 					send(clients[arrow.parent], {
@@ -219,8 +218,7 @@ function updateWorld() {
 		if (!arrow.dead) {
 			for (const obstacle of obstacles) {
 				if (collideArrowObstacle(arrow, obstacle).type) {
-					arrow.dead = true;
-					arrow.life = Math.min(arrow.life, 0.5)
+					arrow.die()
 				}
 			}
 		}
@@ -230,10 +228,10 @@ function updateWorld() {
 }
 
 
-function copyPlayers() {
+function copyPacks(obj) {
 	const p = {};
-	for (const playerId of Object.keys(players)) {
-		p[playerId] = players[playerId].pack();
+	for (const id of Object.keys(obj)) {
+		p[id] = obj[id].pack();
 	}
 	return p;
 }
@@ -249,23 +247,42 @@ function takeSnapshots() {
 	}
 }
 
+function isDifferent(obj1, obj2) {
+	for (const key of Object.keys(obj2)) {
+		if (obj1[key] !== obj2[key]) {
+			return true;
+		}
+	}
+	return false;
+}
+
 
 function sendWorldState() {
-	const state = { players: [], arrows };
+	const state = { players: [], arrows: [] };
 
-	for (const clientId of Object.keys(clients)) {
+	for (const clientId of Object.keys(players)) {
 		const player = players[clientId];
-		if (lastSentPlayers[clientId] == null || player.isDifferent(lastSentPlayers[clientId])) {
+		if (lastSent.players[clientId] == null || isDifferent(player, lastSent.players[clientId])) {
 			state.players.push({
 				id: clientId,
-				data: player.differencePack(lastSentPlayers[clientId]),
+				data: player.differencePack(lastSent.players[clientId]),
 			});
 
 		}
 	}
 
+	for (const arrowId of Object.keys(arrows)) {
+		const arrow = arrows[arrowId];
+		if (lastSent.arrows[arrowId] == null || isDifferent(arrow, lastSent.arrows[arrowId])) {
+			state.arrows.push({
+				id: arrowId,
+				data: arrow.differencePack(lastSent.arrows[arrowId]),
+			})
+		}
+	}
 
-	lastSentPlayers = copyPlayers()
+	lastSent.players = copyPacks(players);
+	lastSent.arrows = copyPacks(arrows)
 
 	if (lastSentPackageTime == null) {
 		lastSentPackageTime = Date.now();
@@ -299,16 +316,21 @@ function sendWorldState() {
 	}
 
 	const obj = {
-		type: 'state', data: state,
-		spacing: [lowest(spacings).toFixed(1), avg(spacings).toFixed(1), highest(spacings).toFixed(1)],
+		// spacing: [lowest(spacings).toFixed(1), avg(spacings).toFixed(1), highest(spacings).toFixed(1)],
+	}
+
+	if (state.players.length > 0 || state.arrows.length > 0) {
+		obj.type = 'state';
+		obj.data = state;
 	}
 
 	if (leaderChange) {
 		obj.leader = { name: players[leader.id].name, kills: leader.kills, id: leader.id };
 	}
 
-
-	broadcast(obj);
+	if (Object.keys(obj).length > 0) {
+		broadcast(obj);
+	}
 
 
 }

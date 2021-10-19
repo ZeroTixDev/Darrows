@@ -1,6 +1,6 @@
 
 const { Circle, Vector, Response, testPolygonCircle } = require('sat')
-
+const Arrow = require('../server/arrow.js');
 const createInput = require('./createInput.js')
 
 
@@ -26,24 +26,21 @@ function copyInput(input) {
 // }
 
 function createArrow(player) {
-	return {
-		x: player.x + Math.cos(player.angle) * (player.radius - player.arrowing * 20),
-		y: player.y + Math.sin(player.angle) * (player.radius - player.arrowing * 20),
-		angle: player.angle,
-		radius: 10,
-		life: 2.5,
-		speed: 6 + (player.arrowing / 3) * 20,
-		alpha: 1,
-		dead: false,
-		parent: player.id,
-	}
+	return new Arrow(player)
 }
 
 function updatePlayer(player, input, arena, obstacles, arrows) {
 	if (!player) return;
 	if (!player.dying) {
-		player.xv += (input.right - input.left) * ((player.arrowing > 0 ? 70 : 110) * 1 / 60);
-		player.yv += (input.down - input.up) * ((player.arrowing > 0 ? 70 : 110) * 1 / 60);
+		const dir = {
+			x: (input.right - input.left),
+			y: (input.down - input.up),
+		};
+		const mag = Math.sqrt(dir.x * dir.x + dir.y * dir.y) || 1;
+		const normal = { x: dir.x / mag, y: dir.y / mag };
+
+		player.xv += normal.x * ((player.arrowing > 0 ? player.speed * 0.7 : player.speed) * 1 / 60);
+		player.yv += normal.y * ((player.arrowing > 0 ? player.speed * 0.7 : player.speed) * 1 / 60);
 		// if (input.space && player.timer <= 0) { // spacelock isnt being used rn
 		// 	// create arrowx
 		// 	player.xv -= Math.cos(player.angle) * 5;
@@ -94,8 +91,8 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		if (player.angle < -Math.PI) {
 			player.angle += Math.PI * 2
 		}
-		player.xv *= Math.pow(0.72, (1 / 60) * 60);
-		player.yv *= Math.pow(0.72, (1 / 60) * 60);
+		player.xv *= Math.pow(player.fric, (1 / 60) * 60);
+		player.yv *= Math.pow(player.fric, (1 / 60) * 60);
 		if (!input.space) {
 			player.spaceLock = false;
 		}
@@ -143,6 +140,7 @@ function boundPlayerObstacle(player, obstacle) {
 		if (collision) {
 			player.x += res.overlapV.x;
 			player.y += res.overlapV.y;
+			
 		}
 	}
 }

@@ -20,17 +20,11 @@ module.exports = class Player {
 		this.input = createInput();
 		this.chatMessage = '';
 		this.chatMessageTimer = 0;
+		this.fric = 0.96;
 		this.chatMessageTime = 8;
 		this.kills = 0;
+		this.speed = 20;
 		this.name = `Agent ${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
-	}
-	isDifferent(player) {
-		for (const key of Object.keys(player)) {
-			if (this[key] !== player[key]) {
-				return true;
-			}
-		}
-		return false;
 	}
 	spawn() {
 		this.x = Math.round(Math.random() * this._arena.width) + this.radius
