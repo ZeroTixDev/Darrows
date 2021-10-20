@@ -127,7 +127,7 @@ function validateInput(obj) {
 function newMessage(obj, socket, clientId) {
 	if (obj.chat != undefined) {
 		if (players[clientId]) {
-			console.log(obj.chat.slice(0, 5));
+			console.log(obj.chat.slice(0, 80));
 			if (obj.chat.slice(0, 5) == "/name") {
 				let newName = obj.chat.slice(6);
 				players[clientId].name = newName;
