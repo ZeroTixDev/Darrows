@@ -65,7 +65,8 @@ function processMessage(msg) {
 	}
 	if (obj.type === 'leave') {
 		if (obj.id === selfId) {
-			dead = true;
+			send({type: "spawn"})
+			//	dead = true;
 		}
 		delete players[obj.id]
 	}
