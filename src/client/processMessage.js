@@ -16,12 +16,12 @@ function processMessage(msg) {
 		obstacles = obj.obstacles;
 	}
 	if (obj.type === 'stats') {
-		ref.deathScreen.classList.remove('hidden');
-		ref.deathScreen.classList.add('dAnim')
-		ref.kills.innerText = obj.kills;
-		ref.deaths.innerText = obj.deaths;
-		ref.kdr.innerText = obj.kdr.toFixed(1);
-		ref.accuracy.innerText = obj.accuracy + '%';
+		//ref.deathScreen.classList.remove('hidden');
+		//ref.deathScreen.classList.add('dAnim')
+		//ref.kills.innerText = obj.kills;
+		//ref.deaths.innerText = obj.deaths;
+		//ref.kdr.innerText = obj.kdr.toFixed(1);
+		//ref.accuracy.innerText = obj.accuracy + '%';
 	}
 	if (obj.leader) {
 		leader = obj.leader;

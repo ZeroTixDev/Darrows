@@ -134,6 +134,11 @@ ws.onclose = function() {
 }
 
 function update(dt, msg = true) {
+    
+    if (iExist && dead) {
+		send({ type: 'spawn' })
+    }
+    
 	window.dt = dt;
 	if (selfId == null || startTime == null || (players[selfId] == null && iExist === false)) {
 		if (msg) {

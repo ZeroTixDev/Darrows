@@ -117,12 +117,7 @@ function send(obj) {
 
 function trackKeys(event) {
 	if (event.repeat) return;
-	if (event.code === 'Space' && event.type === 'keydown' && iExist && dead) {
-		send({ type: 'spawn' })
-		ref.deathScreen.classList.add('hidden')
-		ref.deathScreen.classList.remove('dAnim')
-		return;
-	}
+
 	if (event.code === 'Enter') {
 		if (chatOpen) {
 			if (event.type === 'keydown') {
