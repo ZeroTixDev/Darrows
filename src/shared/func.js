@@ -66,7 +66,14 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		} else {
 			if (player.arrowing > 0) {
 				// shoot
-				arrows[Math.random()] = (createArrow(player))
+				player.arrowsShot++;
+        // for(let i = 90; i--; i>0){
+        //   player.arrowing -= 0.01;
+        //   player.radius = Math.random()*120;
+				  arrows[Math.random()] = (createArrow(player))
+        //   player.angle += 1/90 * Math.PI*2;
+        	// }
+        
 				player.timer = player.timerMax;
 				// console.log('shoot', player.arrows)
 			}
@@ -92,15 +99,16 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		}
 		player.xv *= Math.pow(player.fric, (1 / 60) * 60);
 		player.yv *= Math.pow(player.fric, (1 / 60) * 60);
-    
+
+
 		if (!input.space) {
 			player.spaceLock = false;
 		}
 		// player.angleVel *= 0;
 	} else {
 		player.radius -= 60 * (1 / 60);
-		if (player.radius <= 20) {
-			player.radius = 20;
+		if (player.radius <= 1) {
+			player.radius = 1;
 			player.respawn = true;
 		}
 	}
@@ -142,21 +150,21 @@ function boundPlayerObstacle(player, obstacle) {
 			player.y += res.overlapV.y;
 
 			if (Math.abs(res.overlapV.y) > Math.abs(res.overlapV.x)) {
-        if (obstacle.type == "obstacle"){
-				  player.yv = 0;
-        }
-        else if (obstacle.type == "bounce"){
-          player.yv = Math.sign(res.overlapV.y) * obstacle.effect;
-        }
+				if (obstacle.type == "obstacle") {
+					player.yv = 0;
+				}
+				else if (obstacle.type == "bounce") {
+					player.yv = Math.sign(res.overlapV.y) * obstacle.effect;
+				}
 			} else {
-				if (obstacle.type == "obstacle"){
-				  player.xv = 0;
-        }
-        else if (obstacle.type == "bounce"){
-          player.xv = Math.sign(res.overlapV.x) * obstacle.effect;
-        }
+				if (obstacle.type == "obstacle") {
+					player.xv = 0;
+				}
+				else if (obstacle.type == "bounce") {
+					player.xv = Math.sign(res.overlapV.x) * obstacle.effect;
+				}
 			}
-			
+
 		}
 	}
 }
@@ -174,13 +182,13 @@ function collidePlayers(players, arena, obstacles) {
 				player1.radius * 2 * (player2.radius * 2)
 			) {
 				const magnitude = Math.sqrt(distX * distX + distY * distY) || 1;
-				const xv = (distX / magnitude) ;
-				const yv = (distY / magnitude) ;
+				const xv = (distX / magnitude);
+				const yv = (distY / magnitude);
 				const oldP = { x: player1.x, y: player1.y }
-				player1.x = player2.x + ((player1.radius + 0.05 + player2.radius) * (xv)) 
-				player1.y = player2.y + ((player1.radius + 0.05 + player2.radius) * (yv)) ;
-				player2.x = oldP.x - ((player1.radius + 0.05 + player2.radius) * (xv)) ;
-				player2.y = oldP.y - ((player1.radius + 0.05 + player2.radius) * (yv)) 
+				player1.x = player2.x + ((player1.radius + 0.05 + player2.radius) * (xv))
+				player1.y = player2.y + ((player1.radius + 0.05 + player2.radius) * (yv));
+				player2.x = oldP.x - ((player1.radius + 0.05 + player2.radius) * (xv));
+				player2.y = oldP.y - ((player1.radius + 0.05 + player2.radius) * (yv))
 				boundPlayer(player2, arena, obstacles)
 			}
 		}
@@ -211,24 +219,7 @@ function boundPlayer(player, arena, obstacles) {
 	}
 }
 
-function collideArrowObstacle(arrow, obstacle) {
-	const rectHalfSizeX = obstacle.width / 2;
-	const rectHalfSizeY = obstacle.height / 2;
-	const rectCenterX = obstacle.x + rectHalfSizeX;
-	const rectCenterY = obstacle.y + rectHalfSizeY;
-	const distX = Math.abs(arrow.x - rectCenterX);
-	const distY = Math.abs(arrow.y - rectCenterY);
-	if (distX < rectHalfSizeX + arrow.radius && distY < rectHalfSizeY + arrow.radius) {
-		const arrowSat = new Circle(new Vector(arrow.x, arrow.y), arrow.radius);
-		const res = new Response();
-		const collision = testPolygonCircle(obstacle.sat, arrowSat, res);
-		if (collision) {
-			return { type: true, data: res };
-		}
-	}
-	return { type: false };
-}
 
-if (module) {
-	module.exports = { updatePlayer, copyInput, boundPlayer, collideArrowObstacle, collidePlayers, createInput }
-}
+// if (module) {
+	module.exports = { updatePlayer, copyInput, boundPlayer, collidePlayers, createInput }
+// }

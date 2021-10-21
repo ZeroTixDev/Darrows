@@ -4,7 +4,6 @@ const {
 	collidePlayers,
 	createInput,
 	updatePlayer,
-	collideArrowObstacle,
 } = require('../shared/func.js');
 const createId = require('./util/createId.js');
 const msgpack = require('msgpack-lite')
@@ -125,6 +124,35 @@ function validateInput(obj) {
 }
 
 function newMessage(obj, socket, clientId) {
+	if (obj.ping != null) {
+		send(socket, {
+			pung: obj.ping
+		});
+	}
+	if (obj.type === 'spawn' && players[clientId] == null) {
+		players[clientId] = new Player(clientId, arena);
+		const player = players[clientId];
+		console.log(clients[clientId]._playerStats);
+		if (clients[clientId]._playerStats != null) {
+			console.log(clients[clientId]._playerStats)
+			const { kills, deaths, arrowsHit, arrowsShot } = clients[clientId]._playerStats;
+			player.kills = kills;
+			player.deaths = deaths;
+			player.arrowsHit = arrowsHit;
+			player.arrowsShot = arrowsShot; 
+		}
+		if (clients[clientId]._name) {
+			player.name = clients[clientId]._name;
+		}
+		return broadcast({
+			type: 'newPlayer',
+			id: clientId,
+			player: players[clientId].pack(),
+		}, [])
+	}
+	if (!players[clientId]) {
+		return;
+	}
 	if (obj.chat != undefined) {
 		if (players[clientId]) {
 			console.log(obj.chat.slice(0, 5));
@@ -133,18 +161,18 @@ function newMessage(obj, socket, clientId) {
 				players[clientId].name = newName;
 			} else if (obj.chat.slice(0, 5) == "/kick") {
 				socket.close();
-			// } else if (obj.chat.slice(0, 5) == '/fric') {
-			// 	players[clientId].fric = Number(obj.chat.slice(6).trim())
-			// 	send(socket, {
-			// 		fric: players[clientId].fric,
-			// 		speed: players[clientId].speed,
-			// 	})
-			// } else if (obj.chat.slice(0, 6) == '/speed') {
-			// 	players[clientId].speed = Number(obj.chat.slice(7).trim());
-			// 	send(socket, {
-			// 		fric: players[clientId].fric,
-			// 		speed: players[clientId].speed,
-			// 	})
+				// } else if (obj.chat.slice(0, 5) == '/fric') {
+				// 	players[clientId].fric = Number(obj.chat.slice(6).trim())
+				// 	send(socket, {
+				// 		fric: players[clientId].fric,
+				// 		speed: players[clientId].speed,
+				// 	})
+				// } else if (obj.chat.slice(0, 6) == '/speed') {
+				// 	players[clientId].speed = Number(obj.chat.slice(7).trim());
+				// 	send(socket, {
+				// 		fric: players[clientId].fric,
+				// 		speed: players[clientId].speed,
+				// 	})
 			} else {
 				players[clientId].chatMessage = obj.chat;
 				players[clientId].chatMessageTimer = players[clientId].chatMessageTime;
@@ -155,11 +183,6 @@ function newMessage(obj, socket, clientId) {
 	}
 	if (obj.input && validateInput(obj)) {
 		players[clientId].input = obj.data;
-	}
-	if (obj.ping != null) {
-		send(socket, {
-			pung: obj.ping
-		});
 	}
 }
 
@@ -174,7 +197,7 @@ function updateWorld() {
 	const dIds = [];
 	for (const arrowId of Object.keys(arrows)) {
 		const arrow = arrows[arrowId]
-		arrow.update(arena)
+		arrow.update(arena, obstacles)
 		if (arrow.life <= 0) {
 			dIds.push(arrowId)
 		}
@@ -197,14 +220,36 @@ function updateWorld() {
 			if (!player.dying && !arrow.dead && dist < (arrow.radius + player.radius) ** 2) {
 				// collision
 				player.dying = true;
+				player.arrowing = 0;
+				players[playerId].deaths++;
 				setTimeout(() => {
-					if (players[playerId]) {
-						players[playerId].spawn()
+					if (clients[playerId]) {
+						clients[playerId]._playerStats = players[playerId].stats();
+						clients[playerId]._name = players[playerId].name;
+
+
+						delete players[playerId]
+
+
+						if (leader.id === playerId) {
+							leader.id = null;
+						}
+
+						broadcast({ type: 'leave', id: playerId })
+
+						send(clients[playerId], {
+							type: 'stats',
+							kills: player.kills,
+							deaths: player.deaths,
+							kdr: player.kills / player.deaths,
+							accuracy: player.accuracy(),
+						});
 					}
 				}, 500)
 				arrow.die()
 				if (clients[arrow.parent] && players[arrow.parent]) {
 					players[arrow.parent].kills++;
+					players[arrow.parent].arrowsHit++;
 					send(clients[arrow.parent], {
 						kill: players[playerId].name,
 						kills: players[arrow.parent].kills,
@@ -215,13 +260,13 @@ function updateWorld() {
 				})
 			}
 		}
-		if (!arrow.dead) {
-			for (const obstacle of obstacles) {
-				if (collideArrowObstacle(arrow, obstacle).type) {
-					arrow.die()
-				}
-			}
-		}
+		// if (!arrow.dead) {
+		// 	for (const obstacle of obstacles) {
+		// 		if (collideArrowObstacle(arrow, obstacle).type) {
+		// 			arrow.die()
+		// 		}
+		// 	}
+		// }
 	}
 
 

@@ -8,10 +8,86 @@ body {
 	background-color: rgb(36, 36, 36);
 	overflow: hidden;
 	font-size: 16px;
+	font-family: Arial;
 }
 
 .chatDiv {
 	z-index: 100;
+}
+
+.stats {
+	position: absolute;
+	left: 500px;
+	top: 750px;
+	width: 600px;
+	height: 150px;
+	background-color: #bfbfbf;
+	opacity: 1;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.stat {
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	flex-direction: column;
+	padding: 5px;
+	color: rgb(211, 211, 211);
+	width: 125px;
+	height: 100px;
+	background-color: #636363;
+	margin: 10px;
+	font-size: 1.5rem;
+}
+
+@keyframes dAnimation {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
+.dAnim {
+	animation: dAnimation 0.75s linear;
+}
+
+
+.space-to-respawn {
+	font-size: 2rem;
+	color: black;
+	position: absolute;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 1600px;
+	height: 900px;
+}
+
+.space-to-respawn span {
+	margin-top: 500px;
+}
+
+
+
+.stat-number {
+	/* position: absolute;
+	bottom: 0; */
+	font-size: 2.8rem;
+	color: white;
+}
+
+.background-overlay {
+	position: absolute;
+	left: -2px;
+	top: -2px;
+	width: 1604px;
+	height: 904px;
+	background-color: rgb(0, 0, 0);
+	opacity: 0.7;
 }
 
 

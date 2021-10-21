@@ -23,19 +23,39 @@ module.exports = class Player {
 		this.chatMessage = '';
 		this.chatMessageTimer = 0;
 		this.fric = 0.955;
-    this.bfric = 0.985;
+    	this.bfric = 0.985;
 		this.chatMessageTime = 8;
 		this.kills = 0;
 		this.speed = 25;
+		this.deaths = 0;
+		this.arrowsHit = 0;
+		this.arrowsShot = 0;
 
 		this.name = `Agent ${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
 	}
+	stats() {
+		return {
+			kills: this.kills,
+			deaths: this.deaths,
+			arrowsHit: this.arrowsHit,
+			arrowsShot: this.arrowsShot,
+		}
+	}
+	accuracy() {
+		if (this.arrowsShot === 0) {
+			return 0;
+		}
+		return ((this.arrowsHit / this.arrowsShot) * 100).toFixed(0);
+	}
 	spawn() {
+		
 		this.x = Math.round(Math.random() * this._arena.width) + this.radius
 		this.y = Math.round(Math.random() * this._arena.height) + this.radius
 		this.xv = 0;
 		this.yv = 0;
 		this.bxv = 0;
+		this.arrowsShot = 0;
+		this.arrowsHit = 0;
 		this.byv = 0;
 		this.angleVel = 0;
 		this.spaceLock = false;

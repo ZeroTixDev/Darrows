@@ -6,8 +6,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Darrows</title>
 	<link href="./style.css" rel="stylesheet" />
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/msgpack-lite/0.1.5/msgpack.min.js" integrity="sha512-iklLb1eedGq+n6CU+Nknfyw0mNC9bc7g99ObbqqsaL8IZNeEk/eAfvn2B27WqhBo9eKukU2DXEP0kUqCCRWRBw=="
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/msgpack-lite/0.1.5/msgpack.min.js" integrity="sha512-iklLb1eedGq+n6CU+Nknfyw0mNC9bc7g99ObbqqsaL8IZNeEk/eAfvn2B27WqhBo9eKukU2DXEP0kUqCCRWRBw=="
 	 crossorigin="anonymous" referrerpolicy="no-referrer">
+
 	</script>
 </head>
 
@@ -18,6 +19,28 @@
 		<div class="gui">
 			<div class="chatDiv hidden">
 				<input class="chat" type="text" placeholder="Type a Message" autocomplete="off" maxlength="50" spellcheck="false">
+			</div>
+			<div class="death-screen hidden">
+				<div class="background-overlay"></div>
+				<div class="space-to-respawn"><span>press <span style="color: #427eff">space</span> to respawn</span></div>
+				<div class="stats">
+					<div class="stat">
+						Kills
+						<span class="stat-number kills">69</span>
+					</div>
+					<div class="stat">
+						Deaths
+						<span class="stat-number deaths">96</span>
+					</div>
+					<div class="stat">
+						KDR
+						<span class="stat-number kdr">6.9</span>
+					</div>
+					<div class="stat">
+						Accuracy
+						<span class="stat-number accuracy">69%</span>
+				</div>
+			</div>
 			</div>
 		</div>
 	</div>

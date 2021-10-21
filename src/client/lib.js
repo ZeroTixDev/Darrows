@@ -13,7 +13,9 @@ window.inputsBuffered = 0;
 window.fric = -1;
 window.speed = -1;
 
+let iExist = false;
 let chatOpen = false;
+let dead = false;
 let killedPlayerName = '';
 let killedNotifTime = 0;
 let _kills = 0;
@@ -115,6 +117,11 @@ function send(obj) {
 
 function trackKeys(event) {
 	if (event.repeat) return;
+	if (event.code === 'Space' && event.type === 'keydown' && iExist && dead) {
+		send({ type: 'spawn' })
+		ref.deathScreen.classList.add('hidden')
+		ref.deathScreen.classList.remove('dAnim')
+	}
 	if (event.code === 'Enter') {
 		if (chatOpen) {
 			if (event.type === 'keydown') {
@@ -143,6 +150,9 @@ function trackKeys(event) {
 	if (event.code === 'KeyP' && event.type === 'keydown') {
 		window._predict = !window._predict;
 	}
+	// if (event.code === 'KeyB'&& event.type === 'keydown') {
+	// 	window.stutter = !window.stutter;
+	// }
 	if (event.code === 'ArrowLeft' || event.code === 'KeyQ') {
 		input.arrowLeft = event.type === 'keydown'
 
@@ -186,8 +196,6 @@ function lerp(start, end, dt) {
 }
 
 function offset(x, y) {
-	const player = players[selfId];
-	if (!player) return;
 	return {
 		x: x - (camera.x) + canvas.width / 2 + xoff,
 		y: y - (camera.y) + canvas.height / 2 + yoff,

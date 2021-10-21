@@ -8,7 +8,9 @@ module.exports = class Obstacle {
 		this.height = height;
 		this.sat = new Box(new Vector(x, y), width, height).toPolygon();
     this.type = type || "obstacle";
+    // this.type = "bounce";
     this.effect = effect || 40;
+    // this.effect = 1000;
 	}
 	pack() {
 		return {

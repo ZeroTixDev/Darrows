@@ -84,16 +84,20 @@ function run() {
 		}
 	}
 
-	if (players[selfId] != undefined) {
-		if (camera.x == null) {
-			camera.x = players[selfId].pos.x;
-		}
-		if (camera.y == null) {
-			camera.y = players[selfId].pos.y;
-		}
+	if (players[selfId] != null) {
+		// if (camera.x == null) {
+		// 	camera.x = players[selfId].pos.x;
+		// }
+		// if (camera.y == null) {
+		// 	camera.y = players[selfId].pos.y;
+		// }
 
-		camera.x = players[selfId].pos.x;
-		camera.y = players[selfId].pos.y;
+		if (players[selfId].pos !== undefined && players[selfId].pos.x !== undefined && players[selfId].pos.y !== undefined
+			&& !Number.isNaN(players[selfId].pos.x) && !Number.isNaN(players[selfId].pos.x)) {
+			camera.x = players[selfId].pos.x ;
+			camera.y = players[selfId].pos.y;
+
+		}
 
 		let targetX = 0;
 		let targetY = 0;
@@ -131,7 +135,7 @@ ws.onclose = function() {
 
 function update(dt, msg = true) {
 	window.dt = dt;
-	if (selfId == null || startTime == null || players[selfId] == null) {
+	if (selfId == null || startTime == null || (players[selfId] == null && iExist === false)) {
 		if (msg) {
 			for (const msg of messages) {
 				processMessage(msg);
@@ -148,7 +152,14 @@ function update(dt, msg = true) {
 		messages = [];
 	}
 	if (window._predict) {
+		// for (const playerId of Object.keys(players)) {
+		// const player = players[selfId];
 
+
+		// if (player.input.space && player.timer <= 0) {
+		// 	player.angle += (input.arrowRight - input.arrowLeft) * (2.9 * dt);
+		// }
+		// }
 	}
 }
 
