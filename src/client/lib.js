@@ -121,6 +121,7 @@ function trackKeys(event) {
 		send({ type: 'spawn' })
 		ref.deathScreen.classList.add('hidden')
 		ref.deathScreen.classList.remove('dAnim')
+		return;
 	}
 	if (event.code === 'Enter') {
 		if (chatOpen) {

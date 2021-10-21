@@ -44,12 +44,12 @@ module.exports = class Arrow {
 				if (this.yv != 0) {
 					if (relX < 0) {
 						this.xv = 0;
-						this.yv *= 0.8;
+						this.yv *= 0.7;
 						this.angle = Math.PI / 2;
 
 					} else {
 						this.xv = 0;
-						this.yv *= 0.8;
+						this.yv *= 0.7;
 						this.angle = -Math.PI / 2;
 					}
 				} else {
@@ -59,11 +59,11 @@ module.exports = class Arrow {
 				if (this.xv != 0) {
 					if (relY > 0) {
 						this.yv = 0;
-						this.xv *= 0.8;
+						this.xv *= 0.7;
 						this.angle = -Math.PI;
 					} else {
 						this.yv = 0;
-						this.xv *= 0.8;
+						this.xv *= 0.7;
 						this.angle = Math.PI;
 					}
 				} else {
