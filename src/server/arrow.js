@@ -44,13 +44,21 @@ module.exports = class Arrow {
 				if (this.yv != 0) {
 					if (relX < 0) {
 						this.xv = 0;
-						this.yv *= 0.7;
-						this.angle = Math.PI / 2;
+						this.yv *= 0.9;
+						if (this.angle < Math.PI / 2) {
+							this.angle = Math.PI * 1.5;
+						} else {
+							this.angle = Math.PI / 2;
+						}
 
 					} else {
 						this.xv = 0;
-						this.yv *= 0.7;
-						this.angle = -Math.PI / 2;
+						this.yv *= 0.9;
+						if (this.angle > 0) {
+							this.angle = Math.PI / 2;
+						} else {
+							this.angle = -Math.PI / 2;
+						}
 					}
 				} else {
 					this.die()
@@ -59,12 +67,20 @@ module.exports = class Arrow {
 				if (this.xv != 0) {
 					if (relY > 0) {
 						this.yv = 0;
-						this.xv *= 0.7;
-						this.angle = -Math.PI;
+						this.xv *= 0.9;
+						if (this.angle < Math.PI / 2) {
+							this.angle = -Math.PI * 2;
+						} else {
+							this.angle = Math.PI;
+						}
 					} else {
 						this.yv = 0;
-						this.xv *= 0.7;
-						this.angle = Math.PI;
+						this.xv *= 0.9;
+						if (this.angle < -Math.PI / 2) {
+							this.angle = Math.PI;
+						} else {
+							this.angle = 0;
+						}
 					}
 				} else {
 					this.die()
