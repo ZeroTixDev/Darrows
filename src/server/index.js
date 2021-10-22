@@ -33,42 +33,6 @@ setInterval(() => {
 wss.on('connection', (socket, _request) => {
 	const clientId = createId();
 	clients[clientId] = socket;
-	players[clientId] = new Player(clientId, arena);
-	const payload = {
-		type: 'init',
-		players: _allPlayerPacks(),
-		arena,
-		obstacles: obstacles.map((ob) => ob.pack()),
-		selfId: clientId,
-	};
-	if (leader.id != null) {
-		payload.leader = {
-			name: players[leader.id].name,
-			kills: players[leader.id].kills,
-			id: leader.id
-		}
-	}
-
-	send(socket, payload);
-
-
-	for (const playerId of Object.keys(players)) {
-		const player = players[playerId];
-		if (player.chatMessage != '' && player.chatMessageTimer > 0) {
-			send(socket, { type: 'chat', msg: player.chatMessage, id: playerId })
-		}
-	}
-
-	send(socket, {
-		fric: players[clientId].fric,
-		speed: players[clientId].speed,
-	})
-
-	broadcast({
-		type: 'newPlayer',
-		id: clientId,
-		player: players[clientId].pack(),
-	}, [clientId])
 
 	socket.on('message', (data) => {
 		try {
@@ -124,6 +88,44 @@ function validateInput(obj) {
 }
 
 function newMessage(obj, socket, clientId) {
+	if (obj.join && players[clientId] == null) {
+		players[clientId] = new Player(clientId, arena);
+		const payload = {
+			type: 'init',
+			players: _allPlayerPacks(),
+			arena,
+			obstacles: obstacles.map((ob) => ob.pack()),
+			selfId: clientId,
+		};
+		if (leader.id != null) {
+			payload.leader = {
+				name: players[leader.id].name,
+				kills: players[leader.id].kills,
+				id: leader.id
+			}
+		}
+
+		send(socket, payload);
+
+
+		for (const playerId of Object.keys(players)) {
+			const player = players[playerId];
+			if (player.chatMessage != '' && player.chatMessageTimer > 0) {
+				send(socket, { type: 'chat', msg: player.chatMessage, id: playerId })
+			}
+		}
+
+		send(socket, {
+			fric: players[clientId].fric,
+			speed: players[clientId].speed,
+		})
+
+		broadcast({
+			type: 'newPlayer',
+			id: clientId,
+			player: players[clientId].pack(),
+		}, [clientId])
+	}
 	if (obj.ping != null) {
 		send(socket, {
 			pung: obj.ping
@@ -139,7 +141,7 @@ function newMessage(obj, socket, clientId) {
 			player.kills = kills;
 			player.deaths = deaths;
 			player.arrowsHit = arrowsHit;
-			player.arrowsShot = arrowsShot; 
+			player.arrowsShot = arrowsShot;
 		}
 		if (clients[clientId]._name) {
 			player.name = clients[clientId]._name;
