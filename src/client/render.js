@@ -258,13 +258,21 @@ window.render = () => {
 
 			for (const playerId of Object.keys(players)) {
 				const player = players[playerId];
-				ctx.fillStyle = '#000000';
-				if (leader != null && playerId === leader.id) {
-					ctx.fillStyle = '#ffc400'
+				if (player.dying) {
+					ctx.fillStyle = '#ff0000';
+					ctx.font = '25px Arial';
+					ctx.textAlign = 'center';
+					ctx.textBaseline = 'middle';
+					ctx.fillText('X', (player.pos.x / arena.width) * mwidth, (canvas.height - mheight) + (player.pos.y / arena.height) * mheight)
+				} else {
+					ctx.fillStyle = '#000000';
+					if (leader != null && playerId === leader.id) {
+						ctx.fillStyle = '#ffc400'
+					}
+					ctx.beginPath();
+					ctx.arc((player.pos.x / arena.width) * mwidth, (canvas.height - mheight) + (player.pos.y / arena.height) * mheight, 4, 0, Math.PI * 2)
+					ctx.fill()
 				}
-				ctx.beginPath();
-				ctx.arc((player.pos.x / arena.width) * mwidth, (canvas.height - mheight) + (player.pos.y / arena.height) * mheight, 4, 0, Math.PI * 2)
-				ctx.fill()
 			}
 		}
 
@@ -283,6 +291,11 @@ window.render = () => {
 		ctx.font = '25px Arial'
 
 		ctx.fillText(`x${_kills}`, canvas.width - 10 - ctx.measureText(`x${_kills}`).width, canvas.height - 20);
+
+		if (window.autoRespawn) {
+			ctx.fillStyle = '#058226';
+			ctx.fillText("Auto Respawn", canvas.width - 250, canvas.height - 20)
+		}
 
 		if (leader != null) {
 			ctx.globalAlpha = 0.9;

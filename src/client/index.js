@@ -38,11 +38,19 @@ ws.addEventListener('open', () => {
 
 ws.addEventListener('message', (msg) => {
 	if (window.stutter) return;
+	
+	const obj = msgpack.decode(new Uint8Array(msg.data));
+	byteCount += msg.data.byteLength;
+	if (obj.type === 'stats') {
+		if (window.autoRespawn) {
+			return send({ type: 'spawn' });
+		}
+	}
 	if (extraLag === 0) {
-		messages.push(msg)
+		messages.push(obj)
 	} else {
 		setTimeout(() => {
-			messages.push(msg)
+			messages.push(obj)
 		}, extraLag);
 	}
 });

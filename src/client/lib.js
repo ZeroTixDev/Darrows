@@ -12,6 +12,7 @@ window.extraLag = 0;
 window.inputsBuffered = 0;
 window.fric = -1;
 window.speed = -1;
+window.autoRespawn = false;
 
 let iExist = false;
 let chatOpen = false;
@@ -117,7 +118,7 @@ function send(obj) {
 
 function trackKeys(event) {
 	if (event.repeat) return;
-	if (event.code === 'Space' && event.type === 'keydown' && iExist && dead) {
+	if (event.code === 'Space' && event.type === 'keydown' && !window.autoRespawn && iExist && dead) {
 		send({ type: 'spawn' })
 		ref.deathScreen.classList.add('hidden')
 		ref.deathScreen.classList.remove('dAnim')
@@ -142,6 +143,9 @@ function trackKeys(event) {
 		}
 	}
 	if (chatOpen) return;
+	if (event.code === 'KeyR' && event.type === 'keydown') {
+		window.autoRespawn = !window.autoRespawn;
+	}
 	if (event.code === 'KeyN' && event.type === 'keydown') {
 		window.debug = !window.debug;
 	}

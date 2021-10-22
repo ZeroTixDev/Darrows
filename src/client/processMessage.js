@@ -1,6 +1,5 @@
-function processMessage(msg) {
-	byteCount += msg.data.byteLength;
-	const obj = msgpack.decode(new Uint8Array(msg.data));
+function processMessage(obj) {
+	
 	if (obj.type === 'init') {
 		selfId = obj.selfId;
 		iExist = true;

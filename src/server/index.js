@@ -9,6 +9,9 @@ const createId = require('./util/createId.js');
 const msgpack = require('msgpack-lite')
 const Player = require('./player.js');
 const Obstacle = require('./obstacle.js');
+const hash = require('./util/hash.js');
+
+const hashedKey = 'b4579ebfe636fac6142d095f0e3b6f7676db215ee8873b3b96c376cd655b25ca';
 
 const wss = require('./setupServer.js')();
 const { players, arrows, obstacles, arena } = require('./util/createState.js')();
