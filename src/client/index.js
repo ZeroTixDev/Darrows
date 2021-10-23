@@ -33,7 +33,7 @@ ws.addEventListener('open', () => {
 	setInterval(() => {
 		send({ ping: Date.now() })
 	}, 500);
-	send({ join: true })
+	send({ joinGame: true })
 });
 
 ws.addEventListener('message', (msg) => {

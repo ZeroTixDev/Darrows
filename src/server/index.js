@@ -91,7 +91,7 @@ function validateInput(obj) {
 }
 
 function newMessage(obj, socket, clientId) {
-	if (obj.join && players[clientId] == null) {
+	if (obj.joinGame && players[clientId] == null) {
 		players[clientId] = new Player(clientId, arena);
 		const payload = {
 			type: 'init',
