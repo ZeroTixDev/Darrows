@@ -13,6 +13,15 @@ window.inputsBuffered = 0;
 window.fric = -1;
 window.speed = -1;
 window.autoRespawn = false;
+window.movementMode = 'wasd';
+
+function changeMovMode() {
+	if (window.movementMode === 'wasd') {
+		window.movementMode = 'arr'
+	} else {
+		window.movementMode = 'wasd'
+	}
+}
 
 let iExist = false;
 let chatOpen = false;
@@ -52,7 +61,7 @@ let obstacles = []
 
 /* state */
 
-const input = createInput();
+let input = createInput();
 const gui = ref.gui
 const canvas = ref.canvas
 const ctx = canvas.getContext('2d')
@@ -75,12 +84,20 @@ const inputCodes = {
 	[inputs[3]]: { key: "right" },
 	Space: { key: 'space' }
 }
+const arrInputs = ["ArrowUp", "ArrowLeft", "ArrowDown", "ArrowRight"]
+const arrInputCodes = {
+	[arrInputs[0]]: { key: "up" },
+	[arrInputs[1]]: { key: "left" },
+	[arrInputs[2]]: { key: "down" },
+	[arrInputs[3]]: { key: "right" },
+	Space: { key: 'space' }
+}
 
 
 //func
 
 function getDelta(last) {
-	return Math.min(((window.performance.now() - last) / (1/lerpRate)) / 1000, 1);
+	return Math.min(((window.performance.now() - last) / (1 / lerpRate)) / 1000, 1);
 }
 
 function getScale() {
@@ -143,6 +160,9 @@ function trackKeys(event) {
 		}
 	}
 	if (chatOpen) return;
+	if (event.code === 'KeyV' && event.type === 'keydown') {
+		changeMovMode()
+	}
 	if (event.code === 'KeyR' && event.type === 'keydown') {
 		window.autoRespawn = !window.autoRespawn;
 	}
@@ -158,22 +178,32 @@ function trackKeys(event) {
 	// if (event.code === 'KeyB'&& event.type === 'keydown') {
 	// 	window.stutter = !window.stutter;
 	// }
-	if (event.code === 'ArrowLeft' || event.code === 'KeyQ') {
+	if ((window.movementMode === 'wasd' && (event.code === 'ArrowLeft' || event.code === 'KeyQ'))
+		 || (window.movementMode === 'arr' && (event.code === 'KeyA'))) {
 		input.arrowLeft = event.type === 'keydown'
-
 		sendInput();
+		inputMessageCount++;
 	}
-	if (event.code === 'ArrowRight' || event.code === 'KeyE') {
+	if ((window.movementMode === 'wasd'&& (event.code === 'ArrowRight' || event.code === 'KeyE')) 
+		|| (window.movementMode === 'arr' && (event.code === 'KeyD'))) {
 		input.arrowRight = event.type === 'keydown'
 		sendInput();
+		inputMessageCount++;
 	}
 	if (event.code == 'KeyT' && event.type === 'keydown') {
 		window.showSnapshots = !window.showSnapshots;
 	}
-	if (inputCodes[event.code] === undefined) return;
-	input[inputCodes[event.code].key] = event.type === "keydown";
-	sendInput()
-	inputMessageCount++;
+	if (window.movementMode === 'wasd') {
+		if (inputCodes[event.code] === undefined) return;
+		input[inputCodes[event.code].key] = event.type === "keydown";
+		sendInput()
+		inputMessageCount++;
+	} else {
+		if (arrInputCodes[event.code] === undefined) return;
+		input[arrInputCodes[event.code].key] = event.type === 'keydown';
+		sendInput();
+		inputMessageCount++;
+	}
 }
 
 function resize(elements) {

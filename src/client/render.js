@@ -288,13 +288,30 @@ window.render = () => {
 			ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}] | Angle: ${players[selfId]?.angle}`, 210, 870);
 			ctx.fillText(`Extralag: ${extraLag} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length} | ServerTickTime: ${serverTickMs}ms | ServerFrameTime: ${Math.round(serverTickMs / 60)}ms | Fric: ${window.fric} | Speed: ${window.speed}`, 210, 840)
 		}
-		ctx.font = '25px Arial'
 
-		ctx.fillText(`x${_kills}`, canvas.width - 10 - ctx.measureText(`x${_kills}`).width, canvas.height - 20);
+		ctx.fillStyle = 'black';
+		ctx.fillRect(canvas.width - 335, canvas.height - 40, 500, 40)
+
+		ctx.font = '25px Arial'
+		ctx.fillStyle = 'white'
+		ctx.fillText(`x${_kills}`, canvas.width - 20 - ctx.measureText(`x${_kills}`).width, canvas.height - 20);
 
 		if (window.autoRespawn) {
-			ctx.fillStyle = '#058226';
-			ctx.fillText("Auto Respawn", canvas.width - 250, canvas.height - 20)
+			ctx.fillStyle = '#00ff59';
+			ctx.fillText("Auto Respawn", canvas.width - 225, canvas.height - 20)
+		} else {
+			ctx.globalAlpha = 0.6;
+			ctx.fillStyle = '#00ff84';
+			ctx.fillText("Auto Respawn", canvas.width - 225, canvas.height - 20)
+			ctx.globalAlpha = 1;
+		}
+
+		ctx.fillStyle = '#f6ff00';
+
+		if (window.movementMode === 'wasd') {
+			ctx.fillText('WASD', canvas.width - 315, canvas.height - 20);
+		} else {
+			ctx.fillText('ULDR', canvas.width - 315, canvas.height - 20)
 		}
 
 		if (leader != null) {
