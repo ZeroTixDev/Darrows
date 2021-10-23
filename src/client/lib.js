@@ -179,13 +179,13 @@ function trackKeys(event) {
 	// 	window.stutter = !window.stutter;
 	// }
 	if ((window.movementMode === 'wasd' && (event.code === 'ArrowLeft' || event.code === 'KeyQ'))
-		 || (window.movementMode === 'arr' && (event.code === 'KeyA'))) {
+		 || (window.movementMode === 'arr' && (event.code === 'KeyA' || event.code === 'KeyZ'))) {
 		input.arrowLeft = event.type === 'keydown'
 		sendInput();
 		inputMessageCount++;
 	}
 	if ((window.movementMode === 'wasd'&& (event.code === 'ArrowRight' || event.code === 'KeyE')) 
-		|| (window.movementMode === 'arr' && (event.code === 'KeyD'))) {
+		|| (window.movementMode === 'arr' && (event.code === 'KeyD' || event.code === 'KeyX'))) {
 		input.arrowRight = event.type === 'keydown'
 		sendInput();
 		inputMessageCount++;
