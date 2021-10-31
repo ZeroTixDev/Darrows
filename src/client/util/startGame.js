@@ -47,10 +47,11 @@ function startGame() {
 		if (obj.type === 'stats' && autoRespawn) {
 			return send({ type: 'spawn' })
 		}
-		extraLag === 0 ? messages.push(obj):
-			setTimeout(() => {
-				messages.push(obj)
-			}, extraLag);
+		// extraLag === 0 ? processMessage(obj):
+		// 	setTimeout(() => {
+		// 		processMessage(obj)
+		// 	}, extraLag);
+		processMessage(obj)
 
 		byteCount += msg.data.byteLength;
 	};

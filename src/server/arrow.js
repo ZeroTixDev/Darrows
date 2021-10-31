@@ -42,13 +42,13 @@ module.exports = class Arrow {
 			else {
 				relY = - rectCenterY + rectHalfSizeY + this.y + this.radius;
 			}
-			if (Math.abs(relX) < Math.abs(relY)) {
+			if (Math.abs(relX) < Math.abs(relY) && obstacle.type !== 'point') {
 				if (this.yv != 0) {
 					if (relX < 0) {
 						if (obstacle.type === 'bounce') {
 							this.xv *= -0.5;
 							this.angle = Math.atan2(this.yv, this.xv);
-						} else if (obstacle.type !== 'point') {
+						} else {
 							this.xv = 0;
 							this.yv *= 0.9;
 							if (this.angle < Math.PI / 2) {
@@ -64,7 +64,7 @@ module.exports = class Arrow {
 						if (obstacle.type === 'bounce') {
 							this.xv *= -0.5;
 							this.angle = Math.atan2(this.yv, this.xv);
-						} else if (obstacle.type !== 'point') {
+						} else  {
 							this.xv = 0;
 							this.yv *= 0.9;
 							if (this.angle > 0) {
@@ -78,13 +78,13 @@ module.exports = class Arrow {
 				} else {
 					this.die()
 				}
-			} else {
+			} else if (obstacle.type !== 'point'){
 				if (this.xv != 0) {
 					if (relY > 0) {
 						if (obstacle.type === 'bounce') {
 							this.yv *= -0.5;
 							this.angle = Math.atan2(this.yv, this.xv)
-						} else if (obstacle.type !== 'point') {
+						} else {
 							this.yv = 0;
 							this.xv *= 0.9;
 							if (this.angle < Math.PI / 2) {
@@ -98,7 +98,7 @@ module.exports = class Arrow {
 						if (obstacle.type === 'bounce') {
 							this.yv *= -0.5; 
 							this.angle = Math.atan2(this.yv, this.xv)
-						} else if (obstacle.type !== 'point') {
+						} else {
 							this.yv = 0;
 							this.xv *= 0.9;
 							if (this.angle < -Math.PI / 2) {

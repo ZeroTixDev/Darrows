@@ -54,7 +54,7 @@ let uploadByteDisplay = 0;
 let ping = 0;
 let angle = 0;
 let serverSpacing = Array(3).fill(0)
-let messages = [];
+// let messages = [];
 let leader = null;
 
 /* state */
@@ -100,7 +100,7 @@ const arrInputCodes = {
 
 function run(time =  0) {
 	fpsTick(time)
-	processMessages();
+	// processMessages();
 	window.dt = (window.performance.now() - lastTime) / 1000;
 	window.delta = getDelta(lastTime);
 	window.redness -= dt * 1.5;
@@ -150,11 +150,5 @@ function run(time =  0) {
 
 
 
-function processMessages() {
-	for (const msg of messages) {
-			processMessage(msg);
-		}
-	messages = [];
-}
 
 
