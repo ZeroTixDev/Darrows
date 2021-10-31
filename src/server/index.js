@@ -21,7 +21,7 @@ const clients = {};
 const spacings = [];
 const updateRate = 60;
 const startTime = Date.now();
-const leader = { id: null, kills: null }
+const leader = { id: null, score: null }
 let lastSent = { players: {}, arrows: {} };
 let lastSentPackageTime = null;
 let tick = 0;
@@ -103,7 +103,6 @@ function newMessage(obj, socket, clientId) {
 		if (leader.id != null) {
 			payload.leader = {
 				name: players[leader.id].name,
-				kills: players[leader.id].kills,
 				id: leader.id
 			}
 		}
@@ -140,13 +139,14 @@ function newMessage(obj, socket, clientId) {
 		console.log(clients[clientId]._playerStats);
 		if (clients[clientId]._playerStats != null) {
 			console.log(clients[clientId]._playerStats)
-			const { kills, deaths, arrowsHit, arrowsShot } = clients[clientId]._playerStats;
+			const { kills, deaths, arrowsHit, arrowsShot, score } = clients[clientId]._playerStats;
 			player.kills = kills;
 			player.deaths = deaths;
 			player.arrowsHit = arrowsHit;
 			player.arrowsShot = arrowsShot;
+			player.score = score;
 		}
-		if (clients[clientId]._name) {
+		if (clients[clientId]._name != undefined) {
 			player.name = clients[clientId]._name;
 		}
 		return broadcast({
@@ -229,6 +229,7 @@ function updateWorld() {
 				players[playerId].deaths++;
 				setTimeout(() => {
 					if (clients[playerId]) {
+						players[playerId].score -= 25;
 						clients[playerId]._playerStats = players[playerId].stats();
 						clients[playerId]._name = players[playerId].name;
 
@@ -251,9 +252,15 @@ function updateWorld() {
 						});
 					}
 				}, 500)
-				arrow.die()
 				if (clients[arrow.parent] && players[arrow.parent]) {
 					players[arrow.parent].kills++;
+					players[arrow.parent].score += 100;
+					if (arrow.slided) {
+						players[arrow.parent].score += 25;
+					}
+					if (arrow.max) {
+						players[arrow.parent].score += 25;
+					}
 					players[arrow.parent].arrowsHit++;
 					send(clients[arrow.parent], {
 						kill: players[playerId].name,
@@ -263,6 +270,7 @@ function updateWorld() {
 				send(clients[playerId], {
 					arrowHit: true,
 				})
+				arrow.die()
 			}
 		}
 		// if (!arrow.dead) {
@@ -300,6 +308,7 @@ function takeSnapshots() {
 function isDifferent(obj1, obj2) {
 	for (const key of Object.keys(obj2)) {
 		if (obj1[key] !== obj2[key]) {
+			// console.log(key, obj1[key], obj2[key])
 			return true;
 		}
 	}
@@ -312,7 +321,7 @@ function sendWorldState() {
 
 	for (const clientId of Object.keys(players)) {
 		const player = players[clientId];
-		if (lastSent.players[clientId] == null || isDifferent(player, lastSent.players[clientId])) {
+		if (lastSent.players[clientId] == null || isDifferent(player.pack(), lastSent.players[clientId])) {
 			state.players.push({
 				id: clientId,
 				data: player.differencePack(lastSent.players[clientId]),
@@ -323,7 +332,7 @@ function sendWorldState() {
 
 	for (const arrowId of Object.keys(arrows)) {
 		const arrow = arrows[arrowId];
-		if (lastSent.arrows[arrowId] == null || isDifferent(arrow, lastSent.arrows[arrowId])) {
+		if (lastSent.arrows[arrowId] == null || isDifferent(arrow.pack(), lastSent.arrows[arrowId])) {
 			state.arrows.push({
 				id: arrowId,
 				data: arrow.differencePack(lastSent.arrows[arrowId]),
@@ -350,18 +359,18 @@ function sendWorldState() {
 		const player = players[playerId];
 		if (leader.id == null) {
 			leader.id = playerId;
-			leader.kills = player.kills;
+			leader.score = player.score;
 			leaderChange = true;
 			continue;
 		}
-		if (player.kills > players[leader.id].kills) {
+		if (player.score > players[leader.id].score) {
 			leader.id = playerId;
-			leader.kills = players[leader.id].kills;
+			leader.score =  player.score;
 			leaderChange = true;
 		}
-		if (playerId === leader.id && player.kills > leader.kills) {
+		if (playerId === leader.id && player.kills> leader.score) {
 			leaderChange = true;
-			leader.kills = player.kills;
+			leader.score = player.score;
 		}
 	}
 
@@ -375,7 +384,7 @@ function sendWorldState() {
 	}
 
 	if (leaderChange) {
-		obj.leader = { name: players[leader.id].name, kills: leader.kills, id: leader.id };
+		obj.leader = { name: players[leader.id].name, id: leader.id };
 	}
 
 	if (Object.keys(obj).length > 0) {

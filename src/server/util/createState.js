@@ -6,17 +6,17 @@ module.exports = function createState() {
 		arrows: {},
 		
 		obstacles: [
-      new Obstacle(1000, 1000, 300, 300),
-      new Obstacle(1000, 1700, 300, 300),
-      new Obstacle(1700, 1000, 300, 300),
-      new Obstacle(1700, 1700, 300, 300),
-      new Obstacle(1450, 1450, 100, 100, 'bounce', 100),
+      new Obstacle(1000, 1000, 200, 200),
+      new Obstacle(1000, 1800, 200, 200),
+      new Obstacle(1800, 1000, 200, 200),
+      new Obstacle(1800, 1800, 200, 200),
+      new Obstacle(1450, 1450, 100, 100, 'bounce', 70),
       new Obstacle(0, 0, 20, 20, 'bounce', 40),
       new Obstacle(2980, 0, 20, 20, 'bounce', 40),
       new Obstacle(0, 2980, 20, 20, 'bounce', 40),
       new Obstacle(2980, 2980, 20, 20, 'bounce', 40),
-      new Obstacle(1400, 150, 200, 20, 'bounce', 40),
-      new Obstacle(1400, 290, 200, 20, 'bounce', 40),
+    //   new Obstacle(1400, 150, 200, 20, 'bounce', 40),
+      new Obstacle(1400, 300, 200, 20, 'bounce', 30),
       new Obstacle(1200, 100, 20, 300, 'obstacle', 40),
       new Obstacle(1780, 100, 20, 300, 'obstacle', 40),
       
@@ -37,6 +37,11 @@ module.exports = function createState() {
       new Obstacle(2100, 1500, 100, 20, 'obstacle', 1000),
       new Obstacle(2800, 2000, 100, 20, 'obstacle', 1000),
       new Obstacle(2100, 2500, 100, 20, 'obstacle', 1000),
+
+	  new Obstacle(2600, 0, 400, 200),
+	  new Obstacle(2800, 200, 200, 200),
+
+	  new Obstacle(1200, 1200, 600, 600, 'point'),
       
 		],
 		arena: {

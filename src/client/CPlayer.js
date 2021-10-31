@@ -1,12 +1,11 @@
 
 class CPlayer {
-	constructor(pack, isSelf) {
+	constructor(pack) {
 		for (const key of Object.keys(pack)) {
 			this[key] = pack[key]
 		}
 		this.server = { x: pack.x, y: pack.y, xv: pack.xv, yv: pack.yv }
 		this.pos = { x: this.x, y: this.y };
-		this.isSelf = isSelf;
 		this.interpAngle = pack.angle;
 		this.chatMessage = '';
 		this.chatMessageTimer = 0;
@@ -16,8 +15,7 @@ class CPlayer {
 		this.chatMessageTimer = this.chatMessageTime;
 		this.chatMessage = msg;
 	}
-	smooth(delta, isSelf) {
-
+	smooth(delta) {
 
 		if (!_interpolate) {
 			this.pos.x = this.x;
@@ -37,14 +35,19 @@ class CPlayer {
 		}
 		this.interpAngle = lerp(this.interpAngle, this.angle, delta);
 
-
 	}
 	Snap(data) {
 		for (const key of Object.keys(data)) {
 			this[key] = data[key]
 		}
 
-		this.server = { x: this.x, angle: this.angle, y: this.y, xv: this.xv, yv: this.yv };
+		this.server = { 
+			x: this.x, 
+			angle: this.angle, 
+			y: this.y, 
+			xv: this.xv, 
+			yv: this.yv 
+		};
 	}
 	pack() {
 		return {
@@ -54,8 +57,4 @@ class CPlayer {
 			name: this.name,
 		};
 	}
-}
-
-function lerp(start, end, dt) {
-	return (1 - dt) * start + dt * end;
 }

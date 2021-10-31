@@ -1,1 +1,21 @@
-menu and organizing client
+- add a menu
+- multiple servers
+- team mode
+- rounds and voting for maps for ffa with stats
+- accounts with mongodb
+- death particles adnd stuff
+- flunked/bashed/destroyed!! text on death
+- footsteps and arrow sounds and bow snap sounds : optional
+- character system with a basic character starter
+- Optimizing server packages, currently moving around only is 4kbps/s, lets get that to under 2kbps/server
+- Adding discord server link and my youtube channel on game
+- A settings menu
+- Clearing up game gui so you can focus on the game more
+- A sandbox mode
+- Optimizing server collisions and quadtree 
+- A practice mode to train your aim/dodging/tracking
+- A map maker to make maps fast!
+- A better name for the game
+- Prevent camping and make it harder to camp
+- A score system with a leaderboard that you can toggle with Tab
+- A good ping indicator with a green/yellow/red image

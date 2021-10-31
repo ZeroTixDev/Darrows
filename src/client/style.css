@@ -5,10 +5,10 @@
 }
 
 body {
-	background-color: rgb(36, 36, 36);
+	background-color: #242424;
 	overflow: hidden;
 	font-size: 16px;
-	font-family: Arial;
+	font-family: 'Inter', sans-serif;
 }
 
 .chatDiv {

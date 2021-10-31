@@ -14,6 +14,10 @@ window.fric = -1;
 window.speed = -1;
 window.autoRespawn = false;
 window.movementMode = 'wasd';
+window.font = 'Inter'
+window.fps = 60;
+window.times = [];
+window.tab = false;
 
 function changeMovMode() {
 	if (window.movementMode === 'wasd') {
@@ -69,8 +73,7 @@ const width = 1600;
 const height = 900;
 const updateRate = 60;
 const camera = { x: null, y: null }
-const ws = new WebSocket(location.origin.replace(/^http/, 'ws'));
-ws.binaryType = 'arraybuffer'
+let ws = null;
 
 canvas.width = width;
 canvas.height = height;
@@ -94,165 +97,64 @@ const arrInputCodes = {
 }
 
 
-//func
 
-function getDelta(last) {
-	return Math.min(((window.performance.now() - last) / (1 / lerpRate)) / 1000, 1);
+function run(time =  0) {
+	fpsTick(time)
+	processMessages();
+	window.dt = (window.performance.now() - lastTime) / 1000;
+	window.delta = getDelta(lastTime);
+	window.redness -= dt * 1.5;
+	if (window.redness <= 0) window.redness = 0;
+	killedNotifTime -= dt * 1.5;
+	if (killedNotifTime <= 0) killedNotifTime = 0;
+	lastTime = window.performance.now();
+
+
+	for (const playerId of Object.keys(players)) {
+		const player = players[playerId];
+
+		player.smooth(delta, playerId === selfId);
+		
+		player.chatMessageTimer -= dt;
+
+		if (player.chatMessageTimer <= 0) 
+			player.chatMessageTimer = 0;
+	}
+
+	for (const arrowId of Object.keys(arrows)) {
+		arrows[arrowId].smooth(delta)
+		if (arrows[arrowId].alpha <= 0) 
+			delete arrows[arrowId]
+	}
+
+	if (players[selfId] != null) {
+		camera.x = players[selfId].pos.x;
+		camera.y = players[selfId].pos.y;
+
+		let targetX = players[selfId].arrowing ? 
+			-Math.cos(players[selfId].interpAngle) * 100: 0;
+		let targetY = players[selfId].arrowing ? 
+			-Math.sin(players[selfId].interpAngle) * 100: 0;
+
+		const dtC = Math.min(dt * 2, 1);
+		xoff = lerp(xoff, targetX, dtC);
+		yoff = lerp(yoff, targetY, dtC)
+
+		if (Math.abs(targetX - xoff) < 0.5) xoff = targetX;
+		if (Math.abs(targetY - yoff) < 0.5) yoff = targetY;
+	}
+
+	render();
+	requestAnimationFrame(run);
 }
 
-function getScale() {
-	return Math.min(window.innerWidth / width, window.innerHeight / height);
-}
 
-function sendInput() {
-	send({ input: true, data: input });
-}
 
-function sameInput(input1, input2) {
-	for (const key of Object.keys(input1)) {
-		if (input1[key] !== input2[key]) {
-			return false;
+function processMessages() {
+	for (const msg of messages) {
+			processMessage(msg);
 		}
-	}
-	return true;
-}
-
-function send(obj) {
-	if (window.stutter) return;
-	if (extraLag > 0) {
-		setTimeout(() => {
-			const pack = msgpack.encode(obj);
-			uploadByteCount += pack.byteLength;
-			ws.send(pack)
-		}, extraLag)
-	} else {
-		const pack = msgpack.encode(obj);
-		uploadByteCount += pack.byteLength;
-		ws.send(pack)
-	}
+	messages = [];
 }
 
 
-function trackKeys(event) {
-	if (event.repeat) return;
-	if (event.code === 'Space' && event.type === 'keydown' && !window.autoRespawn && iExist && dead) {
-		send({ type: 'spawn' })
-		ref.deathScreen.classList.add('hidden')
-		ref.deathScreen.classList.remove('dAnim')
-		return;
-	}
-	if (event.code === 'Enter') {
-		if (chatOpen) {
-			if (event.type === 'keydown') {
-				ref.chatDiv.classList.add('hidden')
-				send({ chat: ref.chat.value })
-				ref.chat.value = '';
-				chatOpen = false;
-				return;
-			}
-		} else {
-			if (event.type === 'keydown') {
-				chatOpen = true;
-				ref.chatDiv.classList.remove('hidden')
-				ref.chat.focus()
-				return;
-			}
-		}
-	}
-	if (chatOpen) return;
-	if (event.code === 'KeyV' && event.type === 'keydown') {
-		changeMovMode()
-	}
-	if (event.code === 'KeyR' && event.type === 'keydown') {
-		window.autoRespawn = !window.autoRespawn;
-	}
-	if (event.code === 'KeyN' && event.type === 'keydown') {
-		window.debug = !window.debug;
-	}
-	if (event.code === 'KeyL' && event.type === 'keydown') {
-		window._interpolate = !window._interpolate;
-	}
-	if (event.code === 'KeyP' && event.type === 'keydown') {
-		window._predict = !window._predict;
-	}
-	// if (event.code === 'KeyB'&& event.type === 'keydown') {
-	// 	window.stutter = !window.stutter;
-	// }
-	if ((window.movementMode === 'wasd' && (event.code === 'ArrowLeft' || event.code === 'KeyQ'))
-		 || (window.movementMode === 'arr' && (event.code === 'KeyA' || event.code === 'KeyZ'))) {
-		input.arrowLeft = event.type === 'keydown'
-		sendInput();
-		inputMessageCount++;
-	}
-	if ((window.movementMode === 'wasd'&& (event.code === 'ArrowRight' || event.code === 'KeyE')) 
-		|| (window.movementMode === 'arr' && (event.code === 'KeyD' || event.code === 'KeyX'))) {
-		input.arrowRight = event.type === 'keydown'
-		sendInput();
-		inputMessageCount++;
-	}
-	if (event.code == 'KeyT' && event.type === 'keydown') {
-		window.showSnapshots = !window.showSnapshots;
-	}
-	if (window.movementMode === 'wasd') {
-		if (inputCodes[event.code] === undefined) return;
-		input[inputCodes[event.code].key] = event.type === "keydown";
-		sendInput()
-		inputMessageCount++;
-	} else {
-		if (arrInputCodes[event.code] === undefined) return;
-		input[arrInputCodes[event.code].key] = event.type === 'keydown';
-		sendInput();
-		inputMessageCount++;
-	}
-}
-
-function resize(elements) {
-	for (const element of elements) {
-		if (element.width !== width) {
-			element.width = width;
-			element.style.width = `${width}px`;
-		}
-		if (element.height !== height) {
-			element.height = height;
-			element.style.height = `${height}px`;
-		}
-		element.style.transform = `scale(${
-			Math.min(window.innerWidth / width, window.innerHeight / height)
-			})`;
-		element.style.left = `${(window.innerWidth - width) / 2}px`;
-		element.style.top = `${(window.innerHeight - height) / 2}px`;
-	}
-	return Math.min(window.innerWidth / width, window.innerHeight / height);
-
-}
-
-function lerp(start, end, dt) {
-	return (1 - dt) * start + dt * end;
-}
-
-function offset(x, y) {
-	return {
-		x: x - (camera.x) + canvas.width / 2 + xoff,
-		y: y - (camera.y) + canvas.height / 2 + yoff,
-	};
-}
-
-function highest(arr) {
-	let h = -Infinity;
-	for (let i = 0; i < arr.length; i++) {
-		if (arr[i] > h) {
-			h = arr[i]
-		}
-	}
-	return h;
-}
-
-function lowest(arr) {
-	let h = Infinity;
-	for (let i = 0; i < arr.length; i++) {
-		if (arr[i] < h) {
-			h = arr[i]
-		}
-	}
-	return h;
-}

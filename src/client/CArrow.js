@@ -1,6 +1,6 @@
 
 class CArrow {
-	constructor(pack, isSelf) {
+	constructor(pack) {
 		for (const key of Object.keys(pack)) {
 			this[key] = pack[key]
 		}
@@ -8,8 +8,6 @@ class CArrow {
 		this.lerpAngle = this.angle;
 	}
 	smooth(delta) {
-
-
 		if (!_interpolate) {
 			this.pos.x = this.x;
 			this.pos.y = this.y;
@@ -34,8 +32,4 @@ class CArrow {
 			this[key] = data[key]
 		}
 	}
-}
-
-function lerp(start, end, dt) {
-	return (1 - dt) * start + dt * end;
 }

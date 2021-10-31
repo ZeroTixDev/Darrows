@@ -146,22 +146,26 @@ function boundPlayerObstacle(player, obstacle) {
 		const res = new Response();
 		const collision = testPolygonCircle(obstacle.sat, playerSat, res);
 		if (collision) {
-			player.x += res.overlapV.x;
-			player.y += res.overlapV.y;
-
-			if (Math.abs(res.overlapV.y) > Math.abs(res.overlapV.x)) {
-				if (obstacle.type == "obstacle") {
-					player.yv = 0;
-				}
-				else if (obstacle.type == "bounce") {
-					player.yv = Math.sign(res.overlapV.y) * obstacle.effect;
-				}
+			if (obstacle.type === 'point') {
+				player.score += 0.15;
 			} else {
-				if (obstacle.type == "obstacle") {
-					player.xv = 0;
-				}
-				else if (obstacle.type == "bounce") {
-					player.xv = Math.sign(res.overlapV.x) * obstacle.effect;
+				player.x += res.overlapV.x;
+				player.y += res.overlapV.y;
+
+				if (Math.abs(res.overlapV.y) > Math.abs(res.overlapV.x)) {
+					if (obstacle.type == "obstacle") {
+						player.yv = 0;
+					}
+					else if (obstacle.type == "bounce") {
+						player.yv = Math.sign(res.overlapV.y) * obstacle.effect;
+					}
+				} else {
+					if (obstacle.type == "obstacle") {
+						player.xv = 0;
+					}
+					else if (obstacle.type == "bounce") {
+						player.xv = Math.sign(res.overlapV.x) * obstacle.effect;
+					}
 				}
 			}
 

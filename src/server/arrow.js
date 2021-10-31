@@ -8,11 +8,13 @@ module.exports = class Arrow {
 		this.radius = 10;
 		this.life = 3;
 		this.speed = 6 + (player.arrowing / 3) * 20;
+		this.max = player.arrowing === 3;
 		this.alpha = 1;
 		this.dead = false;
 		this.parent = player.id;
 		this.xv = Math.cos(this.angle) * this.speed;
 		this.yv = Math.sin(this.angle) * this.speed;
+		this.slided = false;
 	}
 	die() {
 		this.dead = true;
@@ -43,22 +45,35 @@ module.exports = class Arrow {
 			if (Math.abs(relX) < Math.abs(relY)) {
 				if (this.yv != 0) {
 					if (relX < 0) {
-						this.xv = 0;
-						this.yv *= 0.9;
-						if (this.angle < Math.PI / 2) {
-							this.angle = Math.PI * 1.5;
-						} else {
-							this.angle = Math.PI / 2;
+						if (obstacle.type === 'bounce') {
+							this.xv *= -0.5;
+							this.angle = Math.atan2(this.yv, this.xv);
+						} else if (obstacle.type !== 'point') {
+							this.xv = 0;
+							this.yv *= 0.9;
+							if (this.angle < Math.PI / 2) {
+								this.angle = Math.PI * 1.5;
+							} else {
+								this.angle = Math.PI / 2;
+							}
 						}
+						this.slided = true;
 
 					} else {
-						this.xv = 0;
-						this.yv *= 0.9;
-						if (this.angle > 0) {
-							this.angle = Math.PI / 2;
-						} else {
-							this.angle = -Math.PI / 2;
+
+						if (obstacle.type === 'bounce') {
+							this.xv *= -0.5;
+							this.angle = Math.atan2(this.yv, this.xv);
+						} else if (obstacle.type !== 'point') {
+							this.xv = 0;
+							this.yv *= 0.9;
+							if (this.angle > 0) {
+								this.angle = Math.PI / 2;
+							} else {
+								this.angle = -Math.PI / 2;
+							}
 						}
+						this.slided = true;
 					}
 				} else {
 					this.die()
@@ -66,21 +81,33 @@ module.exports = class Arrow {
 			} else {
 				if (this.xv != 0) {
 					if (relY > 0) {
-						this.yv = 0;
-						this.xv *= 0.9;
-						if (this.angle < Math.PI / 2) {
-							this.angle = -Math.PI * 2;
-						} else {
-							this.angle = Math.PI;
+						if (obstacle.type === 'bounce') {
+							this.yv *= -0.5;
+							this.angle = Math.atan2(this.yv, this.xv)
+						} else if (obstacle.type !== 'point') {
+							this.yv = 0;
+							this.xv *= 0.9;
+							if (this.angle < Math.PI / 2) {
+								this.angle = -Math.PI * 2;
+							} else {
+								this.angle = Math.PI;
+							}
 						}
+						this.slided = true;
 					} else {
-						this.yv = 0;
-						this.xv *= 0.9;
-						if (this.angle < -Math.PI / 2) {
-							this.angle = Math.PI;
-						} else {
-							this.angle = 0;
+						if (obstacle.type === 'bounce') {
+							this.yv *= -0.5; 
+							this.angle = Math.atan2(this.yv, this.xv)
+						} else if (obstacle.type !== 'point') {
+							this.yv = 0;
+							this.xv *= 0.9;
+							if (this.angle < -Math.PI / 2) {
+								this.angle = Math.PI;
+							} else {
+								this.angle = 0;
+							}
 						}
+						this.slided = true;
 					}
 				} else {
 					this.die()
@@ -92,8 +119,10 @@ module.exports = class Arrow {
 			const res = new Response();
 			const collision = testPolygonCircle(obstacle.sat, playerSat, res);
 			if (collision) {
-				this.x += res.overlapV.x;
-				this.y += res.overlapV.y;
+				if (obstacle.type !== 'point') {
+					this.x += res.overlapV.x;
+					this.y += res.overlapV.y;
+				}
 			}
 		}
 	}
@@ -123,10 +152,10 @@ module.exports = class Arrow {
 			this.radius += 20 * (1 / 60)
 		}
 
-
-    // this.angle += 0.03;
-    // this.xv = Math.cos(this.angle) * this.speed;
-	// 	this.yv = Math.sin(this.angle) * this.speed;
+		// future character ability
+    	// this.angle += 0.25
+    	// this.xv = Math.cos(this.angle) * this.speed;
+		// this.yv = Math.sin(this.angle) * this.speed;
 	}
 	differencePack(arrow) {
 		if (!arrow) {
@@ -135,9 +164,7 @@ module.exports = class Arrow {
 		const pack = this.pack();
 		const diffPack = {};
 		for (const key of Object.keys(pack)) {
-			if (pack[key] === arrow[key]) {
-				continue;
-			}
+			if (pack[key] === arrow[key]) continue;
 			diffPack[key] = pack[key];
 		}
 		return diffPack;
@@ -149,6 +176,7 @@ module.exports = class Arrow {
 			alpha: Math.round(this.alpha * 100) / 100,
 			life: Math.round(this.life * 100) / 100,
 			angle: this.angle,
+			parent: this.parent,
 		}
 	}
 }

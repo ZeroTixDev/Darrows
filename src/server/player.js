@@ -30,6 +30,7 @@ module.exports = class Player {
 		this.deaths = 0;
 		this.arrowsHit = 0;
 		this.arrowsShot = 0;
+		this.score = 0;
 
 		this.name = `Agent ${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
 	}
@@ -39,6 +40,7 @@ module.exports = class Player {
 			deaths: this.deaths,
 			arrowsHit: this.arrowsHit,
 			arrowsShot: this.arrowsShot,
+			score: this.score,
 		}
 	}
 	accuracy() {
@@ -96,6 +98,7 @@ module.exports = class Player {
 			// angleVel: this.angleVel,
 			// spaceLock: this.spaceLock,
 			timerMax: this.timerMax,
+			score: Math.round(this.score),
 			// timer: this.timer,
 		};
 	}
