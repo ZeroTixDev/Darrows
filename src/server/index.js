@@ -11,7 +11,8 @@ const Player = require('./player.js');
 const Obstacle = require('./obstacle.js');
 const hash = require('./util/hash.js');
 
-const hashedKey = '928b6e563ce7e2ff33c44010ab3a608f07643ab3ac99278e971c5973daf3cba3';
+const hashedKey = '873966b053c331257235d4fac61cd5f5fc7dd78e7818fb28d36bb449b9d6b25c';
+
 
 const Round = require('./round.js')
 const wss = require('./setupServer.js')();
@@ -111,7 +112,7 @@ function validateInput(obj) {
 }
 
 function newMessage(obj, socket, clientId) {
-	if (obj.join && players[clientId] == null) {
+	if (obj.joinE !== undefined && players[clientId] == null) {
 		players[clientId] = new Player(clientId, arena);
 		const payload = {
 			type: 'init',

@@ -36,7 +36,7 @@ function startGame() {
 			uploadByteDisplay = uploadByteCount;
 			uploadByteCount = 0;
 		}, 1000);
-		send({ join: true })
+		send({ joinE: true })
 	};
 
 	ws.onmessage = (msg) => {
