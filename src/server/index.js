@@ -184,18 +184,20 @@ function newMessage(obj, socket, clientId) {
 	if (!players[clientId]) {
 		return;
 	}
+	// } else if (players[clientId].dev && obj.chat.slice(0, 5) == "/kick") {
+			// 	const id = obj.chat.slice(6).trim();
+			// 	if (players[id]) {
+			// 		send(clients[id], { kick: true })
+			// 		clients[id].close()
+			// 	}
+			// } 
 	if (obj.chat != undefined) {
 		if (players[clientId]) {
 			console.log(obj.chat.slice(0, 5));
 			if (obj.chat.slice(0, 5) == "/name") {
 				let newName = obj.chat.slice(6);
 				players[clientId].name = newName;
-			} else if (players[clientId].dev && obj.chat.slice(0, 5) == "/kick") {
-				const id = obj.chat.slice(6).trim();
-				if (players[id]) {
-					send(clients[id], { kick: true })
-					clients[id].close()
-				}
+
 			} else if (hash(obj.chat.trim()) === hashedKey) {
 				players[clientId].dev = !players[clientId].dev;
 			} else if (obj.chat.trim() === '/passive') {
