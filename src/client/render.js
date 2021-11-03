@@ -78,7 +78,7 @@ window.render = () => {
 			ctx.translate(pos.x, pos.y);
 			ctx.rotate(lerpAngle + Math.PI / 2);
 			ctx.fillStyle = '#ff0000';
-			if (players[parent]?.dev) {
+			if (players[parent]?.dev && window.rainbow) {
 				ctx.fillStyle = `hsl(${ghue}, 100%, 50%)`;
 			}
 			ctx.beginPath();
@@ -111,7 +111,7 @@ window.render = () => {
 					ctx.fillStyle = '#c2ac65'
 				}
 			}
-			if (player.dev) {
+			if (player.dev && window.rainbow) {
 				ctx.fillStyle = `hsl(${ghue}, 100%, 50%)`;
 			}
 			if (player.passive) {
