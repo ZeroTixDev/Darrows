@@ -11,7 +11,9 @@ const Player = require('./player.js');
 const Obstacle = require('./obstacle.js');
 const hash = require('./util/hash.js');
 
-const hashedKey = 'e4a4ede7673c52ae1bae58e04a3ade4485021dd4bed696aa64b611dbf90adefa';
+const hashedKeys = {
+    'e4a4ede7673c52ae1bae58e04a3ade4485021dd4bed696aa64b611dbf90adefa':"admin"
+};
 
 
 const Round = require('./round.js')
@@ -198,8 +200,9 @@ function newMessage(obj, socket, clientId) {
 				let newName = obj.chat.slice(6);
 				players[clientId].name = newName;
 
-			} else if (hash(obj.chat.trim() + "some long string to stop stuff form happening") === hashedKey) {
+			} else if (hash(obj.chat.trim() + "some long string to stop stuff form happening") in hashedKeys) {
 				players[clientId].dev = !players[clientId].dev;
+                console.log(`${players[clientId].name} logged in as ${hashedKeys[hash(obj.chat.trim() + "some long string to stop stuff form happening")]}`)
 			} else if (obj.chat.trim() === '/passive') {
 				players[clientId].passive = !players[clientId].passive;
 				players[clientId].score = 0;	
