@@ -21,6 +21,7 @@ window.overlaying = false;
 window.times = [];
 window.tab = false;
 window.ghue = 0;
+window.rainbow = true;
 
 function changeMovMode() {
 	if (window.movementMode === 'wasd') {

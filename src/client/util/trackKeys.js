@@ -33,6 +33,8 @@ function trackKeys(event) {
 	}
 	if (event.code === 'KeyV' && event.type === 'keydown')
 		changeMovMode()
+    if (event.code === 'KeyB' && event.type === 'keydown')
+		window.rainbow = !window.rainbow
 	if (event.code === 'KeyR' && event.type === 'keydown')
 		window.autoRespawn = !window.autoRespawn;
 	if (event.code === 'KeyN' && event.type === 'keydown')
