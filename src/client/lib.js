@@ -16,8 +16,11 @@ window.autoRespawn = false;
 window.movementMode = 'wasd';
 window.font = 'Inter'
 window.fps = 60;
+window.overlayAlpha = 0;
+window.overlaying = false;
 window.times = [];
 window.tab = false;
+window.ghue = 0;
 
 function changeMovMode() {
 	if (window.movementMode === 'wasd') {
@@ -101,6 +104,7 @@ const arrInputCodes = {
 function run(time =  0) {
 	fpsTick(time)
 	// processMessages();
+
 	window.dt = (window.performance.now() - lastTime) / 1000;
 	window.delta = getDelta(lastTime);
 	window.redness -= dt * 1.5;
@@ -108,7 +112,14 @@ function run(time =  0) {
 	killedNotifTime -= dt * 1.5;
 	if (killedNotifTime <= 0) killedNotifTime = 0;
 	lastTime = window.performance.now();
+	ghue += dt * 360 * 2;
 
+	if (overlaying) {
+		overlayAlpha += dt;
+		if (overlayAlpha > 0.6) {
+			overlayAlpha = 0.6;
+		}
+	}
 
 	for (const playerId of Object.keys(players)) {
 		const player = players[playerId];

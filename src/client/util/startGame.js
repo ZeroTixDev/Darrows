@@ -57,6 +57,8 @@ function startGame() {
 	};
 
 	ws.onclose = () => {
-		alert('Disconnected from the game server. This probably means that a new update is coming!! If the issue persists, please check your internet connection or contact the devs')
+		if (!window.kicked) {
+			alert('Disconnected.')
+		}
 	};
 }

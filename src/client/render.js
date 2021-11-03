@@ -1,6 +1,7 @@
 
 window.render = () => {
 	try {
+		// ctx.globalAlpha = 1;
 		ctx.fillStyle = '#b3b3b3'
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -66,7 +67,7 @@ window.render = () => {
 
 		for (const arrowId of Object.keys(arrows)) {
 			// console.log(arrows[arrowId])
-			const { lerpAngle, radius, life, alpha } = arrows[arrowId]
+			const { lerpAngle, radius, life, alpha, parent } = arrows[arrowId]
 			const { x, y } = arrows[arrowId].pos;
 			ctx.globalAlpha = alpha; // life 
 			// ctx.fillStyle = '#d93311';
@@ -77,6 +78,9 @@ window.render = () => {
 			ctx.translate(pos.x, pos.y);
 			ctx.rotate(lerpAngle + Math.PI / 2);
 			ctx.fillStyle = '#ff0000';
+			if (players[parent]?.dev) {
+				ctx.fillStyle = `hsl(${ghue}, 100%, 50%)`;
+			}
 			ctx.beginPath();
 			ctx.rect(-6.25, -18.75, 12.5, 37.5);
 			ctx.fill()
@@ -107,6 +111,12 @@ window.render = () => {
 					ctx.fillStyle = '#c2ac65'
 				}
 			}
+			if (player.dev) {
+				ctx.fillStyle = `hsl(${ghue}, 100%, 50%)`;
+			}
+			if (player.passive) {
+				ctx.globalAlpha = 0.3;
+			}
 			// ctx.strokeStyle = '#363636';
 			ctx.lineWidth = 2.5;
 			ctx.beginPath();
@@ -114,6 +124,10 @@ window.render = () => {
 
 			ctx.arc(pos.x, pos.y, player.radius, 0, Math.PI * 2);
 			ctx.fill();
+
+			if (player.passive) {
+				ctx.globalAlpha = 1;
+			}
 
 			if (player.dying) {
 				ctx.fillStyle = '#d40000';
@@ -332,7 +346,7 @@ window.render = () => {
 			let index = 0;
 			for (const id of sortedPlayers) {
 				const { score, name } = players[id];
-				const strScore = score < 999 ? `${Math.round(score)}`: `${Math.round((score / 1000) * 100) / 100}k`
+				const strScore = score <= 999 ? `${Math.floor(score)}`: `${Math.floor((score / 1000) * 100) / 100}k`
 				ctx.fillStyle = '#c4c4c4';
 				ctx.font = `20px ${font}`
 				ctx.fillText(`${index + 1}.`, 610, top + 25 + index * 25)
@@ -342,7 +356,7 @@ window.render = () => {
 				if(id === selfId) {
 					ctx.fillStyle = 'white'
 				}
-				ctx.fillText(`${name}`, 640, top + index * 25)
+				ctx.fillText(`${iExist && !dead && players[selfId].dev ? `[${id}] `: ''}${name}`, 640, top + index * 25)
 			}
 				// ctx.strokeStyle = 'black';
 				// ctx.lineWidth = 1;
@@ -399,6 +413,10 @@ window.render = () => {
 		// 	ctx.fillText(`${leader.name} with ${leader.kills} eliminations`, canvas.width - width * 1.25, 70);
 		// 	ctx.globalAlpha = 1;
 		// }
+		ctx.fillStyle = 'black';
+		ctx.globalAlpha = overlayAlpha;
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		ctx.globalAlpha = 1;
 	} catch (err) {
 		document.body.innerHTML = err + 'from render' + JSON.stringify(leader);
 	}

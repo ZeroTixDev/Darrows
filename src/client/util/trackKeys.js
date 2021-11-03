@@ -20,6 +20,8 @@ function trackKeys(event) {
 		send({ type: 'spawn' })
 		ref.deathScreen.classList.add('hidden')
 		ref.deathScreen.classList.remove('dAnim')
+		overlaying = false;
+		overlayAlpha = 0;
 		return;
 	}
 	if (event.code === 'Tab') {

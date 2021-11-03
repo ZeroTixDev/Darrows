@@ -24,7 +24,8 @@ class CArrow {
 			this.lerpAngle -= 2 * Math.PI;
 		}
 
-		this.lerpAngle = lerp(this.lerpAngle, this.angle, delta / 2 )
+		this.lerpAngle = lerp(this.lerpAngle, this.angle, delta / 1.5)
+		// this.lerpAngle = this.angle;
 
 	}
 	Snap(data) {

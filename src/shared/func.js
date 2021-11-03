@@ -39,8 +39,8 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		const mag = Math.sqrt(dir.x * dir.x + dir.y * dir.y) || 1;
 		const normal = { x: dir.x / mag, y: dir.y / mag };
 
-		player.xv += normal.x * ((player.arrowing > 0 ? player.speed * 0.7 : player.speed) * 1 / 60);
-		player.yv += normal.y * ((player.arrowing > 0 ? player.speed * 0.7 : player.speed) * 1 / 60);
+		player.xv += normal.x * ((player.arrowing > 0 ? player.speed * 0.75 : player.speed) * 1 / 60);
+		player.yv += normal.y * ((player.arrowing > 0 ? player.speed * 0.75 : player.speed) * 1 / 60);
 		// if (input.space && player.timer <= 0) { // spacelock isnt being used rn
 		// 	// create arrowx
 		// 	player.xv -= Math.cos(player.angle) * 5;
@@ -49,40 +49,41 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		// 	player.arrows.push(createArrow(player))
 		// 	player.spaceLock = true;
 		// }
+		if (!player.passive) {
+			if (input.space && player.timer <= 0) {
+				player.arrowing += (1 / 60) * 2;
+				if (player.arrowing >= 3) {
+					player.arrowing = 3;
+				}
+				if (input.arrowLeft) {
+					player.angleVel -= 2.9 * (1 / 60);
+				}
+				if (input.arrowRight) {
+					player.angleVel += 2.9 * (1 / 60);
+				}
+				player.angle += player.angleVel;
+				player.angleVel = 0;
+			} else {
+				if (player.arrowing > 0) {
+					// shoot
+					player.arrowsShot++;
+			// for(let i = 90; i--; i>0){
+			//   player.arrowing -= 0.01;
+			//   player.radius = Math.random()*120;
+					arrows[Math.random()] = (createArrow(player))
+			//   player.angle += 1/90 * Math.PI*2;
+				// }
+			
+					player.timer = player.timerMax;
+					// console.log('shoot', player.arrows)
+				}
+				player.arrowing = 0;
+			}
 
-		if (input.space && player.timer <= 0) {
-			player.arrowing += (1 / 60) * 2;
-			if (player.arrowing >= 3) {
-				player.arrowing = 3;
+			player.timer -= (1 / 60);
+			if (player.timer <= 0) {
+				player.timer = 0;
 			}
-			if (input.arrowLeft) {
-				player.angleVel -= 2.9 * (1 / 60);
-			}
-			if (input.arrowRight) {
-				player.angleVel += 2.9 * (1 / 60);
-			}
-			player.angle += player.angleVel;
-			player.angleVel = 0;
-		} else {
-			if (player.arrowing > 0) {
-				// shoot
-				player.arrowsShot++;
-        // for(let i = 90; i--; i>0){
-        //   player.arrowing -= 0.01;
-        //   player.radius = Math.random()*120;
-				  arrows[Math.random()] = (createArrow(player))
-        //   player.angle += 1/90 * Math.PI*2;
-        	// }
-        
-				player.timer = player.timerMax;
-				// console.log('shoot', player.arrows)
-			}
-			player.arrowing = 0;
-		}
-
-		player.timer -= (1 / 60);
-		if (player.timer <= 0) {
-			player.timer = 0;
 		}
 
 
@@ -91,11 +92,13 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 
 		// player.angle = input.angle;
 		// player.angleVel *= 0.1;
-		if (player.angle > Math.PI) {
-			player.angle -= Math.PI * 2;
-		}
-		if (player.angle < -Math.PI) {
-			player.angle += Math.PI * 2
+		if (!player.passive) {
+			if (player.angle > Math.PI) {
+				player.angle -= Math.PI * 2;
+			}
+			if (player.angle < -Math.PI) {
+				player.angle += Math.PI * 2
+			}
 		}
 		player.xv *= Math.pow(player.fric, (1 / 60) * 60);
 		player.yv *= Math.pow(player.fric, (1 / 60) * 60);
@@ -146,7 +149,7 @@ function boundPlayerObstacle(player, obstacle) {
 		const res = new Response();
 		const collision = testPolygonCircle(obstacle.sat, playerSat, res);
 		if (collision) {
-			if (obstacle.type === 'point') {
+			if (obstacle.type === 'point' && !player.passive) {
 				player.score += 0.1;
 			} else {
 				player.x += res.overlapV.x;
@@ -181,7 +184,7 @@ function collidePlayers(players, arena, obstacles) {
 			const player2 = players[j];
 			const distX = player1.x - player2.x;
 			const distY = player1.y - player2.y;
-			if (
+			if (!player1.passive && !player2.passive && 
 				distX * distX + distY * distY <
 				player1.radius * 2 * (player2.radius * 2)
 			) {

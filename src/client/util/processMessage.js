@@ -1,5 +1,10 @@
 function processMessage(obj) {
 
+	if (obj.kick != undefined) {
+		alert(`You have been kicked from the server`)
+		window.kicked = true;
+	}
+
 	if (obj.type === 'init') {
 		selfId = obj.selfId;
 		iExist = true;
@@ -14,6 +19,8 @@ function processMessage(obj) {
 		obstacles = obj.obstacles;
 	}
 
+
+
 	if (obj.type === 'stats') {
 		ref.deathScreen.classList.remove('hidden');
 		ref.deathScreen.classList.add('dAnim')
@@ -21,6 +28,7 @@ function processMessage(obj) {
 		ref.deaths.innerText = obj.deaths;
 		ref.kdr.innerText = obj.kdr.toFixed(1);
 		ref.accuracy.innerText = obj.accuracy + '%';
+		overlaying = true;
 	}
 
 	if (obj.leader != undefined) leader = obj.leader;

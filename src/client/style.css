@@ -21,7 +21,7 @@ body {
 	top: 750px;
 	width: 600px;
 	height: 150px;
-	background-color: #bfbfbf;
+	background-color: #242424;
 	opacity: 1;
 	display: flex;
 	justify-content: center;
@@ -82,12 +82,12 @@ body {
 
 .background-overlay {
 	position: absolute;
-	left: -2px;
+	/* left: -2px;
 	top: -2px;
 	width: 1604px;
 	height: 904px;
 	background-color: rgb(0, 0, 0);
-	opacity: 0.7;
+	opacity: 0.7; */
 }
 
 

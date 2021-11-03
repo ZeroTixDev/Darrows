@@ -1,12 +1,3 @@
 {
-  "files": {
-    "src/client/util/processMessage.js": [
-      {
-        "id": "741af573-b063-40c0-9f75-a32b0da1010c",
-        "line": 15,
-        "version": 97,
-        "index": 314
-      }
-    ]
-  }
+  "files": {}
 }

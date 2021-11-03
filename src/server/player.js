@@ -31,8 +31,19 @@ module.exports = class Player {
 		this.arrowsHit = 0;
 		this.arrowsShot = 0;
 		this.score = 0;
+		this.dev = false;
+		this.passive = false;
 
 		this.name = `Agent ${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
+	}
+	addScore(s) {
+		this.score += s;
+	}
+	negateScore(s) {
+		this.score -= s;
+		if (this.score <= 0) {
+			this.score = 0;
+		}
 	}
 	stats() {
 		return {
@@ -41,6 +52,7 @@ module.exports = class Player {
 			arrowsHit: this.arrowsHit,
 			arrowsShot: this.arrowsShot,
 			score: this.score,
+			dev: this.dev,
 		}
 	}
 	accuracy() {
@@ -99,6 +111,8 @@ module.exports = class Player {
 			// spaceLock: this.spaceLock,
 			timerMax: this.timerMax,
 			score: Math.round(this.score),
+			dev: this.dev,
+			passive: this.passive,
 			// timer: this.timer,
 		};
 	}
