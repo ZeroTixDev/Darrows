@@ -11,7 +11,7 @@ const Player = require('./player.js');
 const Obstacle = require('./obstacle.js');
 const hash = require('./util/hash.js');
 
-const hashedKey = 'e4a4ede7673c52ae1bae58e04a3ade4485021dd4bed696aa64b611dbf90adefa';
+const hashedKey = '70b834ff5addcaf5987e02d504826e0869530193cda5f44e830ef3f163b56207';
 
 
 const Round = require('./round.js')
