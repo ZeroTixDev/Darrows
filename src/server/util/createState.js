@@ -8,7 +8,7 @@ map = JSON.parse(map_json)
 obstacles = []
 
 for (i in Object.keys(map.obstacles)) {
-    obstacles[i] = new Obstacle(map.obstacles[i].x,map.obstacles[i].y,map.obstacles[i].width,map.obstacles[i].height,map.obstacles[i].type)
+    obstacles[i] = new Obstacle(map.obstacles[i].x,map.obstacles[i].y,map.obstacles[i].width,map.obstacles[i].height,map.obstacles[i].type,map.obstacles[i].effect)
 }
 
 module.exports = function createState() {
