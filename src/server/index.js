@@ -9,24 +9,35 @@ const createId = require('./util/createId.js');
 const msgpack = require('msgpack-lite')
 const Player = require('./player.js');
 const Obstacle = require('./obstacle.js');
+
+const chatTest = require('./util/chatTest.js');
 const hash = require('./util/hash.js');
 
-const hashedKey = 'e4a4ede7673c52ae1bae58e04a3ade4485021dd4bed696aa64b611dbf90adefa';
+
+const hashedKey = 'afa0fdfe6fe91d55aca02f9761224b57d76639838055ca5d50154f1e42ed517c';
 
 
 const Round = require('./round.js')
 const wss = require('./setupServer.js')();
-const { players, arrows, obstacles, arena } = require('./util/createState.js')();
+const maps = require('./map.json');
+
+
+const createState = require('./util/createState.js')
 const { lowest, avg, highest } = require('./util/numArray.js')();
 const { reachedIpLimit } = require('./util/ip.js');
 const clients = {};
 
+let { map, index } = randomMap()
+let mapIndex = index;
+let { players, arrows, obstacles, arena } = createState(map);
+
 const spacings = [];
 const updateRate = 60;
-const ipLimit = 4;
+const ipLimit = 6;
 const startTime = Date.now();
 const leader = { id: null, score: null }
-let lastSent = { players: {}, arrows: {} };
+const globalLeader = { name: null, score: 0 }
+let lastSent = { players: {}, arrows: {}, round: null };
 let lastSentPackageTime = null;
 let tick = 0;
 
@@ -48,6 +59,9 @@ wss.on('connection', (socket, req) => {
 	}
 	clients[clientId] = socket;
 	clients[clientId]._ip = ip;
+	send(socket, {
+		globalLeader,
+	});
 
 	
 
@@ -78,6 +92,15 @@ wss.on('connection', (socket, req) => {
 	});
 });
 
+function randomMap(exceptIndex = null) {
+	let index = Math.floor(Math.random()*maps.length);
+	if (exceptIndex != null && maps.length > 1) {
+		while (index === exceptIndex) {
+			index = Math.floor(Math.random() * maps.length);
+		}
+	}
+	return { map: maps[index], index };
+}
 
 function presentTick() {
 	return Math.ceil((Date.now() - startTime) * (updateRate / 1000));
@@ -113,13 +136,14 @@ function validateInput(obj) {
 
 function newMessage(obj, socket, clientId) {
 	if (obj.joinE !== undefined && players[clientId] == null) {
-		players[clientId] = new Player(clientId, arena);
+		players[clientId] = new Player(clientId, arena, obstacles);
 		const payload = {
 			type: 'init',
 			players: _allPlayerPacks(),
 			arena,
 			obstacles: obstacles.map((ob) => ob.pack()),
 			selfId: clientId,
+			round: round.pack(),
 		};
 		if (leader.id != null) {
 			payload.leader = {
@@ -159,7 +183,7 @@ function newMessage(obj, socket, clientId) {
 		});
 	}
 	if (obj.type === 'spawn' && players[clientId] == null) {
-		players[clientId] = new Player(clientId, arena);
+		players[clientId] = new Player(clientId, arena, obstacles);
 		const player = players[clientId];
 		console.log(clients[clientId]._playerStats);
 		if (clients[clientId]._playerStats != null) {
@@ -184,23 +208,31 @@ function newMessage(obj, socket, clientId) {
 	if (!players[clientId]) {
 		return;
 	}
-	// } else if (players[clientId].dev && obj.chat.slice(0, 5) == "/kick") {
-			// 	const id = obj.chat.slice(6).trim();
-			// 	if (players[id]) {
-			// 		send(clients[id], { kick: true })
-			// 		clients[id].close()
-			// 	}
-			// } 
 	if (obj.chat != undefined) {
-		if (players[clientId]) {
+		if (players[clientId] && chatTest(obj.chat)) {
 			console.log(obj.chat.slice(0, 5));
 			if (obj.chat.slice(0, 5) == "/name") {
 				let newName = obj.chat.slice(6);
-				players[clientId].name = newName;
+				let unique = true;
+				for (const player of Object.values(players)) {
+					if (player.name === newName) {
+						unique = false;
+						break;
+					}
+				}
+				if (unique) {
+					players[clientId].name = newName;
+				}
 
 			} else if (hash(obj.chat.trim() + "some long string to stop stuff form happening") === hashedKey) {
 				players[clientId].dev = !players[clientId].dev;
-			} else if (obj.chat.trim() === '/passive') {
+			} else if (players[clientId].dev && obj.chat.slice(0, 5) == "/kick") {
+				const id = obj.chat.slice(6).trim();
+				if (players[id]) {
+					send(clients[id], { kick: players[clientId].name })
+					clients[id].close()
+				}
+			}  else if (obj.chat.trim() === '/passive') {
 				players[clientId].passive = !players[clientId].passive;
 				players[clientId].score = 0;	
 				console.log(players[clientId].passive)
@@ -329,6 +361,25 @@ function takeSnapshots() {
 		// take a snapshot
 		updateWorld();
 		round.tick(1/updateRate)
+		if (round.ended) {
+			let { map, index } = randomMap(mapIndex);
+			mapIndex = index;
+			console.log(mapIndex);
+			const state = createState(map);
+			arrows = state.arrows;
+			obstacles = state.obstacles;
+			arena = state.arena;
+			round.start();
+			round.ended = false;
+			for (const player of Object.values(players)) {
+				player.spawn(obstacles, arena);
+			}
+			broadcast({
+				arena,
+				obstacles: obstacles.map((ob) => ob.pack()),
+				arrowReset: true,
+			});
+		}
 		tick++;
 	}
 }
@@ -368,6 +419,11 @@ function sendWorldState() {
 		}
 	}
 
+	if (lastSent.round == null || isDifferent(round.pack(), lastSent.round)) {
+		state.round = round.differencePack(lastSent.round);
+	}
+
+	lastSent.round = round.pack();
 	lastSent.players = copyPacks(players);
 	lastSent.arrows = copyPacks(arrows)
 
@@ -385,6 +441,10 @@ function sendWorldState() {
 
 	for (const playerId of Object.keys(players)) {
 		const player = players[playerId];
+		if (player.score > globalLeader.score) {
+			globalLeader.score = player.score;
+			globalLeader.name = player.name;
+		}
 		if (leader.id == null) {
 			leader.id = playerId;
 			leader.score = player.score;
@@ -406,7 +466,7 @@ function sendWorldState() {
 		// spacing: [lowest(spacings).toFixed(1), avg(spacings).toFixed(1), highest(spacings).toFixed(1)],
 	}
 
-	if (state.players.length > 0 || state.arrows.length > 0) {
+	if (state.players.length > 0 || state.arrows.length > 0 || state.round != undefined) {
 		obj.type = 'state';
 		obj.data = state;
 	}

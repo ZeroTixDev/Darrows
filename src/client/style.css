@@ -5,7 +5,7 @@
 }
 
 body {
-	background-color: #242424;
+	background-color: #1a1a1a;
 	overflow: hidden;
 	font-size: 16px;
 	font-family: 'Inter', sans-serif;
@@ -21,7 +21,7 @@ body {
 	top: 750px;
 	width: 600px;
 	height: 150px;
-	background-color: #242424;
+	background-color: #1a1a1a;
 	opacity: 1;
 	display: flex;
 	justify-content: center;
@@ -93,18 +93,242 @@ body {
 
 .chat {
 	position: absolute;
-	left: 600px;
-	top: 625px;
-	width: 400px;
-	height: 50px;
+	left: 0px;
+	top: 250px;
+	width: 350px;
+	height: 30px;
 	transform-origin: center center;
 	border: none;
 	outline: none;
-	color: black;
-	font-size: 1.5rem;
-	padding: 10px;
-	caret-color: red;
+	color: white;
+	font-size: 1rem;
+	padding: 5px;
+	caret-color: white;
+	background: transparent;
+	font-family: 'Inter', sans-serif;
 }
+
+.chat-message {
+	color: white;
+	font-size: 1.1rem;
+	background: transparent;
+	margin: 2px;
+}
+
+.chat::placeholder {
+	color: white;
+	opacity: 1;
+}
+
+.chat-div {
+	position: absolute;
+	left: -1px;
+	top: -1px;
+	width: 375px;
+	height: 251px;
+	background: transparent;
+	display: flex;
+	justify-content: flex-start;
+	align-items: flex-start;
+	flex-direction: column;
+	overflow-y: auto;
+	padding: 2px;
+	overflow-x: hidden;
+	word-break: break-all;
+}
+
+.chat-div::-webkit-scrollbar {
+	width: 10px;
+	background-color: rgba(0, 0, 0, 0.1);
+}
+
+.chat-div::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.menu {
+	background-color: #1a1a1a;
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+}
+
+.play {
+	border: none;
+	outline: none;
+	width: 160px;
+	height: 80px;
+	color: rgb(61, 6, 6);
+	background-color: rgb(222, 26, 26);
+	font-size: 2rem;
+	border-radius: 4px;
+	cursor: pointer;
+	transform-origin: center center;
+	animation: playButton 1s linear infinite;
+	transition: width 0.1s linear, height 0.1s linear;
+	position: relative;
+	top: 150px;
+}
+
+.darrow-hero {
+	border: 5px solid red;
+	background: #292929;
+	border-radius: 50%;
+	position: absolute;
+	left: calc(50vw - 40px);
+	top: calc(50vh - 30px);
+	width: 80px;
+	height: 80px;
+}
+
+.darrow-hero-name {
+	position: absolute;
+	left: 50vw;
+	top: calc(50vh - 60px);
+	transform: translateX(-50%);
+	color: white;
+	font-size: 1.2rem;
+}
+
+/* .darrow-left {
+	position: absolute;
+	/* border: 5px solid blue; */
+/*}/*
+
+.darrow-right {
+	position: absolute;*/
+	/* border: 5px solid blue; *//*
+} */
+
+.darrow-hero-button {
+	/* border: 5px solid red; */
+	color: rgb(237, 2, 2);
+	font-size: 6rem;
+	outline: none;
+	border: none;
+	position: absolute;
+	left: 50vw;
+	top: 50vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background: transparent;
+	transition: font-size 0s linear, color 0s linear;
+	cursor: pointer;
+}
+
+.darrow-hero-button:hover {
+	font-size: 7rem;
+	color: rgb(255, 0, 0);
+}
+
+.darrow-hero-left {
+	transform: translateX(-50%) translateY(-50%);
+	left: calc(50vw - 125px);
+}
+
+.darrow-hero-right {
+	transform: translateX(-50%) translateY(-50%);
+	left: calc(50vw + 125px);
+}
+
+.play:hover {
+	width: calc(160px * 1.1);
+	height: calc(80px * 1.1);
+}
+
+.title {
+	position: absolute;
+	top: calc(50vh - 150px);
+	left: 50vw;
+	transform: translateX(-50%);
+	font-size: 3rem;
+	color: rgb(237, 2, 2);
+}
+
+.highscore {
+	position: absolute;
+	color: rgb(0, 255, 217);
+	font-size: 1.2rem;
+	top: calc(100vh - 30px);
+}
+
+@keyframes playButton {
+	0% {
+		transform: rotate(0deg);
+	}
+	25% {
+		transform: rotate(3deg);
+	}
+	75% {
+		transform: rotate(-3deg);
+	}
+	100% {
+		transform: rotate(0deg);
+	}
+}
+
+.discord, .editor {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	margin: 5px;
+	/* border: 10px solid red; */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 130px;
+	height: 40px;
+	background: rgb(222, 26, 62);
+	color: rgb(61, 6, 6);
+	font-size: 1.3rem;
+	text-decoration: none;
+	border-radius: 2px;
+}
+
+
+.editor {
+	left: 135px;
+}
+
+
+
+.rainbow {
+  animation: colorRotate 4s linear 0s infinite;
+}
+
+@keyframes colorRotate {
+  0% {
+	  color: hsl(180, 100%, 50%);
+  }
+  50% {
+	  color: hsl(216, 100%, 50%);
+  }
+  100% {
+	  color: hsl(180, 100%, 50%);
+  }
+}
+
+/* .chat-over {
+	background: #1a1a1a;
+	/* background: linear-gradient(315deg, transparent 10%, #1a1a1a 5%); 
+	position: absolute;
+	left: -1px;
+	top: 250px;
+	width: 376px;
+	height: 31px;
+	transform-origin: center center;
+	border: none;
+	outline: none;
+	padding: 5px;
+	opacity: 0.5;
+} */
 
 
 canvas, .gui {

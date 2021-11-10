@@ -1,30 +1,34 @@
 module.exports = class Round {
 	constructor() {
-		this.time = 0;
-		this.roundTime = 60 * 3; // 3 minutes
+		this.roundTime = 120; // 2 minute
+		this.time = this.roundTime;
 		this.state = 'none'
 	}
 	start() {
 		this.state = 'playing';
-		this.time = 0;
+		this.time = this.roundTime;
 	}
 	tick(dt) {
 		if (this.state === 'playing') {
-			this.time += dt;
+			this.time -= dt;
+			if (this.time <= 0) {
+				// this.time = this.roundTime;
+				this.ended = true;
+			}
 		}
 	}
 	end() {
 		this.state = 'none';
-		this.time = 0;
+		this.time = this.roundTime;
 	}
-	differencePack(player) {
-		if (!player) {
+	differencePack(round) {
+		if (!round) {
 			return this.pack()
 		}
 		const pack = this.pack();
 		const diffPack = {};
 		for (const key of Object.keys(pack)) {
-			if (pack[key] === player[key]) {
+			if (pack[key] === round[key]) {
 				continue;
 			}
 			diffPack[key] = pack[key];
@@ -34,7 +38,7 @@ module.exports = class Round {
 	pack() {
 		return {
 			state: this.state,
-			time: Math.floor(this.time),
+			time: Math.round(this.time),
 		};
 	}
 }

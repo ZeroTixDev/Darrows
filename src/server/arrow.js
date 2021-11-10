@@ -46,11 +46,11 @@ module.exports = class Arrow {
 				if (this.yv != 0) {
 					if (relX < 0) {
 						if (obstacle.type === 'bounce') {
-							this.xv *= -0.5;
+							this.xv *= -0.95;
 							this.angle = Math.atan2(this.yv, this.xv);
 						} else {
 							this.xv = 0;
-							this.yv *= 0.9;
+							this.yv *= 0.95;
 							if (this.angle < Math.PI / 2) {
 								this.angle = Math.PI * 1.5;
 							} else {
@@ -62,11 +62,11 @@ module.exports = class Arrow {
 					} else {
 
 						if (obstacle.type === 'bounce') {
-							this.xv *= -0.5;
+							this.xv *= -0.95;
 							this.angle = Math.atan2(this.yv, this.xv);
 						} else  {
 							this.xv = 0;
-							this.yv *= 0.9;
+							this.yv *= 0.95;
 							if (this.angle > 0) {
 								this.angle = Math.PI / 2;
 							} else {
@@ -82,11 +82,11 @@ module.exports = class Arrow {
 				if (this.xv != 0) {
 					if (relY > 0) {
 						if (obstacle.type === 'bounce') {
-							this.yv *= -0.5;
+							this.yv *= -0.9;
 							this.angle = Math.atan2(this.yv, this.xv)
 						} else {
 							this.yv = 0;
-							this.xv *= 0.9;
+							this.xv *= 0.95;
 							if (this.angle < Math.PI / 2) {
 								this.angle = -Math.PI * 2;
 							} else {
@@ -96,11 +96,11 @@ module.exports = class Arrow {
 						this.slided = true;
 					} else {
 						if (obstacle.type === 'bounce') {
-							this.yv *= -0.5; 
+							this.yv *= -0.9; 
 							this.angle = Math.atan2(this.yv, this.xv)
 						} else {
 							this.yv = 0;
-							this.xv *= 0.9;
+							this.xv *= 0.95;
 							if (this.angle < -Math.PI / 2) {
 								this.angle = Math.PI;
 							} else {

@@ -1,3 +1,18 @@
 {
-  "files": {}
+  "files": {
+    "src/client/style.css": [
+      {
+        "id": "eb6adfcf-4741-4095-a616-3b7da2921221",
+        "line": 230,
+        "version": 5980,
+        "index": 3537
+      },
+      {
+        "id": "ef49d610-5fb5-4d93-b11b-95833ffeca7e",
+        "line": 257,
+        "version": 7151,
+        "index": 4003
+      }
+    ]
+  }
 }

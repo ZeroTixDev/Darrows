@@ -1,9 +1,11 @@
 function trackKeys(event) {
-	if (event.repeat) return event.preventDefault();
+	if (event.repeat && !chatOpen) return event.preventDefault();
 	if (event.code === 'Enter') {
 		if (chatOpen && event.type === 'keydown') {
 			ref.chatDiv.classList.add('hidden')
-			send({ chat: ref.chat.value })
+			if (chatTest(ref.chat.value)) {
+				send({ chat: ref.chat.value })
+			}
 			ref.chat.value = '';
 			chatOpen = false;
 			return;
@@ -23,6 +25,14 @@ function trackKeys(event) {
 		overlaying = false;
 		overlayAlpha = 0;
 		return;
+	}
+	if (event.code === 'KeyM' && event.type === 'keydown') {
+		window.music = !window.music;
+		if (window.music) {
+			backgroundMusic.volume = 1;
+		} else if (!window.music) {
+			backgroundMusic.volume = 0;
+		}
 	}
 	if (event.code === 'Tab') {
 		window.tab = event.type === 'keydown';

@@ -150,7 +150,7 @@ function boundPlayerObstacle(player, obstacle) {
 		const collision = testPolygonCircle(obstacle.sat, playerSat, res);
 		if (collision) {
 			if (obstacle.type === 'point' && !player.passive) {
-				player.score += 0.1;
+				player.score += 5/60;
 			} else {
 				player.x += res.overlapV.x;
 				player.y += res.overlapV.y;

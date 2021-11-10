@@ -1,11 +1,9 @@
 const { createInput } = require('../shared/func.js');
 
 module.exports = class Player {
-	constructor(id, arena) {
+	constructor(id, arena, obstacles) {
 		this.radius = 40;
-		this.x = Math.round(Math.random() * arena.width) + this.radius
-		this.y = Math.round(Math.random() * arena.height) + this.radius;
-		this._arena = arena;
+		this.spawn(obstacles, arena)
 		this.xv = 0;
 		this.yv = 0;
 		this.bxv = 0;
@@ -13,7 +11,7 @@ module.exports = class Player {
 		this.id = id;
 		this.dying = false;
 		this.timer = 0;
-		this.angle = 0;
+		this.angle = -Math.PI / 2;
 		this.timerMax = 1.5;
 		this.arrowing = false;
 		this.spaceLock = false;
@@ -23,7 +21,7 @@ module.exports = class Player {
 		this.chatMessage = '';
 		this.chatMessageTimer = 0;
 		this.fric = 0.955;
-    	this.bfric = 0.985;
+		this.bfric = 0.985;
 		this.chatMessageTime = 8;
 		this.kills = 0;
 		this.speed = 25;
@@ -35,6 +33,16 @@ module.exports = class Player {
 		this.passive = false;
 
 		this.name = `Agent ${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
+	}
+	spawn(obstacles, arena) {
+		this.x = Math.round(Math.random() * arena.width) + this.radius
+		this.y = Math.round(Math.random() * arena.height) + this.radius;
+		this.spawnFix(obstacles);
+		this.score = 0;
+		this.arrowsHit = 0;
+		this.arrowsShot = 0;
+		this.deaths = 0;
+		this.kills = 0;
 	}
 	addScore(s) {
 		this.score += s;
@@ -61,24 +69,48 @@ module.exports = class Player {
 		}
 		return ((this.arrowsHit / this.arrowsShot) * 100).toFixed(0);
 	}
-	spawn() {
-		
-		this.x = Math.round(Math.random() * this._arena.width) + this.radius
-		this.y = Math.round(Math.random() * this._arena.height) + this.radius
-		this.xv = 0;
-		this.yv = 0;
-		this.bxv = 0;
-		this.arrowsShot = 0;
-		this.arrowsHit = 0;
-		this.byv = 0;
-		this.angleVel = 0;
-		this.spaceLock = false;
-		this.timer = 0;
-		this.dying = false;
-		this.respawn = false;
-		this.radius = 40;
-		this.arrowing = false;
-		this.timer = 0;
+	spawnFix(obstacles) {
+		for (const obstacle of obstacles) {
+			const rectHalfSizeX = obstacle.width / 2
+			const rectHalfSizeY = obstacle.height / 2
+			const rectCenterX = obstacle.x + rectHalfSizeX;
+			const rectCenterY = obstacle.y + rectHalfSizeY;
+			const distX = Math.abs(this.x - rectCenterX);
+			const distY = Math.abs(this.y - rectCenterY);
+			if ((distX < rectHalfSizeX + this.radius) && (distY < rectHalfSizeY + this.radius)) {
+				let relX;
+				if (this.x > rectCenterX) {
+					relX = this.x - this.radius - rectCenterX - rectHalfSizeX;
+				}
+				else {
+					relX = - rectCenterX + rectHalfSizeX + this.x + this.radius;
+				}
+				let relY;
+				if (this.y > rectCenterY) {
+					relY = this.y - this.radius - rectCenterY - rectHalfSizeY;
+				}
+				else {
+					relY = - rectCenterY + rectHalfSizeY + this.y + this.radius;
+				}
+				if (Math.abs(relX) < Math.abs(relY)) {
+					if (relX < 0) {
+						this.x = rectCenterX + rectHalfSizeX + this.radius;
+						this.xv = 0;
+					} else {
+						this.x = rectCenterX - rectHalfSizeX - this.radius;
+						this.xv = 0;
+					}
+				} else {
+					if (relY > 0) {
+						this.y = rectCenterY - rectHalfSizeY - this.radius;
+						this.yv = 0;
+					} else {
+						this.y = rectCenterY + rectHalfSizeY + this.radius;
+						this.yv = 0;
+					}
+				}
+			}
+		}
 	}
 	differencePack(player) {
 		if (!player) {

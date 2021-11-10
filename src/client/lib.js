@@ -21,6 +21,9 @@ window.overlaying = false;
 window.times = [];
 window.tab = false;
 window.ghue = 0;
+window.roundTime = 0;
+window.music = true;
+
 
 function changeMovMode() {
 	if (window.movementMode === 'wasd') {
@@ -99,7 +102,19 @@ const arrInputCodes = {
 	Space: { key: 'space' }
 }
 
+function convert(seconds) {
+    let minutes = Math.floor(seconds / 60);
+    seconds = Math.round(seconds - minutes * 60)
+    if (seconds < 10) {
+        seconds = "0" + seconds;
+    }
+    return String(minutes) + ":" + String(seconds);
+}
 
+function chatTest(string) {
+   string = string.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+   return /\S/.test(string) && string.length <= 60;
+}
 
 function run(time =  0) {
 	fpsTick(time)
@@ -112,7 +127,7 @@ function run(time =  0) {
 	killedNotifTime -= dt * 1.5;
 	if (killedNotifTime <= 0) killedNotifTime = 0;
 	lastTime = window.performance.now();
-	ghue += dt * 360 * 2;
+	ghue += dt * 45;
 
 	if (overlaying) {
 		overlayAlpha += dt;
@@ -163,3 +178,7 @@ function run(time =  0) {
 
 
 
+
+String.prototype.safe = function () {
+    return this.replace(/&/g, "&amp;").replace(/ /g, "&nbsp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}

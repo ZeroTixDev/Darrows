@@ -12,12 +12,12 @@ window.render = () => {
 		if (!arena) return;
 		ctx.fillRect(a.x, a.y, arena.width, arena.height);
 
-		const tileSize = 200;
-		const maxDistToCamera = 900;
+		const tileSize = 100;
+		const maxDistToCamera = 1000;
 
 		ctx.globalAlpha = 0.8;
 		ctx.strokeStyle = 'gray';
-		ctx.lineWidth = 0.2;
+		ctx.lineWidth = 0.5;
 		for (let y = 0; y < arena.height; y += tileSize) {
 			for (let x = 0; x < arena.width; x += tileSize) {
 				if (Math.abs(x - camera.x) > maxDistToCamera ||
@@ -56,10 +56,10 @@ window.render = () => {
 			}
 			if (type === 'point') {
 				ctx.fillStyle = '#fcb000'
-				ctx.strokeStyle = '#fcb000';
-				ctx.lineWidth = 10;
-				ctx.strokeRect(pos.x, pos.y, width, height)
-				ctx.globalAlpha = 0.3;
+				// ctx.strokeStyle = '#fcb000';
+				// ctx.lineWidth = 10;
+				// ctx.strokeRect(pos.x, pos.y, width, height)
+				ctx.globalAlpha = 0.5;
 			}
 			ctx.fillRect(pos.x, pos.y, width, height)
 			ctx.globalAlpha = 1;
@@ -78,7 +78,7 @@ window.render = () => {
 			ctx.translate(pos.x, pos.y);
 			ctx.rotate(lerpAngle + Math.PI / 2);
 			ctx.fillStyle = '#ff0000';
-			if (players[parent]?.dev) {
+			if (players[parent] ?.dev) {
 				ctx.fillStyle = `hsl(${ghue}, 100%, 50%)`;
 			}
 			ctx.beginPath();
@@ -293,7 +293,7 @@ window.render = () => {
 						ctx.fillStyle = '#ffc400'
 					}
 					ctx.beginPath();
-					ctx.arc((player.pos.x / arena.width) * mwidth, (canvas.height - mheight) + (player.pos.y / arena.height) * mheight, 4, 0, Math.PI * 2)
+					ctx.arc((player.pos.x / arena.width) * mwidth, (canvas.height - mheight) + (player.pos.y / arena.height) * mheight, (player.radius / arena.width) * mwidth, 0, Math.PI * 2)
 					ctx.fill()
 				}
 			}
@@ -312,29 +312,38 @@ window.render = () => {
 			ctx.fillText(`Extralag: ${extraLag} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length} | ServerTickTime: ${serverTickMs}ms | ServerFrameTime: ${Math.round(serverTickMs / 60)}ms | ${window.fps}fps`, 10, 20)
 		}
 
-		ctx.fillStyle = '#242424';
-		ctx.fillRect(canvas.width - 200, canvas.height - 30, 200, 30)
+		ctx.fillStyle = '#1a1a1a';
+		ctx.fillRect(canvas.width - 305, canvas.height - 30, 305, 30)
+
+		ctx.beginPath();
+		ctx.lineTo(canvas.width - 305, canvas.height - 30);
+		ctx.lineTo(canvas.width - 330, canvas.height);
+		ctx.lineTo(canvas.width - 305, canvas.height);
+		ctx.fill()
 
 		ctx.font = `16px ${window.font}`
+		ctx.fillStyle = '#00ff59';
+
 		
 
 		if (window.autoRespawn) {
-			ctx.fillStyle = '#00ff59';
-			ctx.fillText("Auto Respawn", canvas.width - 125, canvas.height - 15)
+			ctx.fillText("Auto Respawn: On", canvas.width - 150, canvas.height - 15)
 		} else {
-			ctx.globalAlpha = 0.6;
-			ctx.fillStyle = '#00ff84';
-			ctx.fillText("Auto Respawn", canvas.width - 125, canvas.height - 15)
-			ctx.globalAlpha = 1;
+			ctx.fillText("Auto Respawn: Off", canvas.width - 150, canvas.height - 15)
 		}
 
-		ctx.fillStyle = '#4cfc00';
+		ctx.fillStyle = '#ddff00';
 
 		if (window.movementMode === 'wasd') {
-			ctx.fillText('WASD', canvas.width - 180, canvas.height - 15);
+			ctx.fillText('WASD', canvas.width - 300, canvas.height - 15);
 		} else {
-			ctx.fillText('ULDR', canvas.width - 180, canvas.height - 15)
+			ctx.fillText('ULDR', canvas.width - 300, canvas.height - 15)
 		}
+
+		ctx.fillStyle = '#00c8ff';
+		ctx.fillText(`Music: ${window.music ? 'On': 'Off'}`, canvas.width - 240, canvas.height - 15)
+
+
 
 		if (tab) {
 			const sortedPlayers = Object.keys(players).sort((a, b) => players[b].score - players[a].score);
@@ -346,50 +355,87 @@ window.render = () => {
 			let index = 0;
 			for (const id of sortedPlayers) {
 				const { score, name } = players[id];
-				const strScore = score <= 999 ? `${Math.floor(score)}`: `${Math.floor((score / 1000) * 100) / 100}k`
+				const strScore = score <= 999 ? `${Math.floor(score)}` : `${Math.floor((score / 1000) * 100) / 100}k`
 				ctx.fillStyle = '#c4c4c4';
 				ctx.font = `20px ${font}`
 				ctx.fillText(`${index + 1}.`, 610, top + 25 + index * 25)
 				ctx.fillText(`${strScore}`, 990 - ctx.measureText(`${strScore}`).width, top + 25 + index * 25)
 				index++;
 				ctx.fillStyle = '#ff0000'
-				if(id === selfId) {
+				if (id === selfId) {
 					ctx.fillStyle = 'white'
 				}
-				ctx.fillText(`${iExist && !dead && players[selfId].dev ? `[${id}] `: ''}${name}`, 640, top + index * 25)
+				ctx.fillText(`${iExist && !dead && players[selfId].dev ? `[${id}] ` : ''}${name}`, 640, top + index * 25)
 			}
-				// ctx.strokeStyle = 'black';
-				// ctx.lineWidth = 1;
-				// ctx.beginPath();
-				// ctx.lineTo(600, top + 12.5 + index * 25);
-				// ctx.lineTo(1000, top + 12.5 + index * 25);
-				// ctx.stroke()
-			} else if (iExist && !dead) {
-				const score = Math.round(players[selfId].score);
+			// ctx.strokeStyle = 'black';
+			// ctx.lineWidth = 1;
+			// ctx.beginPath();
+			// ctx.lineTo(600, top + 12.5 + index * 25);
+			// ctx.lineTo(1000, top + 12.5 + index * 25);
+			// ctx.stroke()
+		}
+		if (iExist && !dead) {
+			const score = Math.round(players[selfId].score);
 
-				ctx.fillStyle = '#242424';
-				ctx.font = `20px ${font}`;
+			ctx.fillStyle = '#1a1a1a';
+			ctx.font = `20px ${font}`;
 
-				// ctx.globalAlpha = 0.8;
-				ctx.fillRect(1500, 0, 100, 50);
+			// ctx.globalAlpha = 0.8;
+			ctx.fillRect(1500, 0, 100, 50);
 
-				ctx.beginPath();
-				ctx.lineTo(1500, 0);
-				ctx.lineTo(1475, 0);
-				ctx.lineTo(1500, 50);
-				ctx.fill()
+			ctx.beginPath();
+			ctx.lineTo(1500, 0);
+			ctx.lineTo(1475, 0);
+			ctx.lineTo(1500, 50);
+			ctx.fill()
 
-				// ctx.globalAlpha = 1;
-				
-				ctx.fillStyle = 'white';
-				ctx.textAlign = 'center'
-				ctx.fillText(`${score} `, (1535), 25);
-				ctx.fillStyle = '#ffc800';
-				ctx.fillText(`ap`, 1545 + ctx.measureText(`${score} `).width / 2, 25)
+			// ctx.globalAlpha = 1;
 
-				
-			}
+			ctx.fillStyle = 'white';
+			ctx.textAlign = 'center'
+			ctx.fillText(`${score} `, (1535), 25);
+			ctx.fillStyle = '#ffc800';
+			ctx.fillText(`ap`, 1545 + ctx.measureText(`${score} `).width / 2, 25)
+
+
+		}
+
+		ctx.fillStyle = '#1a1a1a';
+		ctx.fillRect(750, 0, 100, 40 );
+
+		ctx.beginPath();
+		ctx.lineTo(750, 0);
+		ctx.lineTo(725, 0);
+		ctx.lineTo(750, 40);
+		ctx.fill()
+
+		ctx.beginPath();
+		ctx.lineTo(850, 0);
+		ctx.lineTo(875, 0);
+		ctx.lineTo(850, 40);
+		ctx.fill()
+
+		ctx.fillStyle = 'white';
+		ctx.textAlign = 'center';
+		ctx.font = `25px ${font}`
+		ctx.fillText(`${convert(roundTime)}`, 800, 20);
+
+		ctx.globalAlpha = 0.7;
+		ctx.fillStyle = '#1a1a1a';	
+		ctx.fillRect(0, 0, 375, 250);
+		if (chatOpen) {
+			ctx.fillRect(0, 250, 350, 25);
+
+			ctx.beginPath();
+			ctx.lineTo(350, 250);
+			ctx.lineTo(375, 250);
+			ctx.lineTo(350, 250 + 25);
+			ctx.fill()
+		}
+		ctx.globalAlpha = 1;
+
 		
+
 
 		// if (leader != null) {
 		// 	ctx.globalAlpha = 0.9;

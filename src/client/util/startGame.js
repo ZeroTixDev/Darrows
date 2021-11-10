@@ -1,6 +1,4 @@
 function startGame() {
-	ws = new WebSocket(location.origin.replace(/^http/, 'ws'));
-	ws.binaryType = 'arraybuffer'
 	run(); // starts event loop
 
 	window.addEventListener("keydown", trackKeys);
@@ -22,7 +20,6 @@ function startGame() {
 
 
 
-	ws.onopen = () => {
 		setInterval(() => {
 			send({ ping: Date.now() })
 		}, 500);
@@ -37,28 +34,4 @@ function startGame() {
 			uploadByteCount = 0;
 		}, 1000);
 		send({ joinE: true })
-	};
-
-	ws.onmessage = (msg) => {
-		if (window.stutter) return;
-
-		const obj = msgpack.decode(new Uint8Array(msg.data));
-
-		if (obj.type === 'stats' && autoRespawn) {
-			return send({ type: 'spawn' })
-		}
-		// extraLag === 0 ? processMessage(obj):
-		// 	setTimeout(() => {
-		// 		processMessage(obj)
-		// 	}, extraLag);
-		processMessage(obj)
-
-		byteCount += msg.data.byteLength;
-	};
-
-	ws.onclose = () => {
-		if (!window.kicked) {
-			alert('Disconnected.')
-		}
-	};
 }

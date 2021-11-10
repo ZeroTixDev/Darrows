@@ -4,10 +4,19 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Darrows</title>
+	<title>Death Arrows 2</title>
+	<meta name="title" content="Death Arrows 2">
+	<meta name="description" content="An action-packed pvp game where you shoot arrows!">
+
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="https://darrows.herokuapp.com">
+	<meta property="og:title" content="Death Arrows 2">
+	<meta property="og:description" content="An action-packed pvp game where you shoot arrows!">
+
 	<link href="./style.css" rel="stylesheet" />
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/msgpack-lite/0.1.5/msgpack.min.js" integrity="sha512-iklLb1eedGq+n6CU+Nknfyw0mNC9bc7g99ObbqqsaL8IZNeEk/eAfvn2B27WqhBo9eKukU2DXEP0kUqCCRWRBw=="
 	 crossorigin="anonymous" referrerpolicy="no-referrer">
+
 	</script>
 
 
@@ -18,15 +27,31 @@
 
 <body>
 
-	<div class="game">
+	<div class="menu">
+		<span class="title">Death Arrows 2</span>
+		<span class="darrow-hero"></span>
+		<span class="darrow-hero-name">Default</span>
+		<button class="darrow-hero-left darrow-hero-button"><span class="darrow-left">&lt;</span></button>
+		<button class="darrow-hero-right darrow-hero-button"><span class="darrow-right">&gt;</span></button>
+		<button class="play">play</button>
+		<a class="discord" href="https://discord.gg/VMXbcctvbY" target="_blank">Discord</a>
+		<a class="editor" href="https://darrows-editor.zerotixdev.repl.co" target="_blank">Map Editor</a>
+		<span class="highscore"></span>
+	</div>
+
+	<div class="game hidden">
 		<canvas class="game-canvas"></canvas>
 		<div class="gui">
 			<div class="chatDiv hidden">
-				<input class="chat" type="text" placeholder="Type a Message" autocomplete="off" maxlength="50" spellcheck="false">
+				<div class="chat-over"></div>
+				<input class="chat" type="text" autocomplete="off" maxlength="59" spellcheck="false">
+			</div>
+			<div class="chat-div">
+			
 			</div>
 			<div class="death-screen hidden">
 				<div class="background-overlay"></div>
-				<div class="space-to-respawn"><span>press <span style="color: #427eff">space</span> to respawn</span></div>
+				<div class="space-to-respawn"><span>press <span style="color: #00e1ff">space</span> to respawn</span></div>
 				<div class="stats">
 					<div class="stat">
 						Kills

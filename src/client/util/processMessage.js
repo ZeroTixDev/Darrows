@@ -1,8 +1,16 @@
 function processMessage(obj) {
 
 	if (obj.kick != undefined) {
-		alert(`You have been kicked from the server`)
+		alert(`You have been kicked from the server from this admin: ${obj.kick}`)
 		window.kicked = true;
+	}
+
+	if (obj.globalLeader != undefined) {
+		const score = obj.globalLeader.score;
+		const strScore = score <= 999 ? 
+			`${Math.floor(score)}` : 
+			`${Math.floor((score / 1000) * 100) / 100}k`
+		ref.highscore.innerText = `${obj.globalLeader.name} with ${strScore} AP`
 	}
 
 	if (obj.type === 'init') {
@@ -15,7 +23,13 @@ function processMessage(obj) {
 		}
 
 		startTime = Date.now();
+	}
+
+	if (obj.arena != undefined) {
 		arena = obj.arena;
+	}
+
+	if (obj.obstacles != undefined) {
 		obstacles = obj.obstacles;
 	}
 
@@ -43,9 +57,13 @@ function processMessage(obj) {
 		}
 	}
 
-	if (obj.type === 'chat')
-		players[obj.id] != undefined ? players[obj.id].chat(obj.msg)
-			: undefined;
+	if (obj.type === 'chat' && players[obj.id] != undefined) {
+		const div = document.createElement('div');
+		div.classList.add('chat-message');
+		div.innerHTML = `${players[obj.id].dev ? '<span class="rainbow">[DEV]</span> ': ''}${players[obj.id].name.safe()}: ${obj.msg.safe()}`;
+		ref.chatMessageDiv.appendChild(div)
+		ref.chatMessageDiv.scrollTop = ref.chatMessageDiv.scrollHeight;
+	}
 
 	if (obj.kill != undefined) {
 		_kills = obj.kills;
@@ -67,6 +85,14 @@ function processMessage(obj) {
 		delete players[obj.id]
 	}
 
+	if (obj.round) {
+		roundTime = obj.round.time;
+	}
+
+	if (obj.arrowReset) {
+		arrows = {};
+	}
+
 	if (obj.type === "state") {
 		stateMessageCount++;
 		let timeDiff;
@@ -81,6 +107,10 @@ function processMessage(obj) {
 		lastReceivedStateTime = window.performance.now();
 
 		if (obj.spacing) serverSpacing = obj.spacing;
+
+		if (obj.data.round && obj.data.round.time) {
+			roundTime = obj.data.round.time;
+		}
 
 		for (const pack of obj.data.players) {
 			if (players[pack.id] == null) {

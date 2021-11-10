@@ -1,5 +1,7 @@
 window.ref = {
 	gameDiv: document.querySelector('.game'),
+	playButton: document.querySelector('.play'),
+	menuDiv: document.querySelector('.menu'),
 	chatDiv: document.querySelector('.chatDiv'),
 	chat: document.querySelector('.chat'),
 	canvas: document.querySelector('.game-canvas'),
@@ -9,4 +11,6 @@ window.ref = {
 	deaths: document.querySelector('.deaths'),
 	kdr: document.querySelector('.kdr'),
 	accuracy: document.querySelector('.accuracy'),
+	chatMessageDiv: document.querySelector('.chat-div'),
+	highscore: document.querySelector('.highscore'),
 }
