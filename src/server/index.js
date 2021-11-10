@@ -235,6 +235,7 @@ function newMessage(obj, socket, clientId) {
 			}  else if (obj.chat.trim() === '/passive') {
 				players[clientId].passive = !players[clientId].passive;
 				players[clientId].score = 0;	
+				players[clientId].timer = players[clientId].timerMax;
 				console.log(players[clientId].passive)
 			} else {
 				players[clientId].chatMessage = obj.chat;
@@ -373,6 +374,15 @@ function takeSnapshots() {
 			round.ended = false;
 			for (const player of Object.values(players)) {
 				player.spawn(obstacles, arena);
+			}
+			for (const { _playerStats } of Object.values(clients)) {
+				if (_playerStats != undefined) {
+					_playerStats.kills = 0;
+					_playerStats.deaths = 0;
+					_playerStats.arrowsHit = 0;
+					_playerStats.arrowsShot = 0
+					_playerStats.score = 0;
+				}
 			}
 			broadcast({
 				arena,
