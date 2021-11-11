@@ -12,6 +12,7 @@
   "dependencies": {
     "accurate-game-loop": "^2.0.0",
     "express": "^4.17.1",
+    "https": "^1.0.0",
     "msgpack-lite": "^0.1.26",
     "node-gameloop": "^0.1.4",
     "sat": "^0.9.0",
