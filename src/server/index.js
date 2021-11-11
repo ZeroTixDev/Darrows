@@ -131,11 +131,9 @@ function broadcast(obj, except = []) {
 }
 
 function validateInput(obj) {
-	for (i of ["up", "right", "left", "down", "arrowRight", "arrowLeft", "space"]) {
-		if (!obj.data[i]) {
-			return false;
-		}
-	}
+    if (!obj.data) {
+        return false;
+    }
 	return obj;
 }
 
