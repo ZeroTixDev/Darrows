@@ -131,7 +131,12 @@ function broadcast(obj, except = []) {
 }
 
 function validateInput(obj) {
-	return true;
+	for (i of ["up", "right", "left", "down", "arrowRight", "arrowLeft", "space"]) {
+		if (!obj.data[i]) {
+			return false;
+		}
+	}
+	return obj;
 }
 
 function newMessage(obj, socket, clientId) {
