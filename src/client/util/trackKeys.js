@@ -29,7 +29,7 @@ function trackKeys(event) {
 	if (event.code === 'KeyM' && event.type === 'keydown') {
 		window.music = !window.music;
 		if (window.music) {
-			backgroundMusic.volume = 1;
+			backgroundMusic.volume = musicVolume;
 		} else if (!window.music) {
 			backgroundMusic.volume = 0;
 		}

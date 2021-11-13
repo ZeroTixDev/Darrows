@@ -23,6 +23,7 @@ window.tab = false;
 window.ghue = 0;
 window.roundTime = 0;
 window.music = true;
+window.musicVolume = 0.8;
 
 
 function changeMovMode() {
