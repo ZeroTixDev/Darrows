@@ -178,7 +178,7 @@ body {
 
 .darrow-hero {
 	border: 5px solid red;
-	background: #292929;
+	background: #00b55b;
 	border-radius: 50%;
 	position: absolute;
 	left: calc(50vw - 40px);
@@ -192,9 +192,19 @@ body {
 	left: 50vw;
 	top: calc(50vh - 60px);
 	transform: translateX(-50%);
-	color: white;
+	color: #00b55b;
 	font-size: 1.2rem;
 }
+
+.locked {
+	color: rgb(104, 103, 89) !important;
+	position: absolute;
+	left: 50vw;
+	top: calc(50vh + 60px);
+	transform: translateX(-50%);
+	font-size: 1.2rem;
+}
+
 
 /* .darrow-left {
 	position: absolute;

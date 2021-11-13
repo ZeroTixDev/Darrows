@@ -79,7 +79,10 @@ window.render = () => {
 			ctx.rotate(lerpAngle + Math.PI / 2);
 			ctx.fillStyle = '#ff0000';
 			if (players[parent] ?.dev) {
-				ctx.fillStyle = `hsl(${ghue}, 100%, 50%)`;
+				ctx.fillStyle = `hsl(${ghue}, 70%, 30%)`;
+			}
+			if (arrows[arrowId].freezed) {
+				ctx.fillStyle = '#0055ff'
 			}
 			ctx.beginPath();
 			ctx.rect(-6.25, -18.75, 12.5, 37.5);
@@ -101,18 +104,18 @@ window.render = () => {
 
 
 			// ctx.fillStyle = "#a37958";
-			ctx.fillStyle = '#292929';
-			if (leader != null && playerId === leader.id) {
-				ctx.fillStyle = ' #deae12'
-			}
+			ctx.fillStyle = Character[player.characterName].Color;
+			// if (leader != null && playerId === leader.id) {
+			// 	ctx.fillStyle = ' #deae12'
+			// }
 			if (player.timer > 0) {
-				ctx.fillStyle = '#616161'
-				if (leader != null && playerId === leader.id) {
-					ctx.fillStyle = '#c2ac65'
-				}
+				ctx.fillStyle = Character[player.characterName].ArrowCdColor;
+				// if (leader != null && playerId === leader.id) {
+				// 	ctx.fillStyle = '#c2ac65'
+				// }
 			}
 			if (player.dev) {
-				ctx.fillStyle = `hsl(${ghue}, 100%, 50%)`;
+				// ctx.fillStyle = `hsl(${ghue}, 100%, 50%)`;
 			}
 			if (player.passive) {
 				ctx.globalAlpha = 0.3;
@@ -190,6 +193,9 @@ window.render = () => {
 				ctx.stroke();
 
 				ctx.fillStyle = '#ff0000';
+				if (player.dev) {
+					ctx.fillStyle = `hsl(${ghue}, 70%, 30%)`;
+				}
 				ctx.fillRect(-5, -60 + player.arrowing * 25, 10, 30);
 
 			}
@@ -208,6 +214,9 @@ window.render = () => {
 				ctx.globalAlpha = 1;
 			}
 			ctx.fillStyle = 'black';
+			if (leader != null && leader.id === playerId) {
+				ctx.fillStyle = '#c20000'
+			}
 			ctx.textAlign = 'center';
 			ctx.textBaseline = 'middle'
 			ctx.font = `22px ${window.font}`
@@ -290,7 +299,7 @@ window.render = () => {
 				} else {
 					ctx.fillStyle = '#000000';
 					if (leader != null && playerId === leader.id) {
-						ctx.fillStyle = '#ffc400'
+						ctx.fillStyle = '#d90000'
 					}
 					ctx.beginPath();
 					ctx.arc((player.pos.x / arena.width) * mwidth, (canvas.height - mheight) + (player.pos.y / arena.height) * mheight, (player.radius / arena.width) * mwidth, 0, Math.PI * 2)
@@ -308,8 +317,10 @@ window.render = () => {
 		ctx.fillStyle = 'rgb(100, 0, 0)';
 		ctx.textAlign = 'left'
 		if (window.debug) {
-			ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}] | Angle: ${players[selfId] ?.angle.toFixed(1)}`, 10, 50);
-			ctx.fillText(`Extralag: ${extraLag} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length} | ServerTickTime: ${serverTickMs}ms | ServerFrameTime: ${Math.round(serverTickMs / 60)}ms | ${window.fps}fps`, 10, 20)
+			ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}] | Angle: ${players[selfId] ?.angle.toFixed(1)}`
+				, 200, 825);
+			ctx.fillText(`Extralag: ${extraLag} | Interpolation: ${window.delta.toFixed(1)} / 1 | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length} | ServerTickTime: ${serverTickMs}ms | ServerFrameTime: ${Math.round(serverTickMs / 60)}ms | ${window.fps}fps`
+				, 200, 850)
 		}
 
 		ctx.fillStyle = '#1a1a1a';
@@ -324,7 +335,7 @@ window.render = () => {
 		ctx.font = `16px ${window.font}`
 		ctx.fillStyle = '#00ff59';
 
-		
+
 
 		if (window.autoRespawn) {
 			ctx.fillText("Auto Respawn: On", canvas.width - 150, canvas.height - 15)
@@ -341,7 +352,7 @@ window.render = () => {
 		}
 
 		ctx.fillStyle = '#00c8ff';
-		ctx.fillText(`Music: ${window.music ? 'On': 'Off'}`, canvas.width - 240, canvas.height - 15)
+		ctx.fillText(`Music: ${window.music ? 'On' : 'Off'}`, canvas.width - 240, canvas.height - 15)
 
 
 
@@ -401,7 +412,7 @@ window.render = () => {
 		}
 
 		ctx.fillStyle = '#1a1a1a';
-		ctx.fillRect(750, 0, 100, 40 );
+		ctx.fillRect(750, 0, 100, 40);
 
 		ctx.beginPath();
 		ctx.lineTo(750, 0);
@@ -421,7 +432,7 @@ window.render = () => {
 		ctx.fillText(`${convert(roundTime)}`, 800, 20);
 
 		ctx.globalAlpha = 0.7;
-		ctx.fillStyle = '#1a1a1a';	
+		ctx.fillStyle = '#1a1a1a';
 		ctx.fillRect(0, 0, 375, 250);
 		if (chatOpen) {
 			ctx.fillRect(0, 250, 350, 25);
@@ -434,9 +445,34 @@ window.render = () => {
 		}
 		ctx.globalAlpha = 1;
 
-		
 
 
+		if (players[selfId] && players[selfId].dev) {
+			ctx.font = `25px ${font}`;
+			ctx.fillStyle = `hsl(${ghue}, 70%, 30%)`;
+			ctx.fillText('[DEV MODE]', 1400, 25);
+		}
+
+		actx.clearRect(0, 0, actx.canvas.width, actx.canvas.height);
+		if (players[selfId] && players[selfId].characterName === 'Kronos') {
+			actx.drawImage(textures.Kronos, 0, 0, 60, 60);
+			actx.fillStyle = 'black';
+			actx.globalAlpha = 0.6;
+			actx.beginPath()
+			actx.lineTo(30, 30)
+			actx.arc(30, 30, 60, Math.PI * 2 * Math.max((players[selfId].abilityCd / players[selfId].maxCd), 0), 0);
+			actx.fill()
+			if (players[selfId].abilityCd <= 0) {
+				actx.fillStyle = '#66000a';
+				actx.globalAlpha = 0.7;
+				actx.beginPath()
+				actx.lineTo(30, 30)
+				actx.arc(30, 30, 60,-Math.PI * 2 * Math.max((players[selfId].timeSpentFreezing / players[selfId].timeFreezeLimit), 0), 0);
+				actx.fill()
+			}
+			actx.globalAlpha = 1;
+			ctx.drawImage(abilityCanvas, canvas.width / 2 - 30, canvas.height - 60, 60, 60)
+		}
 		// if (leader != null) {
 		// 	ctx.globalAlpha = 0.9;
 		// 	// ctx.fillStyle = '#303030';

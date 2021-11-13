@@ -25,13 +25,57 @@ function copyInput(input) {
 // 	}
 // }
 
-function createArrow(player) {
-	return new Arrow(player)
+let arrowCounter = 0;
+
+function createArrow(player, arrows) {
+	arrowCounter++;
+	arrows[arrowCounter] = new Arrow(player)
 }
 
 function updatePlayer(player, input, arena, obstacles, arrows) {
 	if (!player) return;
 	if (!player.dying) {
+		player.abilityCooldown -= 1 / 60
+		if (player.abilityCooldown <= 0) {
+			player.abilityCooldown = 0;
+		}
+
+		// Kronos
+		if (player.freezing) {
+			player.timeSpentFreezing += 1 / 60;
+		}
+
+		if (player.character.Ability != null) {
+			// Kronos
+			if (player.character.Ability.name === 'Freeze-Arrow') {
+				let newestArrow = null;
+				let freezedArrow = false;
+				for (const arrow of Object.values(arrows)) {
+					if (arrow.parent != player.id) continue;
+					if (newestArrow == null || arrow.c < newestArrow.c) {
+						newestArrow = arrow;
+					}
+					if ((!input.shift && arrow.freezed) || 
+						(arrow.freezed && player.timeSpentFreezing >= player.timeFreezeLimit)) {
+						arrow.unfreeze();
+						player.freezing = false;
+						player.abilityCooldown = 0.5 + player.timeSpentFreezing * 1.5;
+						player.maxCd = player.abilityCooldown;
+						player.timeSpentFreezing = 0;
+						// console.log(arrow)
+					}
+					if (arrow.freezed) {
+						freezedArrow = true;
+					}
+				}
+				if (newestArrow != null && !freezedArrow && input.shift && player.abilityCooldown <= 0) {
+					newestArrow.freeze()
+					// console.log(newestArrow)
+					player.freezing = true;
+				}
+			}
+		}
+
 		const dir = {
 			x: (input.right - input.left),
 			y: (input.down - input.up),
@@ -67,13 +111,7 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 				if (player.arrowing > 0) {
 					// shoot
 					player.arrowsShot++;
-			// for(let i = 90; i--; i>0){
-			//   player.arrowing -= 0.01;
-			//   player.radius = Math.random()*120;
-					arrows[Math.random()] = (createArrow(player))
-			//   player.angle += 1/90 * Math.PI*2;
-				// }
-			
+					createArrow(player, arrows)
 					player.timer = player.timerMax;
 					// console.log('shoot', player.arrows)
 				}
@@ -150,7 +188,7 @@ function boundPlayerObstacle(player, obstacle) {
 		const collision = testPolygonCircle(obstacle.sat, playerSat, res);
 		if (collision) {
 			if (obstacle.type === 'point' && !player.passive) {
-				player.score += 5/60;
+				player.score += 5 / 60;
 			} else {
 				player.x += res.overlapV.x;
 				player.y += res.overlapV.y;
@@ -177,14 +215,15 @@ function boundPlayerObstacle(player, obstacle) {
 }
 
 function collidePlayers(players, arena, obstacles) {
-	for (const i of Object.keys(players)) {
-		const player1 = players[i];
-		for (const j of Object.keys(players)) {
-			if (i === j) continue;
-			const player2 = players[j];
+	const keys = Object.keys(players)
+	for (let i = 0; i < keys.length; i++) {
+		const player1 = players[keys[i]];
+		for (let j = 0; j < keys.length; j++) {
+			if (i >= j) continue;
+			const player2 = players[keys[j]];
 			const distX = player1.x - player2.x;
 			const distY = player1.y - player2.y;
-			if (!player1.passive && !player2.passive && 
+			if (!player1.passive && !player2.passive &&
 				distX * distX + distY * distY <
 				player1.radius * 2 * (player2.radius * 2)
 			) {
@@ -228,5 +267,5 @@ function boundPlayer(player, arena, obstacles) {
 
 
 // if (module) {
-	module.exports = { updatePlayer, copyInput, boundPlayer, collidePlayers, createInput }
+module.exports = { updatePlayer, copyInput, boundPlayer, collidePlayers, createInput }
 // }

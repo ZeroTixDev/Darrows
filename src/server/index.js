@@ -1,4 +1,4 @@
-console.log('Running server script...');
+ console.log('Running server script...');
 
 const {
 	collidePlayers,
@@ -9,17 +9,18 @@ const createId = require('./util/createId.js');
 const msgpack = require('msgpack-lite')
 const Player = require('./player.js');
 const Obstacle = require('./obstacle.js');
+const Character = require('../shared/character.js');
 
 const chatTest = require('./util/chatTest.js');
 const hash = require('./util/hash.js');
 
-
-const hashedKey = 'afa0fdfe6fe91d55aca02f9761224b57d76639838055ca5d50154f1e42ed517c';
+const hashedKey = 'e7cffcbae281d404f9115b02293cbefbf60c44c9f18b1465f00d054656650f7d';
 
 
 const Round = require('./round.js')
 const wss = require('./setupServer.js')();
 const maps = require('./map.json');
+
 
 
 const createState = require('./util/createState.js')
@@ -30,6 +31,9 @@ const clients = {};
 let { map, index } = randomMap()
 let mapIndex = index;
 let { players, arrows, obstacles, arena } = createState(map);
+
+let botIds = [];
+
 
 const spacings = [];
 const updateRate = 60;
@@ -49,6 +53,21 @@ setInterval(() => {
 	ServerTick()
 }, 16);
 
+setInterval(() => {
+	for (let i = botIds.length - 1; i >= 0; i--) {
+		const id = botIds[i];
+		const player = players[id];
+		if (player == null) {
+			botIds.splice(i, 1);
+			continue;
+		}
+		player.input.left = Math.round(Math.random());
+		player.input.right = Math.round(Math.random());
+		player.input.down = Math.round(Math.random());
+		player.input.up = Math.round(Math.random())
+	}
+}, 300);
+
 wss.on('connection', (socket, req) => {
 	const clientId = createId();
 	const ip = hash(String(req.headers['x-forwarded-for'] || req.connection.remoteAddress));
@@ -63,7 +82,7 @@ wss.on('connection', (socket, req) => {
 		globalLeader,
 	});
 
-	
+
 
 	socket.on('message', (data) => {
 		try {
@@ -79,6 +98,12 @@ wss.on('connection', (socket, req) => {
 		}
 		if (players[clientId]) {
 			delete players[clientId];
+			for (const key of Object.keys(arrows)) {
+				const arrow = arrows[key]
+				if (arrow.parent === clientId) {
+					delete arrows[key]
+				}
+			}
 			broadcast({ type: 'leave', id: clientId })
 		}
 
@@ -92,8 +117,12 @@ wss.on('connection', (socket, req) => {
 	});
 });
 
+function generateHash(key) {
+	console.log(hash(key + "some long string to stop stuff form happening"))
+}
+
 function randomMap(exceptIndex = null) {
-	let index = Math.floor(Math.random()*maps.length);
+	let index = Math.floor(Math.random() * maps.length);
 	if (exceptIndex != null && maps.length > 1) {
 		while (index === exceptIndex) {
 			index = Math.floor(Math.random() * maps.length);
@@ -126,7 +155,9 @@ function broadcast(obj, except = []) {
 		if (except.includes(clientId)) {
 			continue;
 		}
-		send(clients[clientId], obj);
+		if (clients[clientId]) {
+			send(clients[clientId], obj);
+		}
 	}
 }
 
@@ -137,15 +168,20 @@ function validateInput(obj) {
 function newMessage(obj, socket, clientId) {
 	if (obj.joinE !== undefined && players[clientId] == null) {
 		players[clientId] = new Player(clientId, arena, obstacles);
+		const arrowPack = [];
+		Object.keys(arrows).forEach((id) => {
+			arrowPack.push({ id, data: arrows[id].pack() });
+		})
 		const payload = {
 			type: 'init',
 			players: _allPlayerPacks(),
 			arena,
+			arrows: arrowPack,
 			obstacles: obstacles.map((ob) => ob.pack()),
 			selfId: clientId,
 			round: round.pack(),
 		};
-		if (leader.id != null) {
+		if (leader.id != null && players[leader.id] != null) {
 			payload.leader = {
 				name: players[leader.id].name,
 				id: leader.id
@@ -162,10 +198,10 @@ function newMessage(obj, socket, clientId) {
 			}
 		}
 
-		send(socket, {
-			fric: players[clientId].fric,
-			speed: players[clientId].speed,
-		})
+		// send(socket, {
+		// 	fric: players[clientId].fric,
+		// 	speed: players[clientId].speed,
+		// })
 
 		broadcast({
 			type: 'newPlayer',
@@ -187,14 +223,9 @@ function newMessage(obj, socket, clientId) {
 		const player = players[clientId];
 		console.log(clients[clientId]._playerStats);
 		if (clients[clientId]._playerStats != null) {
-			console.log(clients[clientId]._playerStats)
-			const { kills, deaths, arrowsHit, arrowsShot, score, dev } = clients[clientId]._playerStats;
-			player.kills = kills;
-			player.deaths = deaths;
-			player.arrowsHit = arrowsHit;
-			player.arrowsShot = arrowsShot;
-			player.score = score;
-			player.dev = dev;
+			for (const key of Object.keys(clients[clientId]._playerStats)) {
+				player[key] = clients[clientId]._playerStats[key];
+			}
 		}
 		if (clients[clientId]._name != undefined) {
 			player.name = clients[clientId]._name;
@@ -210,7 +241,6 @@ function newMessage(obj, socket, clientId) {
 	}
 	if (obj.chat != undefined) {
 		if (players[clientId] && chatTest(obj.chat)) {
-			console.log(obj.chat.slice(0, 5));
 			if (obj.chat.slice(0, 5) == "/name") {
 				let newName = obj.chat.slice(6);
 				let unique = true;
@@ -224,6 +254,25 @@ function newMessage(obj, socket, clientId) {
 					players[clientId].name = newName;
 				}
 
+			} else if (obj.chat.slice(0, 4) === '/bot' && players[clientId].dev) {
+				const number = Number(obj.chat.slice(5));
+				if (true) {
+					for (let i = 0; i < number; i++) {
+						const id = i + Math.random()
+						botIds.push(id)
+						players[id] = new Player(id, arena, obstacles)
+						broadcast({
+							type: 'newPlayer',
+							id: id,
+							player: players[id].pack(),
+						}, [id])
+					}
+				}
+			} else if (obj.chat.slice(0, 5) === '/char') {
+				const characterName = obj.chat.slice(6);
+				if (Character[characterName] != null) {
+					players[clientId].character = Character[characterName]
+				}
 			} else if (hash(obj.chat.trim() + "some long string to stop stuff form happening") === hashedKey) {
 				players[clientId].dev = !players[clientId].dev;
 			} else if (players[clientId].dev && obj.chat.slice(0, 5) == "/kick") {
@@ -232,9 +281,15 @@ function newMessage(obj, socket, clientId) {
 					send(clients[id], { kick: players[clientId].name })
 					clients[id].close()
 				}
-			}  else if (obj.chat.trim() === '/passive') {
+			} else if (players[clientId].dev && obj.chat.slice(0, 5) === '/bcle') {
+				for (const id of botIds) {
+					delete players[id];
+					broadcast({ type: 'leave', id })
+				}
+				botIds = []
+			} else if (obj.chat.trim() === '/passive') {
 				players[clientId].passive = !players[clientId].passive;
-				players[clientId].score = 0;	
+				players[clientId].score = 0;
 				players[clientId].timer = players[clientId].timerMax;
 				console.log(players[clientId].passive)
 			} else {
@@ -259,6 +314,19 @@ function updateWorld() {
 	collidePlayers(players, arena, obstacles)
 
 	const dIds = [];
+	const arrowKeys = Object.keys(arrows)
+	for (let i = 0; i < arrowKeys.length; i++) {
+		const arrow = arrows[arrowKeys[i]];
+		arrow.update(arena, obstacles);
+		if (arrow.life <= 0) {
+			dIds.push(arrowKeys[i]);
+		}
+		for (let j = 0; j < arrowKeys.length; j++) {
+			if (i >= j) continue;
+			arrow.collide(arrows[arrowKeys[j]]);
+		}
+	}
+
 	for (const arrowId of Object.keys(arrows)) {
 		const arrow = arrows[arrowId]
 		arrow.update(arena, obstacles)
@@ -275,6 +343,10 @@ function updateWorld() {
 	// todo fix speed :D
 	for (const arrowId of Object.keys(arrows)) {
 		const arrow = arrows[arrowId]
+		if (players[arrow.parent] == null) {
+			arrow.die()
+			continue;
+		}
 		for (const playerId of Object.keys(players)) {
 			if (playerId === arrow.parent) continue;
 			const player = players[playerId];
@@ -289,19 +361,9 @@ function updateWorld() {
 				setTimeout(() => {
 					if (clients[playerId]) {
 						players[playerId].negateScore(25);
-						
+
 						clients[playerId]._playerStats = players[playerId].stats();
 						clients[playerId]._name = players[playerId].name;
-
-
-						delete players[playerId]
-
-
-						if (leader.id === playerId) {
-							leader.id = null;
-						}
-
-						broadcast({ type: 'leave', id: playerId })
 
 						send(clients[playerId], {
 							type: 'stats',
@@ -311,6 +373,14 @@ function updateWorld() {
 							accuracy: player.accuracy(),
 						});
 					}
+					delete players[playerId]
+
+
+					if (leader.id === playerId) {
+						leader.id = null;
+					}
+
+					broadcast({ type: 'leave', id: playerId })
 				}, 500)
 				if (clients[arrow.parent] && players[arrow.parent]) {
 					players[arrow.parent].kills++;
@@ -327,9 +397,11 @@ function updateWorld() {
 						kills: players[arrow.parent].kills,
 					})
 				}
-				send(clients[playerId], {
-					arrowHit: true,
-				})
+				if (clients[playerId]) {
+					send(clients[playerId], {
+						arrowHit: true,
+					})
+				}
 				arrow.die()
 			}
 		}
@@ -361,7 +433,7 @@ function takeSnapshots() {
 	while (tick < expectedTick) {
 		// take a snapshot
 		updateWorld();
-		round.tick(1/updateRate)
+		round.tick(1 / updateRate)
 		if (round.ended) {
 			let { map, index } = randomMap(mapIndex);
 			mapIndex = index;
@@ -461,12 +533,12 @@ function sendWorldState() {
 			leaderChange = true;
 			continue;
 		}
-		if (player.score > players[leader.id].score) {
+		if (players[leader.id] && player.score > players[leader.id].score) {
 			leader.id = playerId;
-			leader.score =  player.score;
+			leader.score = player.score;
 			leaderChange = true;
 		}
-		if (playerId === leader.id && player.kills> leader.score) {
+		if (playerId === leader.id && player.kills > leader.score) {
 			leaderChange = true;
 			leader.score = player.score;
 		}

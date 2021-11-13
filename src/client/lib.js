@@ -63,10 +63,15 @@ let serverSpacing = Array(3).fill(0)
 // let messages = [];
 let leader = null;
 
+const abilityCanvas = document.createElement('canvas');
+abilityCanvas.width = 60;
+abilityCanvas.height = 60;
+const actx = abilityCanvas.getContext('2d')
+
 /* state */
 
 const players = {};
-const arrows = {}
+let arrows = {}
 let obstacles = []
 
 /* state */

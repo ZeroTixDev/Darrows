@@ -38,9 +38,6 @@ function trackKeys(event) {
 		window.tab = event.type === 'keydown';
 		return event.preventDefault()
 	}
-	if (event.key === 'Shift') {
-		return event.preventDefault()
-	}
 	if (event.code === 'KeyV' && event.type === 'keydown')
 		changeMovMode()
 	if (event.code === 'KeyR' && event.type === 'keydown')
@@ -65,6 +62,12 @@ function trackKeys(event) {
 		input.arrowRight = event.type === 'keydown'
 		sendInput();
 		inputMessageCount++;
+	}
+	if (event.key === 'Shift') {
+		input.shift = event.type === 'keydown';
+		sendInput();
+		inputMessageCount++;
+		event.preventDefault()
 	}
 	if (event.code == 'KeyT' && event.type === 'keydown')
 		window.showSnapshots = !window.showSnapshots;

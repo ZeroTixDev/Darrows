@@ -1,7 +1,9 @@
 const { createInput } = require('../shared/func.js');
+const Character = require('../shared/character.js');
 
 module.exports = class Player {
-	constructor(id, arena, obstacles) {
+	constructor(id, arena, obstacles, character = 'Default') {
+		this.character = Character[character];
 		this.radius = 40;
 		this.spawn(obstacles, arena)
 		this.xv = 0;
@@ -31,6 +33,15 @@ module.exports = class Player {
 		this.score = 0;
 		this.dev = false;
 		this.passive = false;
+		
+
+		this.abilityCooldown = 0;
+		this.maxCd = 0;
+		
+		// Kronos
+		this.timeSpentFreezing = 0;
+		this.freezing = false;
+		this.timeFreezeLimit = 4;
 
 		this.name = `Agent ${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
 	}
@@ -61,6 +72,7 @@ module.exports = class Player {
 			arrowsShot: this.arrowsShot,
 			score: this.score,
 			dev: this.dev,
+			character: this.character,
 		}
 	}
 	accuracy() {
@@ -127,7 +139,7 @@ module.exports = class Player {
 		return diffPack;
 	}
 	pack() {
-		return {
+		const obj =  {
 			x: Math.round(this.x * 10) / 10,
 			y: Math.round(this.y * 10) / 10,
 			dying: this.dying,
@@ -145,7 +157,18 @@ module.exports = class Player {
 			score: Math.round(this.score),
 			dev: this.dev,
 			passive: this.passive,
+			characterName: this.character.Name,
+			abilityCd: Math.round(this.abilityCooldown * 100) / 100,
+			maxCd: this.maxCd,
 			// timer: this.timer,
 		};
+
+		if (this.character.Name === 'Kronos') {
+			obj.timeSpentFreezing = this.timeSpentFreezing;
+			obj.timeFreezeLimit = this.timeFreezeLimit;
+		}
+
+
+		return obj;
 	}
 }

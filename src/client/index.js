@@ -3,9 +3,15 @@
 ws = new WebSocket(location.origin.replace(/^http/, 'ws'));
 ws.binaryType = 'arraybuffer'
 
+window.textures = {
+	Kronos: new Image(),
+}
+
+textures.Kronos.src = './gfx/kronos-ability.png';
+
 window.backgroundMusic = new Audio();
 backgroundMusic.loop = true;
-backgroundMusic.src = './sounds/bg.mp3';
+backgroundMusic.src = './sounds/road-block.mp3';
 
 ws.onopen = () => {
 

@@ -33,6 +33,12 @@ function processMessage(obj) {
 		obstacles = obj.obstacles;
 	}
 
+	if (obj.arrows != undefined) {
+		for (const pack of obj.arrows) {
+			arrows[pack.id] = new CArrow(pack.data);
+		}
+	}
+
 
 
 	if (obj.type === 'stats') {
