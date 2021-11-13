@@ -327,13 +327,13 @@ function updateWorld() {
 		}
 	}
 
-	for (const arrowId of Object.keys(arrows)) {
-		const arrow = arrows[arrowId]
-		arrow.update(arena, obstacles)
-		if (arrow.life <= 0) {
-			dIds.push(arrowId)
-		}
-	}
+	// for (const arrowId of Object.keys(arrows)) {
+	// 	const arrow = arrows[arrowId]
+	// 	arrow.update(arena, obstacles)
+	// 	if (arrow.life <= 0) {
+	// 		dIds.push(arrowId)
+	// 	}
+	// }
 
 	for (const id of dIds) {
 		delete arrows[id]
