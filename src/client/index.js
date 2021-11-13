@@ -12,7 +12,7 @@ textures.Kronos.src = './gfx/kronos-ability.png';
 window.backgroundMusic = new Audio();
 backgroundMusic.loop = true;
 backgroundMusic.src = './sounds/road-block.mp3';
-bakcgroundMusic.volume = musicVolume;
+backgroundMusic.volume = musicVolume;
 
 ws.onopen = () => {
 
