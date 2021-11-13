@@ -78,9 +78,9 @@ window.render = () => {
 			ctx.translate(pos.x, pos.y);
 			ctx.rotate(lerpAngle + Math.PI / 2);
 			ctx.fillStyle = '#ff0000';
-			if (players[parent] ?.dev) {
-				ctx.fillStyle = `hsl(${ghue}, 70%, 30%)`;
-			}
+			// if (players[parent] ?.dev) {
+			// 	ctx.fillStyle = `hsl(${ghue}, 70%, 30%)`;
+			// }
 			if (arrows[arrowId].freezed) {
 				ctx.fillStyle = '#0055ff'
 			}
@@ -193,9 +193,9 @@ window.render = () => {
 				ctx.stroke();
 
 				ctx.fillStyle = '#ff0000';
-				if (player.dev) {
-					ctx.fillStyle = `hsl(${ghue}, 70%, 30%)`;
-				}
+				// if (player.dev) {
+				// 	ctx.fillStyle = `hsl(${ghue}, 70%, 30%)`;
+				// }
 				ctx.fillRect(-5, -60 + player.arrowing * 25, 10, 30);
 
 			}
