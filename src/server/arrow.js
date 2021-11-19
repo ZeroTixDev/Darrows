@@ -1,13 +1,13 @@
 const { Circle, Vector, Response, testPolygonCircle } = require('sat')
 
 module.exports = class Arrow {
-	constructor(player) {
+	constructor(player, fake = false) {
 		this.x = player.x + Math.cos(player.angle) * (player.radius - player.arrowing * 20);
 		this.y = player.y + Math.sin(player.angle) * (player.radius - player.arrowing * 20);
 		this.angle = player.angle;
 		this.radius = 10;
-		this.life = 3;
-		this.speed = 6 + (player.arrowing / 3) * 20;
+		this.life = 4;
+		this.speed = 5 + (player.arrowing / 3) * 18;
 		this.max = player.arrowing === 3;
 		this.alpha = 1;
 		this.dead = false;
@@ -17,7 +17,8 @@ module.exports = class Arrow {
 		this.slided = false;
 		this.freezed = false;
 		this.oldVel = { x: 0, y: 0 };
-		this.c = 0.01; // counter so it sends every update
+		this.c = 0; // counter of how long it lasts
+		this.fake = fake;
 	}
 	freeze() {
 		this.freezed = true;
@@ -36,6 +37,7 @@ module.exports = class Arrow {
 	}
 	collide(arrow) {
 		if (arrow.dead || this.dead) return;
+		if (this.fake && this.parent === arrow.parent) return;
 		const distX = arrow.x - this.x;
 		const distY = arrow.y - this.y;
 		if (distX <= arrow.radius + this.radius && distY <= arrow.radius + this.radius) {
@@ -102,7 +104,13 @@ module.exports = class Arrow {
 						this.slided = true;
 					}
 				} else {
-					this.die()
+					if (obstacle.type === 'bounce') {
+						this.slided = true;
+						this.xv *= -0.95;
+						this.angle = Math.atan2(this.yv, this.xv);
+					} else {
+						this.die()
+					}
 				}
 			} else if (obstacle.type !== 'point') {
 				if (this.xv != 0) {
@@ -136,7 +144,13 @@ module.exports = class Arrow {
 						this.slided = true;
 					}
 				} else {
-					this.die()
+					if (obstacle.type === 'bounce') {
+							this.yv *= -0.9;
+							this.angle = Math.atan2(this.yv, this.xv)
+							this.slided = true;
+					} else {
+						this.die()
+					}
 				}
 			}
 		}
@@ -153,16 +167,16 @@ module.exports = class Arrow {
 		}
 	}
 	update(arena, obstacles) {
-		this.c += 0.01;
+		this.c += dt
 		if (!this.dead) {
-			this.x += this.xv * (60 * (1 / 60))
-			this.y += this.yv * (60 * (1 / 60))
+			this.x += this.xv * (60 * dt)
+			this.y += this.yv * (60 * dt)
 			for (const obstacle of obstacles) {
 				this.collideArrowObstacle(obstacle)
 			}
 		}
-		if (!this.freezed) {
-			this.life -= 1 / 60;
+		if ((this.freezed && this.dead) || !this.freezed) {
+			this.life -= dt;
 		}
 		if (this.life <= 0.5) {
 			this.alpha = Math.max((this.life * 2) / 1, 0);
@@ -200,8 +214,8 @@ module.exports = class Arrow {
 	}
 	pack() {
 		return {
-			x: Math.round(this.x * 10) / 10,
-			y: Math.round(this.y * 10) / 10,
+			x: Math.round(this.x * 100) / 100,
+			y: Math.round(this.y * 100) / 100,
 			alpha: Math.round(this.alpha * 100) / 100,
 			life: Math.round(this.life * 100) / 100,
 			angle: this.angle,

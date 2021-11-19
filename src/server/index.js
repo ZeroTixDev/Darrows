@@ -1,4 +1,4 @@
- console.log('Running server script...');
+console.log('Running server script...');
 
 const {
 	collidePlayers,
@@ -10,6 +10,7 @@ const msgpack = require('msgpack-lite')
 const Player = require('./player.js');
 const Obstacle = require('./obstacle.js');
 const Character = require('../shared/character.js');
+
 
 const chatTest = require('./util/chatTest.js');
 const hash = require('./util/hash.js');
@@ -28,16 +29,20 @@ const { lowest, avg, highest } = require('./util/numArray.js')();
 const { reachedIpLimit } = require('./util/ip.js');
 const clients = {};
 
+// imagine observing me
+// replit removes cursors  on other people lol
+
 let { map, index } = randomMap()
 let mapIndex = index;
 let { players, arrows, obstacles, arena } = createState(map);
 
 let botIds = [];
 
-
+const currentChatMessages = [];
 const spacings = [];
-const updateRate = 60;
-const ipLimit = 6;
+const updateRate = 120;
+global.dt = 1 / 120;
+const ipLimit = 3;
 const startTime = Date.now();
 const leader = { id: null, score: null }
 const globalLeader = { name: null, score: 0 }
@@ -51,7 +56,7 @@ const decode = (msg) => msgpack.decode(msg);
 
 setInterval(() => {
 	ServerTick()
-}, 16);
+}, 8);
 
 setInterval(() => {
 	for (let i = botIds.length - 1; i >= 0; i--) {
@@ -61,10 +66,10 @@ setInterval(() => {
 			botIds.splice(i, 1);
 			continue;
 		}
-		player.input.left = Math.round(Math.random());
-		player.input.right = Math.round(Math.random());
-		player.input.down = Math.round(Math.random());
-		player.input.up = Math.round(Math.random())
+		// player.input.left = Math.round(Math.random());
+		// player.input.right = Math.round(Math.random());
+		// player.input.down = Math.round(Math.random());
+		// player.input.up = Math.round(Math.random())
 	}
 }, 300);
 
@@ -162,12 +167,19 @@ function broadcast(obj, except = []) {
 }
 
 function validateInput(obj) {
+	if (!obj.data) {
+		return false;
+	}
 	return true;
 }
 
 function newMessage(obj, socket, clientId) {
 	if (obj.joinE !== undefined && players[clientId] == null) {
 		players[clientId] = new Player(clientId, arena, obstacles);
+		clients[clientId].exists = true;
+		if (obj.character != undefined && Character[obj.character] != undefined) {
+			players[clientId].character = Character[obj.character];
+		}
 		const arrowPack = [];
 		Object.keys(arrows).forEach((id) => {
 			arrowPack.push({ id, data: arrows[id].pack() });
@@ -190,13 +202,10 @@ function newMessage(obj, socket, clientId) {
 
 		send(socket, payload);
 
+		currentChatMessages.forEach((message) => {
+			send(socket, { type: 'chat', msg: message.data, name: message.name, dev: message.dev });
+		})
 
-		for (const playerId of Object.keys(players)) {
-			const player = players[playerId];
-			if (player.chatMessage != '' && player.chatMessageTimer > 0) {
-				send(socket, { type: 'chat', msg: player.chatMessage, id: playerId })
-			}
-		}
 
 		// send(socket, {
 		// 	fric: players[clientId].fric,
@@ -236,10 +245,11 @@ function newMessage(obj, socket, clientId) {
 			player: players[clientId].pack(),
 		}, [])
 	}
-	if (!players[clientId]) {
-		return;
+	if (obj.input && players[clientId] && validateInput(obj)) {
+		players[clientId].input = obj.data;
 	}
 	if (obj.chat != undefined) {
+		let writeMessage = true;
 		if (players[clientId] && chatTest(obj.chat)) {
 			if (obj.chat.slice(0, 5) == "/name") {
 				let newName = obj.chat.slice(6);
@@ -252,6 +262,7 @@ function newMessage(obj, socket, clientId) {
 				}
 				if (unique) {
 					players[clientId].name = newName;
+					writeMessage = false;
 				}
 
 			} else if (obj.chat.slice(0, 4) === '/bot' && players[clientId].dev) {
@@ -268,44 +279,66 @@ function newMessage(obj, socket, clientId) {
 						}, [id])
 					}
 				}
-			} else if (obj.chat.slice(0, 5) === '/char') {
+				writeMessage = false;
+			} else if (obj.chat.slice(0, 5) === '/skip' && players[clientId].dev) {
+				round.time = 0;
+			} else if (obj.chat.slice(0, 5) === '/char' && players[clientId].dev) {
 				const characterName = obj.chat.slice(6);
 				if (Character[characterName] != null) {
 					players[clientId].character = Character[characterName]
 				}
+				writeMessage = false;
 			} else if (hash(obj.chat.trim() + "some long string to stop stuff form happening") === hashedKey) {
 				players[clientId].dev = !players[clientId].dev;
+				writeMessage = false;
 			} else if (players[clientId].dev && obj.chat.slice(0, 5) == "/kick") {
 				const id = obj.chat.slice(6).trim();
 				if (players[id]) {
 					send(clients[id], { kick: players[clientId].name })
 					clients[id].close()
 				}
+				writeMessage = false;
 			} else if (players[clientId].dev && obj.chat.slice(0, 5) === '/bcle') {
 				for (const id of botIds) {
 					delete players[id];
 					broadcast({ type: 'leave', id })
 				}
 				botIds = []
+				writeMessage = false;
 			} else if (obj.chat.trim() === '/passive') {
 				players[clientId].passive = !players[clientId].passive;
+				players[clientId].arrowing = 0;
 				players[clientId].score = 0;
 				players[clientId].timer = players[clientId].timerMax;
-				console.log(players[clientId].passive)
-			} else {
-				players[clientId].chatMessage = obj.chat;
-				players[clientId].chatMessageTimer = players[clientId].chatMessageTime;
-
-				broadcast({ type: 'chat', msg: obj.chat, id: clientId })
+				writeMessage = false;
+				// console.log(players[clientId].passive)
 			}
 		}
-	}
-	if (obj.input && validateInput(obj)) {
-		players[clientId].input = obj.data;
+		if (chatTest(obj.chat) && writeMessage) {
+			const inGame = players[clientId] != undefined;
+			const msg = {
+				data: obj.chat,
+				name: inGame ? players[clientId].name : clients[clientId]._name,
+				dev: inGame ? players[clientId].dev : clients[clientId]._playerStats.dev,
+				timer: 10,
+			}
+			console.log(msg)
+			currentChatMessages.push(msg);
+
+			broadcast({ type: 'chat', msg: obj.chat, name: msg.name, dev: msg.dev })
+		}
 	}
 }
 
 function updateWorld() {
+	for (let i = currentChatMessages.length - 1; i >= 0; i--) {
+		const msg = currentChatMessages[i];
+		msg.timer -= dt;
+		if (msg.timer <= 0) {
+			currentChatMessages.splice(i, 1);
+			continue;
+		}
+	}
 
 	for (const playerId of Object.keys(players)) {
 		updatePlayer(players[playerId], players[playerId].input, arena, obstacles, arrows)
@@ -323,7 +356,9 @@ function updateWorld() {
 		}
 		for (let j = 0; j < arrowKeys.length; j++) {
 			if (i >= j) continue;
+			// if (!arrow.fake || (arrow.fake && ((arrow.parent === arrows[arrowKeys[j]].parent) || (arrows[arrowKeys[j]].parent === arrow.parent)))) {
 			arrow.collide(arrows[arrowKeys[j]]);
+			// }
 		}
 	}
 
@@ -345,6 +380,9 @@ function updateWorld() {
 		const arrow = arrows[arrowId]
 		if (players[arrow.parent] == null) {
 			arrow.die()
+			continue;
+		}
+		if (arrow.fake) {
 			continue;
 		}
 		for (const playerId of Object.keys(players)) {
@@ -384,25 +422,36 @@ function updateWorld() {
 				}, 500)
 				if (clients[arrow.parent] && players[arrow.parent]) {
 					players[arrow.parent].kills++;
-					players[arrow.parent].addScore(100)
+					let score = 0;
+					score += 100;
 					if (arrow.slided) {
-						players[arrow.parent].addScore(25)
+						score += 25;
 					}
 					if (arrow.max) {
-						players[arrow.parent].addScore(25)
+						score += 25
 					}
+					if (arrow.c <= 0.2) {
+						score += 25;
+					}
+					players[arrow.parent].addScore(score)
+					if (clients[playerId]) {
+						send(clients[playerId], {
+							arrowHit: true,
+						})
+					}
+
 					players[arrow.parent].arrowsHit++;
 					send(clients[arrow.parent], {
 						kill: players[playerId].name,
 						kills: players[arrow.parent].kills,
+						hit: {
+							x: arrow.x,
+							y: arrow.y, 
+							score,
+						},
 					})
 				}
-				if (clients[playerId]) {
-					send(clients[playerId], {
-						arrowHit: true,
-					})
-				}
-				arrow.die()
+				// arrow.die()
 			}
 		}
 		// if (!arrow.dead) {
@@ -434,6 +483,8 @@ function takeSnapshots() {
 		// take a snapshot
 		updateWorld();
 		round.tick(1 / updateRate)
+
+
 		if (round.ended) {
 			let { map, index } = randomMap(mapIndex);
 			mapIndex = index;
@@ -462,6 +513,8 @@ function takeSnapshots() {
 				arrowReset: true,
 			});
 		}
+
+
 		tick++;
 	}
 }
@@ -478,12 +531,12 @@ function isDifferent(obj1, obj2) {
 
 
 function sendWorldState() {
-	const state = { players: [], arrows: [] };
+	const state = { p: [], a: [] };
 
 	for (const clientId of Object.keys(players)) {
 		const player = players[clientId];
 		if (lastSent.players[clientId] == null || isDifferent(player.pack(), lastSent.players[clientId])) {
-			state.players.push({
+			state.p.push({
 				id: clientId,
 				data: player.differencePack(lastSent.players[clientId]),
 			});
@@ -494,7 +547,7 @@ function sendWorldState() {
 	for (const arrowId of Object.keys(arrows)) {
 		const arrow = arrows[arrowId];
 		if (lastSent.arrows[arrowId] == null || isDifferent(arrow.pack(), lastSent.arrows[arrowId])) {
-			state.arrows.push({
+			state.a.push({
 				id: arrowId,
 				data: arrow.differencePack(lastSent.arrows[arrowId]),
 			})
@@ -548,9 +601,8 @@ function sendWorldState() {
 		// spacing: [lowest(spacings).toFixed(1), avg(spacings).toFixed(1), highest(spacings).toFixed(1)],
 	}
 
-	if (state.players.length > 0 || state.arrows.length > 0 || state.round != undefined) {
-		obj.type = 'state';
-		obj.data = state;
+	if (state.p.length > 0 || state.a.length > 0 || state.round != undefined) {
+		obj.d = state;
 	}
 
 	if (leaderChange) {
@@ -558,7 +610,11 @@ function sendWorldState() {
 	}
 
 	if (Object.keys(obj).length > 0) {
-		broadcast(obj);
+		for (const clientId of Object.keys(clients)) {
+			if (clients[clientId].exists) {
+				send(clients[clientId], obj);
+			}
+		}
 	}
 
 

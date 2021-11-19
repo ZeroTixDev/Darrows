@@ -1,4 +1,4 @@
-
+ 
 const { Circle, Vector, Response, testPolygonCircle } = require('sat')
 const Arrow = require('../server/arrow.js');
 const createInput = require('./createInput.js')
@@ -27,22 +27,22 @@ function copyInput(input) {
 
 let arrowCounter = 0;
 
-function createArrow(player, arrows) {
+function createArrow(player, arrows, fake = false) {
 	arrowCounter++;
-	arrows[arrowCounter] = new Arrow(player)
+	arrows[arrowCounter] = new Arrow(player, fake)
 }
 
 function updatePlayer(player, input, arena, obstacles, arrows) {
 	if (!player) return;
 	if (!player.dying) {
-		player.abilityCooldown -= 1 / 60
+		player.abilityCooldown -= dt;
 		if (player.abilityCooldown <= 0) {
 			player.abilityCooldown = 0;
 		}
 
 		// Kronos
 		if (player.freezing) {
-			player.timeSpentFreezing += 1 / 60;
+			player.timeSpentFreezing += dt;
 		}
 
 		if (player.character.Ability != null) {
@@ -56,7 +56,8 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 						newestArrow = arrow;
 					}
 					if ((!input.shift && arrow.freezed) || 
-						(arrow.freezed && player.timeSpentFreezing >= player.timeFreezeLimit)) {
+						(arrow.freezed && player.timeSpentFreezing >= player.timeFreezeLimit) || (arrow.freezed && arrow.dead && arrow.life <= dt 
+							/* im using dt instead of 0 because player updates before arrow which detects deleting afterward*/)) {
 						arrow.unfreeze();
 						player.freezing = false;
 						player.abilityCooldown = 0.5 + player.timeSpentFreezing * 1.5;
@@ -74,6 +75,23 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 					player.freezing = true;
 				}
 			}
+
+			// Scry
+			if (player.character.Ability.name === 'Fake-Arrow') {
+				if (!player.passive && player.arrowing > 0 && input.shift && !player.fakedArrow) {
+					createArrow(player, arrows, true);
+					player.fakedArrow = true;
+					player.noAim = player.noAimTime;
+					player.showAim = false;
+				}
+				if (!player.passive && player.arrowing <= 0) {
+					player.fakedArrow = false;
+				}
+				player.noAim -= dt;
+				if (player.noAim <= 0) {
+					player.showAim = true;
+				}	
+			}
 		}
 
 		const dir = {
@@ -83,8 +101,8 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		const mag = Math.sqrt(dir.x * dir.x + dir.y * dir.y) || 1;
 		const normal = { x: dir.x / mag, y: dir.y / mag };
 
-		player.xv += normal.x * ((player.arrowing > 0 ? player.speed * 0.75 : player.speed) * 1 / 60);
-		player.yv += normal.y * ((player.arrowing > 0 ? player.speed * 0.75 : player.speed) * 1 / 60);
+		player.xv += normal.x * ((player.arrowing > 0 ? player.speed * 0.75 : player.speed) * dt);
+		player.yv += normal.y * ((player.arrowing > 0 ? player.speed * 0.75 : player.speed) * dt);
 		// if (input.space && player.timer <= 0) { // spacelock isnt being used rn
 		// 	// create arrowx
 		// 	player.xv -= Math.cos(player.angle) * 5;
@@ -95,38 +113,42 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		// }
 		if (!player.passive) {
 			if (input.space && player.timer <= 0) {
-				player.arrowing += (1 / 60) * 2;
+				player.arrowing += dt * 2;
 				if (player.arrowing >= 3) {
 					player.arrowing = 3;
 				}
 				if (input.arrowLeft) {
-					player.angleVel -= 2.9 * (1 / 60);
+					player.angleVel -= 2.9 * dt;
 				}
 				if (input.arrowRight) {
-					player.angleVel += 2.9 * (1 / 60);
+					player.angleVel += 2.9 * dt;
 				}
 				player.angle += player.angleVel;
 				player.angleVel = 0;
 			} else {
-				if (player.arrowing > 0) {
+				if (player.arrowing > 0 && player.timer <= 0) {
 					// shoot
 					player.arrowsShot++;
 					createArrow(player, arrows)
 					player.timer = player.timerMax;
+					if (player.character.Ability != null && player.character.Ability.name === 'Fake-Arrow') {
+						player.noAim = 0;
+					}
 					// console.log('shoot', player.arrows)
 				}
 				player.arrowing = 0;
 			}
 
-			player.timer -= (1 / 60);
+			player.timer -= dt;
 			if (player.timer <= 0) {
 				player.timer = 0;
 			}
 		}
 
 
-		player.x += player.xv;
-		player.y += player.yv;
+
+		player.x += player.xv * (60 * dt);
+		player.y += player.yv * (60 * dt);
 
 		// player.angle = input.angle;
 		// player.angleVel *= 0.1;
@@ -138,8 +160,8 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 				player.angle += Math.PI * 2
 			}
 		}
-		player.xv *= Math.pow(player.fric, (1 / 60) * 60);
-		player.yv *= Math.pow(player.fric, (1 / 60) * 60);
+		player.xv *= Math.pow(player.fric, dt * 60);
+		player.yv *= Math.pow(player.fric, dt * 60);
 
 
 		if (!input.space) {
@@ -147,7 +169,7 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		}
 		// player.angleVel *= 0;
 	} else {
-		player.radius -= 60 * (1 / 60);
+		player.radius -= 60 * dt;
 		if (player.radius <= 1) {
 			player.radius = 1;
 			player.respawn = true;
@@ -162,15 +184,11 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 
 
 
-	player.timer -= 1 / 60;
+	player.timer -= dt;
 	if (player.timer <= 0) {
 		player.timer = 0;
 	}
 
-	player.chatMessageTimer -= 1 / 60;
-	if (player.chatMessageTimer <= 0) {
-		player.chatMessgaeTimer = 0;
-	}
 	// boundPlayer(player);
 }
 
@@ -188,7 +206,7 @@ function boundPlayerObstacle(player, obstacle) {
 		const collision = testPolygonCircle(obstacle.sat, playerSat, res);
 		if (collision) {
 			if (obstacle.type === 'point' && !player.passive) {
-				player.score += 5 / 60;
+				player.score += 5 * dt;
 			} else {
 				player.x += res.overlapV.x;
 				player.y += res.overlapV.y;
@@ -235,7 +253,7 @@ function collidePlayers(players, arena, obstacles) {
 				player1.y = player2.y + ((player1.radius + 0.05 + player2.radius) * (yv));
 				player2.x = oldP.x - ((player1.radius + 0.05 + player2.radius) * (xv));
 				player2.y = oldP.y - ((player1.radius + 0.05 + player2.radius) * (yv))
-				boundPlayer(player2, arena, obstacles)
+				// boundPlayer(player2, arena, obstacles)
 			}
 		}
 		boundPlayer(player1, arena, obstacles)

@@ -1,11 +1,18 @@
-function trackKeys(event) {
+	function trackKeys(event) {
 	if (event.repeat && !chatOpen) return event.preventDefault();
 	if (event.code === 'Enter') {
 		if (chatOpen && event.type === 'keydown') {
 			ref.chatDiv.classList.add('hidden')
 			if (chatTest(ref.chat.value)) {
+        // if (ref.chat.value.toLowerCase() == "/char scry"){
+		//     	backgroundMusic.pause();
+        //   let idiotmusic = new Audio();
+        //   idiotmusic.src = "./sounds/idiotmusic.mp3";
+        //   idiotmusic.play();
+        // }
 				send({ chat: ref.chat.value })
 			}
+			ref.chat.blur()
 			ref.chat.value = '';
 			chatOpen = false;
 			return;

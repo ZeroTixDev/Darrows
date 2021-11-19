@@ -177,8 +177,8 @@ body {
 }
 
 .darrow-hero {
-	border: 5px solid red;
-	background: #00b55b;
+	/* border: 5px solid red; */
+	/* background: #00b55b; */
 	border-radius: 50%;
 	position: absolute;
 	left: calc(50vw - 40px);
@@ -192,7 +192,7 @@ body {
 	left: 50vw;
 	top: calc(50vh - 60px);
 	transform: translateX(-50%);
-	color: #00b55b;
+	/* color: #00b55b; */
 	font-size: 1.2rem;
 }
 

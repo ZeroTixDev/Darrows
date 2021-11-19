@@ -1,5 +1,6 @@
-const uuid = require('uuid');
+let count = 0;
 
 module.exports = function createId() {
-	return uuid.v4().slice(0, 3)
+	count++;
+	return `${count}f`;
 }

@@ -33,5 +33,5 @@ function startGame() {
 			uploadByteDisplay = uploadByteCount;
 			uploadByteCount = 0;
 		}, 1000);
-		send({ joinE: true })
+		send({ joinE: true, character: Characters[characterIndex] })
 }

@@ -23,7 +23,7 @@ window.tab = false;
 window.ghue = 0;
 window.roundTime = 0;
 window.music = true;
-window.musicVolume = 0.8;
+window.musicVolume = 1;
 
 
 function changeMovMode() {
@@ -74,6 +74,7 @@ const actx = abilityCanvas.getContext('2d')
 const players = {};
 let arrows = {}
 let obstacles = []
+let hits = [];
 
 /* state */
 
@@ -134,6 +135,13 @@ function run(time =  0) {
 	if (killedNotifTime <= 0) killedNotifTime = 0;
 	lastTime = window.performance.now();
 	ghue += dt * 45;
+
+	for (let i = hits.length - 1; i >= 0; i--) {
+		hits[i].timer -= dt;
+		if (hits[i].timer <= 0) {
+			hits.splice(i, 1)
+		}
+	}
 
 	if (overlaying) {
 		overlayAlpha += dt;

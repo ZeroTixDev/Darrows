@@ -15,18 +15,18 @@ class CArrow {
 			return;
 		}
 
-		this.pos.x = lerp(this.pos.x, this.x, delta );
-		this.pos.y = lerp(this.pos.y, this.y, delta );
-		const dtheta = this.angle - this.lerpAngle;
-		if (dtheta > Math.PI) {
-			this.lerpAngle += 2 * Math.PI;
-		} else if (dtheta < -Math.PI) {
-			this.lerpAngle -= 2 * Math.PI;
-		}
+		this.pos.x = lerp(this.pos.x, this.x, delta);
+		this.pos.y = lerp(this.pos.y, this.y, delta);
+		// const dtheta = this.angle - this.lerpAngle;
+		// if (dtheta > Math.PI) {
+		// 	this.lerpAngle += 2 * Math.PI;
+		// } else if (dtheta < -Math.PI) {
+		// 	this.lerpAngle -= 2 * Math.PI;
+		// }
 
-		this.lerpAngle = lerp(this.lerpAngle, this.angle, delta / 1.5)
-		// this.lerpAngle = this.angle;
-
+		// this.lerpAngle = lerp(this.lerpAngle, this.angle, 1)
+		this.lerpAngle = this.angle;
+		// 
 	}
 	Snap(data) {
 		for (const key of Object.keys(data)) {

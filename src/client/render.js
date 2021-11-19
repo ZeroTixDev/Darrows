@@ -96,6 +96,11 @@ window.render = () => {
 		for (const playerId of Object.keys(players)) {
 			const player = players[playerId];
 
+			if (Math.abs(player.pos.x - camera.x) > maxDistToCamera ||
+				Math.abs(player.pos.y - camera.y) > maxDistToCamera) {
+				continue;
+			}
+
 			if (window.showSnapshots) {
 			}
 
@@ -108,7 +113,7 @@ window.render = () => {
 			// if (leader != null && playerId === leader.id) {
 			// 	ctx.fillStyle = ' #deae12'
 			// }
-			if (player.timer > 0) {
+			if (player.timer > 0 || (player.characterName === 'Scry' && !player.showAim)) {
 				ctx.fillStyle = Character[player.characterName].ArrowCdColor;
 				// if (leader != null && playerId === leader.id) {
 				// 	ctx.fillStyle = '#c2ac65'
@@ -145,30 +150,9 @@ window.render = () => {
 			ctx.translate(pos.x, pos.y);
 			ctx.rotate(player.interpAngle + Math.PI / 2);
 
-			if (player.arrowing <= 0) {
-				// ctx.beginPath()
-				// ctx.strokeStyle = '#363636';
-				// ctx.arc(
-				// 	(-player.radius / 1.4) + 10 * player.timer * 3,
-				// 	(-player.radius / 1.2) + 25 * player.timer * 3,
-				// 	(player.radius / 3.3),
-				// 	0,
-				// 	Math.PI * 2
-				// );
-				// ctx.fill();
-				// ctx.stroke();
-				// ctx.beginPath();
-				// ctx.arc(
-				// 	(player.radius / 1.4) - 10 * player.timer * 3,
-				// 	(-player.radius / 1.2) + 25 * player.timer * 3,
-				// 	(player.radius / 3.3),
-				// 	0,
-				// 	Math.PI * 2
-				// );
-				// ctx.fill();
-				// ctx.stroke();
-				// ^hands
-			} else {
+			if (player.arrowing > 0 && (player.characterName !== 'Scry' || (player.characterName === 'Scry' && (playerId === selfId || player.showAim)))) {
+				const ga = (player.characterName === 'Scry' && playerId === selfId && !player.showAim)
+					? 0.4: 1;
 				ctx.beginPath();
 				ctx.strokeStyle = 'white';
 				ctx.lineWidth = 1;
@@ -178,13 +162,13 @@ window.render = () => {
 				ctx.lineTo(Math.cos(1.75 * Math.PI) * (60), Math.sin(1.75 * Math.PI) * (60));
 				ctx.stroke();
 
-				ctx.globalAlpha = 0.5;
+				ctx.globalAlpha = 0.5 * ga;
 				ctx.beginPath();
 				ctx.strokeStyle = '#ff0000'
 				ctx.lineTo(0, -60 + player.arrowing * 25);
 				ctx.lineTo(0, -150);
 				ctx.stroke();
-				ctx.globalAlpha = 1;
+				ctx.globalAlpha = 1 * ga;
 
 				ctx.beginPath();
 				ctx.arc(0, 0, 60, 1.25 * Math.PI, 1.75 * Math.PI, false);
@@ -196,7 +180,10 @@ window.render = () => {
 				// if (player.dev) {
 				// 	ctx.fillStyle = `hsl(${ghue}, 70%, 30%)`;
 				// }
+				
 				ctx.fillRect(-5, -60 + player.arrowing * 25, 10, 30);
+				ctx.globalAlpha = 1;
+				
 
 			}
 
@@ -233,6 +220,20 @@ window.render = () => {
 
 
 		ctx.globalAlpha = 1;
+
+		
+		ctx.font = `25px ${window.font}`
+		ctx.fillStyle = '#000000'
+		for (const { x, y, score, timer } of hits) {
+			const pos = offset(x, y);
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			if (timer <= 0.5) {
+				ctx.globalAlpha = (timer * 2)
+			}
+			ctx.fillText(`+${score}`, pos.x, pos.y);
+			ctx.globalAlpha = 1;
+		}
 
 
 
@@ -324,35 +325,35 @@ window.render = () => {
 		}
 
 		ctx.fillStyle = '#1a1a1a';
-		ctx.fillRect(canvas.width - 305, canvas.height - 30, 305, 30)
+		ctx.fillRect(canvas.width - 355, canvas.height - 30, 355, 30)
 
 		ctx.beginPath();
-		ctx.lineTo(canvas.width - 305, canvas.height - 30);
-		ctx.lineTo(canvas.width - 330, canvas.height);
-		ctx.lineTo(canvas.width - 305, canvas.height);
+		ctx.lineTo(canvas.width - 355, canvas.height - 30);
+		ctx.lineTo(canvas.width - 380, canvas.height);
+		ctx.lineTo(canvas.width - 355, canvas.height);
 		ctx.fill()
 
-		ctx.font = `16px ${window.font}`
+		ctx.font = `14px ${window.font}`
 		ctx.fillStyle = '#00ff59';
 
 
 
 		if (window.autoRespawn) {
-			ctx.fillText("Auto Respawn: On", canvas.width - 150, canvas.height - 15)
+			ctx.fillText("[R] Auto Respawn: On", canvas.width - 160, canvas.height - 15)
 		} else {
-			ctx.fillText("Auto Respawn: Off", canvas.width - 150, canvas.height - 15)
+			ctx.fillText("[R] Auto Respawn: Off", canvas.width - 160, canvas.height - 15)
 		}
 
 		ctx.fillStyle = '#ddff00';
 
 		if (window.movementMode === 'wasd') {
-			ctx.fillText('WASD', canvas.width - 300, canvas.height - 15);
+			ctx.fillText('[V] WASD', canvas.width - 335, canvas.height - 15);
 		} else {
-			ctx.fillText('ULDR', canvas.width - 300, canvas.height - 15)
+			ctx.fillText('[V] ULDR', canvas.width - 335, canvas.height - 15)
 		}
 
 		ctx.fillStyle = '#00c8ff';
-		ctx.fillText(`Music: ${window.music ? 'On' : 'Off'}`, canvas.width - 240, canvas.height - 15)
+		ctx.fillText(`[M] Music: ${window.music ? 'On' : 'Off'}`, canvas.width - 260, canvas.height - 15)
 
 
 
@@ -455,7 +456,7 @@ window.render = () => {
 
 		actx.clearRect(0, 0, actx.canvas.width, actx.canvas.height);
 		if (players[selfId] && players[selfId].characterName === 'Kronos') {
-			actx.drawImage(textures.Kronos, 0, 0, 60, 60);
+			// actx.drawImage(textures.Kronos, 0, 0, 60, 60);
 			actx.fillStyle = 'black';
 			actx.globalAlpha = 0.6;
 			actx.beginPath()
@@ -467,7 +468,7 @@ window.render = () => {
 				actx.globalAlpha = 0.7;
 				actx.beginPath()
 				actx.lineTo(30, 30)
-				actx.arc(30, 30, 60,-Math.PI * 2 * Math.max((players[selfId].timeSpentFreezing / players[selfId].timeFreezeLimit), 0), 0);
+				actx.arc(30, 30, 60, -Math.PI * 2 * Math.max((players[selfId].timeSpentFreezing / players[selfId].timeFreezeLimit), 0), 0);
 				actx.fill()
 			}
 			actx.globalAlpha = 1;

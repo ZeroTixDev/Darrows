@@ -56,17 +56,17 @@ function processMessage(obj) {
 	if (obj.speed != undefined) window.speed = obj.speed;
 	if (obj.serverTickMs != undefined) serverTickMs = obj.serverTickMs;
 
-	if (obj.type === 'shoot') {
-		shotPlayers = {};
-		for (const { data, id } of obj.players) {
-			shotPlayers[id] = new CPlayer(data, id === selfId);
-		}
-	}
+	// if (obj.type === 'shoot') {
+	// 	shotPlayers = {};
+	// 	for (const { data, id } of obj.players) {
+	// 		shotPlayers[id] = new CPlayer(data, id === selfId);
+	// 	}
+	// }
 
-	if (obj.type === 'chat' && players[obj.id] != undefined) {
+	if (obj.type === 'chat') {
 		const div = document.createElement('div');
 		div.classList.add('chat-message');
-		div.innerHTML = `${players[obj.id].dev ? '<span class="rainbow">[DEV]</span> ': ''}${players[obj.id].name.safe()}: ${obj.msg.safe()}`;
+		div.innerHTML = `${obj.dev ? '<span class="rainbow">[DEV]</span> ': ''}${obj.name.safe()}: ${obj.msg.safe()}`;
 		ref.chatMessageDiv.appendChild(div)
 		ref.chatMessageDiv.scrollTop = ref.chatMessageDiv.scrollHeight;
 	}
@@ -75,6 +75,7 @@ function processMessage(obj) {
 		_kills = obj.kills;
 		killedNotifTime = 2;
 		killedPlayerName = obj.kill;
+		hits.push({ x: obj.hit.x, y: obj.hit.y, score: obj.hit.score, timer: 1.5, })
 	}
 
 	if (obj.arrowHit != undefined) window.redness = 0.7;
@@ -99,7 +100,7 @@ function processMessage(obj) {
 		arrows = {};
 	}
 
-	if (obj.type === "state") {
+	if (obj.d != undefined) {
 		stateMessageCount++;
 		let timeDiff;
 		if (lastReceivedStateTime != null) {
@@ -114,11 +115,11 @@ function processMessage(obj) {
 
 		if (obj.spacing) serverSpacing = obj.spacing;
 
-		if (obj.data.round && obj.data.round.time) {
-			roundTime = obj.data.round.time;
+		if (obj.d.round && obj.d.round.time) {
+			roundTime = obj.d.round.time;
 		}
 
-		for (const pack of obj.data.players) {
+		for (const pack of obj.d.p) {
 			if (players[pack.id] == null) {
 				console.error('Wtf!!! players[pack.id] not defined processMessage')
 			} else {
@@ -126,7 +127,7 @@ function processMessage(obj) {
 			}
 		}
 		
-		for (const pack of obj.data.arrows) {
+		for (const pack of obj.d.a) {
 			if (arrows[pack.id] == null) {
 				arrows[pack.id] = new CArrow(pack.data);
 			} else {
@@ -136,7 +137,7 @@ function processMessage(obj) {
 
 		for (const arrowId of Object.keys(arrows)) {
 			let arrowDead = true;
-			for (const { id } of obj.data.arrows) {
+			for (const { id } of obj.d.a) {
 				if (arrowId === id) {
 					arrowDead = false;
 					break;

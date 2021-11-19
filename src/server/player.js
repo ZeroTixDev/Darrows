@@ -20,13 +20,10 @@ module.exports = class Player {
 		this.timer = 0;
 		this.angleVel = 0;
 		this.input = createInput();
-		this.chatMessage = '';
-		this.chatMessageTimer = 0;
 		this.fric = 0.955;
 		this.bfric = 0.985;
-		this.chatMessageTime = 8;
 		this.kills = 0;
-		this.speed = 25;
+		this.speed = 22;
 		this.deaths = 0;
 		this.arrowsHit = 0;
 		this.arrowsShot = 0;
@@ -43,17 +40,25 @@ module.exports = class Player {
 		this.freezing = false;
 		this.timeFreezeLimit = 4;
 
+		// Scry
+		this.fakedArrow = false;
+		this.showAim = true;
+		this.noAimTime = 1;
+		this.noAim = 0;
+
 		this.name = `Agent ${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
 	}
 	spawn(obstacles, arena) {
-		this.x = Math.round(Math.random() * arena.width) + this.radius
-		this.y = Math.round(Math.random() * arena.height) + this.radius;
-		this.spawnFix(obstacles);
 		this.score = 0;
 		this.arrowsHit = 0;
 		this.arrowsShot = 0;
 		this.deaths = 0;
 		this.kills = 0;
+		this.x = Math.round(Math.random() * arena.width) + this.radius
+		this.y = Math.round(Math.random() * arena.height) + this.radius;
+		if (this.intersectingObstacles(obstacles)) {
+			this.spawn(obstacles, arena);
+		}
 	}
 	addScore(s) {
 		this.score += s;
@@ -81,7 +86,7 @@ module.exports = class Player {
 		}
 		return ((this.arrowsHit / this.arrowsShot) * 100).toFixed(0);
 	}
-	spawnFix(obstacles) {
+	intersectingObstacles(obstacles) {
 		for (const obstacle of obstacles) {
 			const rectHalfSizeX = obstacle.width / 2
 			const rectHalfSizeY = obstacle.height / 2
@@ -90,39 +95,10 @@ module.exports = class Player {
 			const distX = Math.abs(this.x - rectCenterX);
 			const distY = Math.abs(this.y - rectCenterY);
 			if ((distX < rectHalfSizeX + this.radius) && (distY < rectHalfSizeY + this.radius)) {
-				let relX;
-				if (this.x > rectCenterX) {
-					relX = this.x - this.radius - rectCenterX - rectHalfSizeX;
-				}
-				else {
-					relX = - rectCenterX + rectHalfSizeX + this.x + this.radius;
-				}
-				let relY;
-				if (this.y > rectCenterY) {
-					relY = this.y - this.radius - rectCenterY - rectHalfSizeY;
-				}
-				else {
-					relY = - rectCenterY + rectHalfSizeY + this.y + this.radius;
-				}
-				if (Math.abs(relX) < Math.abs(relY)) {
-					if (relX < 0) {
-						this.x = rectCenterX + rectHalfSizeX + this.radius;
-						this.xv = 0;
-					} else {
-						this.x = rectCenterX - rectHalfSizeX - this.radius;
-						this.xv = 0;
-					}
-				} else {
-					if (relY > 0) {
-						this.y = rectCenterY - rectHalfSizeY - this.radius;
-						this.yv = 0;
-					} else {
-						this.y = rectCenterY + rectHalfSizeY + this.radius;
-						this.yv = 0;
-					}
-				}
+				return true;
 			}
 		}
+		return false;
 	}
 	differencePack(player) {
 		if (!player) {
@@ -140,8 +116,8 @@ module.exports = class Player {
 	}
 	pack() {
 		const obj =  {
-			x: Math.round(this.x * 10) / 10,
-			y: Math.round(this.y * 10) / 10,
+			x: Math.round(this.x * 100) / 100,
+			y: Math.round(this.y * 100) / 100,
 			dying: this.dying,
 			radius: this.radius,
 			timer: Math.round(this.timer * 100) / 100,
@@ -164,8 +140,12 @@ module.exports = class Player {
 		};
 
 		if (this.character.Name === 'Kronos') {
-			obj.timeSpentFreezing = this.timeSpentFreezing;
-			obj.timeFreezeLimit = this.timeFreezeLimit;
+			obj.timeSpentFreezing = Math.round(this.timeSpentFreezing * 100)/100;
+			obj.timeFreezeLimit = Math.round(this.timeFreezeLimit * 100) / 100;
+		}
+
+		if (this.character.Name === 'Scry') {
+			obj.showAim = this.showAim;
 		}
 
 

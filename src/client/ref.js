@@ -13,4 +13,8 @@ window.ref = {
 	accuracy: document.querySelector('.accuracy'),
 	chatMessageDiv: document.querySelector('.chat-div'),
 	highscore: document.querySelector('.highscore'),
+	heroSpan: document.querySelector('.darrow-hero'),
+	heroName: document.querySelector('.darrow-hero-name'),
+	leftArrow: document.querySelector('.darrow-hero-left'),
+	rightArrow: document.querySelector('.darrow-hero-right'),
 }
