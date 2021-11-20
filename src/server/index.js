@@ -29,9 +29,6 @@ const { lowest, avg, highest } = require('./util/numArray.js')();
 const { reachedIpLimit } = require('./util/ip.js');
 const clients = {};
 
-// imagine observing me
-// replit removes cursors  on other people lol
-
 let { map, index } = randomMap()
 let mapIndex = index;
 let { players, arrows, obstacles, arena } = createState(map);
