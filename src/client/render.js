@@ -67,9 +67,9 @@ window.render = () => {
 
 		for (const arrowId of Object.keys(arrows)) {
 			// console.log(arrows[arrowId])
-			const { lerpAngle, radius, life, alpha, parent } = arrows[arrowId]
+			const { lerpAngle, radius, life, alpha, parent, fake } = arrows[arrowId]
 			const { x, y } = arrows[arrowId].pos;
-			ctx.globalAlpha = alpha; // life 
+			ctx.globalAlpha = fake && parent === selfId ? alpha * 0.5: alpha; // life 
 			// ctx.fillStyle = '#d93311';
 			// ctx.strokeStyle = '#a30800';
 			// ctx.beginPath();
@@ -87,6 +87,7 @@ window.render = () => {
 			ctx.beginPath();
 			ctx.rect(-6.25, -18.75, 12.5, 37.5);
 			ctx.fill()
+			ctx.globalAlpha = 1;
 			ctx.rotate(-(lerpAngle + Math.PI / 2));
 			ctx.translate(-pos.x, -pos.y);
 		}
@@ -152,7 +153,7 @@ window.render = () => {
 
 			if (player.arrowing > 0 && (player.characterName !== 'Scry' || (player.characterName === 'Scry' && (playerId === selfId || player.showAim)))) {
 				const ga = (player.characterName === 'Scry' && playerId === selfId && !player.showAim)
-					? 0.4: 1;
+					? 0.5: 1;
 				ctx.beginPath();
 				ctx.strokeStyle = 'white';
 				ctx.lineWidth = 1;
@@ -174,9 +175,15 @@ window.render = () => {
 				ctx.arc(0, 0, 60, 1.25 * Math.PI, 1.75 * Math.PI, false);
 				ctx.lineWidth = 5;
 				ctx.strokeStyle = '#ff2626';
+				if (player.characterName === 'Scry' && playerId === selfId && player.canFakeArrow) {
+					ctx.strokeStyle = '#f700ff'
+				}
 				ctx.stroke();
 
 				ctx.fillStyle = '#ff0000';
+				if (player.characterName === 'Scry' && playerId === selfId && player.canFakeArrow) {
+					ctx.fillStyle = '#ff0062'
+				}
 				// if (player.dev) {
 				// 	ctx.fillStyle = `hsl(${ghue}, 70%, 30%)`;
 				// }
@@ -333,7 +340,7 @@ window.render = () => {
 		ctx.lineTo(canvas.width - 355, canvas.height);
 		ctx.fill()
 
-		ctx.font = `14px ${window.font}`
+		ctx.font = `15px ${window.font}`
 		ctx.fillStyle = '#00ff59';
 
 
@@ -347,13 +354,13 @@ window.render = () => {
 		ctx.fillStyle = '#ddff00';
 
 		if (window.movementMode === 'wasd') {
-			ctx.fillText('[V] WASD', canvas.width - 335, canvas.height - 15);
+			ctx.fillText('[V] WASD', canvas.width - 355, canvas.height - 15);
 		} else {
-			ctx.fillText('[V] ULDR', canvas.width - 335, canvas.height - 15)
+			ctx.fillText('[V] ULDR', canvas.width - 355, canvas.height - 15)
 		}
 
 		ctx.fillStyle = '#00c8ff';
-		ctx.fillText(`[M] Music: ${window.music ? 'On' : 'Off'}`, canvas.width - 260, canvas.height - 15)
+		ctx.fillText(`[M] Music: ${window.music ? 'On' : 'Off'}`, canvas.width - 270, canvas.height - 15)
 
 
 
@@ -455,7 +462,7 @@ window.render = () => {
 		}
 
 		actx.clearRect(0, 0, actx.canvas.width, actx.canvas.height);
-		if (players[selfId] && players[selfId].characterName === 'Kronos') {
+		if (players[selfId] && players[selfId].characterName === 'Klaydo') {
 			// actx.drawImage(textures.Kronos, 0, 0, 60, 60);
 			actx.fillStyle = 'black';
 			actx.globalAlpha = 0.6;

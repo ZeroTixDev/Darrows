@@ -1,3 +1,12 @@
 {
-  "files": {}
+  "files": {
+    "src/client/index.js": [
+      {
+        "id": "6567f425-c8bb-442e-9b0d-42d7d9f42b9c",
+        "line": 44,
+        "version": 11645,
+        "index": 1101
+      }
+    ]
+  }
 }

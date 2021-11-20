@@ -11,12 +11,13 @@ const Character = {
 			color: '#292929',
 			name: 'Default',
 			nameColor: '#999999',
+			desc: 'No Passive or Ability',
 		}
 	},
-	Kronos: {
+	Klaydo: {
 		Color: '#00b55b',
 		ArrowCdColor: '#52c78d',
-		Name: 'Kronos',
+		Name: 'Klaydo',
 		Passive: null,
 		Ability: {
 			name: 'Freeze-Arrow',
@@ -24,7 +25,8 @@ const Character = {
 		Html: {
 			color: '#00b55b',
 			nameColor: '#00b55b',
-			name: 'Kronos'
+			name: 'Klaydo',
+			desc: 'Ceases time for your newest arrow',
 		},
 	},
 	Scry: {
@@ -38,7 +40,8 @@ const Character = {
 		Html: {
 			color: '#e34b69',
 			nameColor: '#e34b69',
-			name: 'Scry'
+			name: 'Scry',
+			desc: 'Shoot fake arrows to deceive opponents',
 		},
 	},
 }

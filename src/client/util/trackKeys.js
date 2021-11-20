@@ -1,16 +1,24 @@
-	function trackKeys(event) {
+function trackKeys(event) {
 	if (event.repeat && !chatOpen) return event.preventDefault();
 	if (event.code === 'Enter') {
 		if (chatOpen && event.type === 'keydown') {
 			ref.chatDiv.classList.add('hidden')
 			if (chatTest(ref.chat.value)) {
-        // if (ref.chat.value.toLowerCase() == "/char scry"){
-		//     	backgroundMusic.pause();
-        //   let idiotmusic = new Audio();
-        //   idiotmusic.src = "./sounds/idiotmusic.mp3";
-        //   idiotmusic.play();
-        // }
-				send({ chat: ref.chat.value })
+				if (ref.chat.value.trim().toLowerCase() == '/help') {
+					const div = document.createElement('div');
+					div.classList.add('chat-message');
+					div.innerHTML = `${'<span class="rainbow">[SERVER]</span> '}: <span style="color: #c4c4c4;">WASD to move, Space to start Arrowing, Release space to shoot arrow, Shift for character ability, Arrow Keys or Q/E to change arrow aim. Press V to change movement mode which will change movement to Arrow Keys and Aiming to A/D or Z/X. Changing your name can be done by using /name command in chat. Tab to see the leaderboard. R to toggle auto respawn and M to toggle the music.</span>`;
+					ref.chatMessageDiv.appendChild(div)
+					ref.chatMessageDiv.scrollTop = ref.chatMessageDiv.scrollHeight;
+				} else {
+					// if (ref.chat.value.toLowerCase() == "/char scry"){
+					//     	backgroundMusic.pause();
+					//   let idiotmusic = new Audio();
+					//   idiotmusic.src = "./sounds/idiotmusic.mp3";
+					//   idiotmusic.play();
+					// }
+					send({ chat: ref.chat.value })
+				}
 			}
 			ref.chat.blur()
 			ref.chat.value = '';

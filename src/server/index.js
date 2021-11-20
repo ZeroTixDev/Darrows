@@ -15,7 +15,7 @@ const Character = require('../shared/character.js');
 const chatTest = require('./util/chatTest.js');
 const hash = require('./util/hash.js');
 
-const hashedKey = 'e7cffcbae281d404f9115b02293cbefbf60c44c9f18b1465f00d054656650f7d';
+const hashedKey = '61eb8a32a41390015d40dfead1a60a9cabd94cdcc9c744de48bee741025f8e71';
 
 
 const Round = require('./round.js')
@@ -230,7 +230,7 @@ function newMessage(obj, socket, clientId) {
 	if (obj.type === 'spawn' && players[clientId] == null) {
 		players[clientId] = new Player(clientId, arena, obstacles);
 		const player = players[clientId];
-		console.log(clients[clientId]._playerStats);
+		// console.log(clients[clientId]._playerStats);
 		if (clients[clientId]._playerStats != null) {
 			for (const key of Object.keys(clients[clientId]._playerStats)) {
 				player[key] = clients[clientId]._playerStats[key];
@@ -322,7 +322,7 @@ function newMessage(obj, socket, clientId) {
 				dev: inGame ? players[clientId].dev : clients[clientId]._playerStats.dev,
 				timer: 10,
 			}
-			console.log(msg)
+			// console.log(msg)
 			currentChatMessages.push(msg);
 
 			broadcast({ type: 'chat', msg: obj.chat, name: msg.name, dev: msg.dev })
@@ -488,7 +488,6 @@ function takeSnapshots() {
 		if (round.ended) {
 			let { map, index } = randomMap(mapIndex);
 			mapIndex = index;
-			console.log(mapIndex);
 			const state = createState(map);
 			arrows = state.arrows;
 			obstacles = state.obstacles;
@@ -628,6 +627,7 @@ function ServerTick() {
 	sendWorldState();
 	const time = Date.now() - before;
 	serverTickMs += time;
+//   global.dt *= 1.00004;
 }
 
 setInterval(() => {

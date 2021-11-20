@@ -1,4 +1,4 @@
- 
+
 const { Circle, Vector, Response, testPolygonCircle } = require('sat')
 const Arrow = require('../server/arrow.js');
 const createInput = require('./createInput.js')
@@ -40,13 +40,13 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 			player.abilityCooldown = 0;
 		}
 
-		// Kronos
+		// Kronos/Klaydo
 		if (player.freezing) {
 			player.timeSpentFreezing += dt;
 		}
 
 		if (player.character.Ability != null) {
-			// Kronos
+			// Kronos/Klaydo
 			if (player.character.Ability.name === 'Freeze-Arrow') {
 				let newestArrow = null;
 				let freezedArrow = false;
@@ -55,8 +55,8 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 					if (newestArrow == null || arrow.c < newestArrow.c) {
 						newestArrow = arrow;
 					}
-					if ((!input.shift && arrow.freezed) || 
-						(arrow.freezed && player.timeSpentFreezing >= player.timeFreezeLimit) || (arrow.freezed && arrow.dead && arrow.life <= dt 
+					if ((!input.shift && arrow.freezed) ||
+						(arrow.freezed && player.timeSpentFreezing >= player.timeFreezeLimit) || (arrow.freezed && arrow.dead && arrow.life <= dt
 							/* im using dt instead of 0 because player updates before arrow which detects deleting afterward*/)) {
 						arrow.unfreeze();
 						player.freezing = false;
@@ -78,11 +78,12 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 
 			// Scry
 			if (player.character.Ability.name === 'Fake-Arrow') {
-				if (!player.passive && player.arrowing > 0 && input.shift && !player.fakedArrow) {
+				if (!player.passive && player.arrowing > 0 && !player.fakedArrowLastTime && input.shift && !player.fakedArrow) {
 					createArrow(player, arrows, true);
 					player.fakedArrow = true;
 					player.noAim = player.noAimTime;
 					player.showAim = false;
+					// player.fakedArrowLastTime = true;
 				}
 				if (!player.passive && player.arrowing <= 0) {
 					player.fakedArrow = false;
@@ -90,7 +91,7 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 				player.noAim -= dt;
 				if (player.noAim <= 0) {
 					player.showAim = true;
-				}	
+				}
 			}
 		}
 
@@ -118,10 +119,10 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 					player.arrowing = 3;
 				}
 				if (input.arrowLeft) {
-					player.angleVel -= 2.9 * dt;
+					player.angleVel -= 2.7 * dt;
 				}
 				if (input.arrowRight) {
-					player.angleVel += 2.9 * dt;
+					player.angleVel += 2.7 * dt;
 				}
 				player.angle += player.angleVel;
 				player.angleVel = 0;
@@ -133,6 +134,11 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 					player.timer = player.timerMax;
 					if (player.character.Ability != null && player.character.Ability.name === 'Fake-Arrow') {
 						player.noAim = 0;
+						if (player.fakedArrowLastTime) {
+							player.fakedArrowLastTime = false;
+						} else if (player.fakedArrow) {
+							player.fakedArrowLastTime = true;
+						}
 					}
 					// console.log('shoot', player.arrows)
 				}

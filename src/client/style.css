@@ -110,7 +110,7 @@ body {
 
 .chat-message {
 	color: white;
-	font-size: 1.1rem;
+	font-size: 1rem;
 	background: transparent;
 	margin: 2px;
 }
@@ -134,7 +134,7 @@ body {
 	overflow-y: auto;
 	padding: 2px;
 	overflow-x: hidden;
-	word-break: break-all;
+	word-break: break-word;
 }
 
 .chat-div::-webkit-scrollbar {
@@ -173,7 +173,7 @@ body {
 	animation: playButton 1s linear infinite;
 	transition: width 0.1s linear, height 0.1s linear;
 	position: relative;
-	top: 150px;
+	top: 160px;
 }
 
 .darrow-hero {
@@ -185,6 +185,14 @@ body {
 	top: calc(50vh - 30px);
 	width: 80px;
 	height: 80px;
+}
+
+.darrow-hero-desc {
+	position: absolute;
+	left: 50vw;
+	top: calc(50vh + 70px);
+	transform: translateX(-50%);
+	font-size: 1rem;
 }
 
 .darrow-hero-name {
@@ -295,8 +303,8 @@ body {
 	align-items: center;
 	width: 130px;
 	height: 40px;
-	background: rgb(222, 26, 62);
-	color: rgb(61, 6, 6);
+	background: rgb(199, 52, 79);
+	color: rgb(32, 3, 3);
 	font-size: 1.3rem;
 	text-decoration: none;
 	border-radius: 2px;

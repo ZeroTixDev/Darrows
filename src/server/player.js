@@ -23,7 +23,7 @@ module.exports = class Player {
 		this.fric = 0.955;
 		this.bfric = 0.985;
 		this.kills = 0;
-		this.speed = 22;
+		this.speed = 20;
 		this.deaths = 0;
 		this.arrowsHit = 0;
 		this.arrowsShot = 0;
@@ -35,13 +35,14 @@ module.exports = class Player {
 		this.abilityCooldown = 0;
 		this.maxCd = 0;
 		
-		// Kronos
+		// Kronos/Klaydo
 		this.timeSpentFreezing = 0;
 		this.freezing = false;
 		this.timeFreezeLimit = 4;
 
 		// Scry
 		this.fakedArrow = false;
+		this.fakedArrowLastTime = false;
 		this.showAim = true;
 		this.noAimTime = 1;
 		this.noAim = 0;
@@ -139,13 +140,14 @@ module.exports = class Player {
 			// timer: this.timer,
 		};
 
-		if (this.character.Name === 'Kronos') {
+		if (this.character.Name === 'Klaydo') {
 			obj.timeSpentFreezing = Math.round(this.timeSpentFreezing * 100)/100;
 			obj.timeFreezeLimit = Math.round(this.timeFreezeLimit * 100) / 100;
 		}
 
 		if (this.character.Name === 'Scry') {
 			obj.showAim = this.showAim;
+			obj.canFakeArrow = !this.fakedArrowLastTime && !this.fakedArrow;
 		}
 
 

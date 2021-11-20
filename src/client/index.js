@@ -37,15 +37,17 @@ ref.leftArrow.addEventListener('mousedown', () => {
 function changeHero(char) {
 	ref.heroName.innerText = Character[char].Html.name;
 	ref.heroName.style.color = Character[char].Html.nameColor;
+	ref.heroDesc.style.color = Character[char].Html.nameColor;
+	ref.heroDesc.innerText = Character[char].Html.desc;
 	ref.heroSpan.style.background = Character[char].Html.color;
 }
 
 
-window.textures = {
-	Kronos: new Image(),
-}
+// window.textures = {
+// 	Kronos: new Image(),
+// }
 
-textures.Kronos.src = './gfx/kronos-ability.png';
+// textures.Kronos.src = './gfx/kronos-ability.png';
 
 window.backgroundMusic = new Audio();
 backgroundMusic.loop = true;

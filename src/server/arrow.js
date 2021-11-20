@@ -6,8 +6,8 @@ module.exports = class Arrow {
 		this.y = player.y + Math.sin(player.angle) * (player.radius - player.arrowing * 20);
 		this.angle = player.angle;
 		this.radius = 10;
-		this.life = 4;
-		this.speed = 5 + (player.arrowing / 3) * 18;
+		this.life = 3.5;
+		this.speed = (5 + (player.arrowing / 3) * 18) * 0.85;
 		this.max = player.arrowing === 3;
 		this.alpha = 1;
 		this.dead = false;
@@ -222,6 +222,7 @@ module.exports = class Arrow {
 			parent: this.parent,
 			freezed: this.freezed,
 			c: this.c,
+			fake: this.fake,
 		}
 	}
 }
