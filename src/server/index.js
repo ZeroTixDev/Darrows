@@ -17,6 +17,7 @@ const hash = require('./util/hash.js');
 
 const hashedKey = '61eb8a32a41390015d40dfead1a60a9cabd94cdcc9c744de48bee741025f8e71';
 
+const version_number = 1;
 
 const Round = require('./round.js')
 const wss = require('./setupServer.js')();
@@ -81,6 +82,9 @@ wss.on('connection', (socket, req) => {
 		ip, ipLimit)) {
 		socket.terminate()
 	}
+	send(socket, {
+		v: version_number,
+	});
 	clients[clientId] = socket;
 	clients[clientId]._ip = ip;
 	send(socket, {
