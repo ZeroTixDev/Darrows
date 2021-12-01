@@ -304,11 +304,11 @@ function newMessage(obj, socket, clientId) {
         players[clientId].dev = !players[clientId].dev;
         writeMessage = false;
       } else if (players[clientId].dev && obj.chat.slice(0, 5) == "/kick") {
-        const id = obj.chat.slice(6).trim();
-        if (players[id]) {
-          send(clients[id], { kick: players[clientId].name })
-          clients[id].close()
-        }
+        // const id = obj.chat.slice(6).trim();
+        // if (players[id]) {
+        //   send(clients[id], { kick: players[clientId].name })
+        //   clients[id].close()
+        // }
         writeMessage = false;
       } else if (players[clientId].dev && obj.chat.slice(0, 5) === '/bcle') {
         for (const id of botIds) {
