@@ -18,6 +18,10 @@ function startGame() {
 		return event.preventDefault();
 	})
 
+	ref.chat.onblur = () => {
+		chatOpen = false;
+	}
+
 
 
 		setInterval(() => {
@@ -34,4 +38,10 @@ function startGame() {
 			uploadByteCount = 0;
 		}, 1000);
 		send({ joinE: true, character: Characters[characterIndex] })
+		if (localStorage.getItem('name') != null) {
+			send({
+				chat: `/name ${localStorage.getItem('name')}`
+			});
+			console.log(`Name: ${localStorage.getItem('name')}`)
+		}
 }

@@ -65,11 +65,13 @@ window.render = () => {
 			ctx.globalAlpha = 1;
 		}
 
+		ctx.drawImage(blockCanvas, a.x, a.y, arena.width, arena.height)
+
 		for (const arrowId of Object.keys(arrows)) {
 			// console.log(arrows[arrowId])
 			const { lerpAngle, radius, life, alpha, parent, fake } = arrows[arrowId]
 			const { x, y } = arrows[arrowId].pos;
-			ctx.globalAlpha = fake && parent === selfId ? alpha * 0.5: alpha; // life 
+			ctx.globalAlpha = fake && parent === selfId ? alpha * 0.5 : alpha; // life 
 			// ctx.fillStyle = '#d93311';
 			// ctx.strokeStyle = '#a30800';
 			// ctx.beginPath();
@@ -83,6 +85,12 @@ window.render = () => {
 			// }
 			if (arrows[arrowId].freezed) {
 				ctx.fillStyle = '#0055ff'
+			}
+			if (arrows[arrowId].gravity) {
+				ctx.fillStyle = '#761dad'
+			}
+			if (arrows[arrowId].redirected) {
+				ctx.fillStyle = '#780000'
 			}
 			ctx.beginPath();
 			ctx.rect(-6.25, -18.75, 12.5, 37.5);
@@ -134,6 +142,112 @@ window.render = () => {
 			ctx.arc(pos.x, pos.y, player.radius, 0, Math.PI * 2);
 			ctx.fill();
 
+			if (player.characterName === 'Stac') {
+				if (player.point_x != null && player.point_y != null) {
+					ctx.fillStyle = '#004f4f';
+					const pointPos = offset(player.point_x, player.point_y);
+					ctx.beginPath();
+					ctx.arc(pointPos.x, pointPos.y, 10, 0, Math.PI * 2);
+					// if (playerId === selfId) {
+					// 	ctx.strokeStyle = '#00ebc7';
+					// 	ctx.lineWidth = 10;
+					// 	ctx.stroke()
+					// }
+					ctx.fill()
+				}
+				if (playerId === selfId && player.arrowing > 0 && player.canCreatePoint) {
+					ctx.fillStyle = '#004f4f';
+					ctx.globalAlpha = 0.5;
+					const preview = offset(
+						player.pos.x + Math.cos(player.interpAngle) * (player.radius + 250),
+						player.pos.y + Math.sin(player.interpAngle) * (player.radius + 250),
+					);
+					ctx.beginPath()
+					ctx.arc(preview.x, preview.y, 10, 0, Math.PI * 2);
+					ctx.fill();
+					ctx.globalAlpha = 1;
+				}
+			}
+			// if (player.characterName === 'Crescent') {
+			// 	ctx.globalAlpha = 0.2;
+			// 	ctx.fillStyle = '#8225cf';
+			// 	ctx.beginPath();
+			// 	ctx.arc(pos.x, pos.y, 600, 0, Math.PI * 2);
+			// 	ctx.fill()
+			// 	ctx.globalAlpha = 1;
+			// }
+			if (player.characterName === 'Flank' && !intermission && player.abilityCd <= 0 && player.arrowing > 0 && !player.passive && playerId === selfId) {
+				ctx.globalAlpha = 0.15;
+				ctx.fillStyle = '#059905';
+				ctx.beginPath();
+				ctx.arc(pos.x, pos.y, 450, 0, Math.PI * 2);
+				ctx.fill();
+
+				ctx.fillStyle = '#024d02';
+				let shortestDistance = null;
+				let otherId = null;
+				for (const pi of Object.keys(players)) {
+					if (pi === selfId) continue;
+					const other = players[pi];
+					if (other.timer > 0 || (other.characterName === 'Scry' && !other.showAim)) {
+						continue;
+					}
+					const distX = player.pos.x - other.pos.x;
+					const distY = player.pos.y - other.pos.y;
+					const dist = Math.sqrt(distX * distX + distY * distY);
+					if (dist < 450 + other.radius) {
+						if (shortestDistance == null) {
+							shortestDistance = dist;
+							otherId = pi;
+						} else if (shortestDistance != null && dist < shortestDistance) {
+							shortestDistance = dist;
+							otherId = pi;
+						}
+					}
+				}
+				if (otherId != null) {
+					const other = players[otherId];
+					const dest = {
+						x: other.pos.x + Math.cos(player.interpAngle) * ((player.arrowing / 3) * 200),
+						y: other.pos.y + Math.sin(player.interpAngle) * ((player.arrowing / 3) * 200),
+					}
+					ctx.globalAlpha = 0.5;
+					const destPos = offset(dest.x, dest.y);
+					ctx.beginPath();
+					ctx.arc(destPos.x, destPos.y, player.radius, 0, Math.PI * 2);
+					ctx.fill()
+				}
+				// c
+				ctx.globalAlpha = 1;
+			}
+
+			if (player.characterName === 'Crescent' && player.gravX != null && player.gravY != null) {
+				ctx.fillStyle = '#3d0254';
+				ctx.globalAlpha = 0.5;
+				ctx.beginPath();
+				const pos = offset(player.gravX, player.gravY);
+				ctx.arc(pos.x, pos.y, player.radius, 0, Math.PI * 2);
+				ctx.fill()
+				ctx.globalAlpha = 1;
+			}
+			if (player.canDash && player.characterName === 'Conquest') {
+				const force = player.lastDashForce;
+				let dashPos = offset(
+					player.pos.x + Math.cos(player.iDashAngle) * 50 + Math.cos(player.iDashAngle) * (force) * 300,
+					player.pos.y + Math.sin(player.iDashAngle) * 50 + Math.sin(player.iDashAngle) * (force) * 300,
+				);
+
+				ctx.globalAlpha = 0.7;
+				ctx.fillStyle = '#330e00'
+				if (player.arrowing > 0 && !player.changedLastTime) {
+					ctx.fillStyle = '#cf3a02'
+				}
+				ctx.beginPath();
+				ctx.arc(dashPos.x, dashPos.y, player.radius, 0, Math.PI * 2);
+				ctx.fill();
+				ctx.globalAlpha = 1;
+			}
+
 			if (player.passive) {
 				ctx.globalAlpha = 1;
 			}
@@ -153,7 +267,7 @@ window.render = () => {
 
 			if (player.arrowing > 0 && (player.characterName !== 'Scry' || (player.characterName === 'Scry' && (playerId === selfId || player.showAim)))) {
 				const ga = (player.characterName === 'Scry' && playerId === selfId && !player.showAim)
-					? 0.5: 1;
+					? 0.5 : 1;
 				ctx.beginPath();
 				ctx.strokeStyle = 'white';
 				ctx.lineWidth = 1;
@@ -187,10 +301,10 @@ window.render = () => {
 				// if (player.dev) {
 				// 	ctx.fillStyle = `hsl(${ghue}, 70%, 30%)`;
 				// }
-				
+
 				ctx.fillRect(-5, -60 + player.arrowing * 25, 10, 30);
 				ctx.globalAlpha = 1;
-				
+
 
 			}
 
@@ -228,7 +342,7 @@ window.render = () => {
 
 		ctx.globalAlpha = 1;
 
-		
+
 		ctx.font = `25px ${window.font}`
 		ctx.fillStyle = '#000000'
 		for (const { x, y, score, timer } of hits) {
@@ -249,6 +363,15 @@ window.render = () => {
 		// const pos = offset(rotator.x, rotator.y)
 		// ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2);
 		// ctx.fill();
+
+		ctx.fillStyle = 'black';
+		ctx.globalAlpha = !intermission ? overlayAlpha : 0.5;
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		ctx.globalAlpha = 1;
+		if (intermission) {
+			ctx.fillStyle = 'white';
+			ctx.fillText(`- ${interMissionMessage} - `, canvas.width / 2, canvas.height / 2 + 300);
+		}
 
 		ctx.globalAlpha = window.redness;
 		ctx.fillStyle = '#eb0000';
@@ -271,7 +394,7 @@ window.render = () => {
 
 		// minimap
 
-		if (players[selfId] != null && !players[selfId].dying) {
+		if ((players[selfId] != null && !players[selfId].dying) && !intermission) {
 
 			const mwidth = 200;
 			const mheight = 200;
@@ -305,6 +428,15 @@ window.render = () => {
 					ctx.textBaseline = 'middle';
 					ctx.fillText('X', (player.pos.x / arena.width) * mwidth, (canvas.height - mheight) + (player.pos.y / arena.height) * mheight)
 				} else {
+					if (playerId === selfId && player.characterName === 'Stac' && player.point_x != null && player.point_y != null) {
+						ctx.fillStyle = '#13d1bb';
+						ctx.beginPath();
+						ctx.arc((player.point_x / arena.width) * mwidth, (canvas.height - mheight) + (player.point_y / arena.height) * mheight, (60 / arena.width) * mwidth, 0, Math.PI * 2);
+						ctx.fill()
+						// ctx.strokeStyle = '#00ebc7';
+						// ctx.lineWidth = (15 / arena.width) * mwidth;
+						// ctx.stroke()
+					}
 					ctx.fillStyle = '#000000';
 					if (leader != null && playerId === leader.id) {
 						ctx.fillStyle = '#d90000'
@@ -331,7 +463,7 @@ window.render = () => {
 				, 200, 825)
 		}
 
-		ctx.fillStyle = '#1a1a1a';
+		ctx.fillStyle = '#0f0f0f';
 		ctx.fillRect(canvas.width - 355, canvas.height - 30, 355, 30)
 
 		ctx.beginPath();
@@ -364,7 +496,7 @@ window.render = () => {
 
 
 
-		if (tab) {
+		if (tab || intermission) {
 			const sortedPlayers = Object.keys(players).sort((a, b) => players[b].score - players[a].score);
 			ctx.globalAlpha = 0.8;
 			ctx.fillStyle = 'black'
@@ -396,7 +528,7 @@ window.render = () => {
 		if (iExist && !dead) {
 			const score = Math.round(players[selfId].score);
 
-			ctx.fillStyle = '#1a1a1a';
+			ctx.fillStyle = '#0f0f0f';
 			ctx.font = `20px ${font}`;
 
 			// ctx.globalAlpha = 0.8;
@@ -419,7 +551,7 @@ window.render = () => {
 
 		}
 
-		ctx.fillStyle = '#1a1a1a';
+		ctx.fillStyle = '#0f0f0f';
 		ctx.fillRect(750, 0, 100, 40);
 
 		ctx.beginPath();
@@ -440,9 +572,9 @@ window.render = () => {
 		ctx.fillText(`${convert(roundTime)}`, 800, 20);
 
 		ctx.globalAlpha = 0.7;
-		ctx.fillStyle = '#1a1a1a';
+		ctx.fillStyle = '#0f0f0f';
 		ctx.fillRect(0, 0, 375, 250);
-		if (chatOpen) {
+		if (chatOpen || ref.chat.value != '') {
 			ctx.fillRect(0, 250, 350, 25);
 
 			ctx.beginPath();
@@ -462,15 +594,15 @@ window.render = () => {
 		}
 
 		actx.clearRect(0, 0, actx.canvas.width, actx.canvas.height);
-		if (players[selfId] && players[selfId].characterName === 'Klaydo') {
-			// actx.drawImage(textures.Kronos, 0, 0, 60, 60);
+		if (players[selfId] && !intermission) {
 			actx.fillStyle = 'black';
-			actx.globalAlpha = 0.6;
+			actx.globalAlpha = 0.7;
 			actx.beginPath()
 			actx.lineTo(30, 30)
-			actx.arc(30, 30, 60, Math.PI * 2 * Math.max((players[selfId].abilityCd / players[selfId].maxCd), 0), 0);
+			actx.arc(30, 30, 60, Math.PI * 2 * Math.max((players[selfId].abilityCooldown / players[selfId].maxCd), 0), 0);
 			actx.fill()
-			if (players[selfId].abilityCd <= 0) {
+			actx.globalAlpha = 1;
+			if (players[selfId].abilityCd <= 0 && players[selfId].characterName === 'Klaydo') {
 				actx.fillStyle = '#66000a';
 				actx.globalAlpha = 0.7;
 				actx.beginPath()
@@ -478,9 +610,27 @@ window.render = () => {
 				actx.arc(30, 30, 60, -Math.PI * 2 * Math.max((players[selfId].timeSpentFreezing / players[selfId].timeFreezeLimit), 0), 0);
 				actx.fill()
 			}
-			actx.globalAlpha = 1;
 			ctx.drawImage(abilityCanvas, canvas.width / 2 - 30, canvas.height - 60, 60, 60)
 		}
+		// if (players[selfId] && players[selfId].characterName === 'Klaydo' && !intermission) {
+		// 	// actx.drawImage(textures.Kronos, 0, 0, 60, 60);
+		// 	actx.fillStyle = 'black';
+		// 	actx.globalAlpha = 0.6;
+		// 	actx.beginPath()
+		// 	actx.lineTo(30, 30)
+		// 	actx.arc(30, 30, 60, Math.PI * 2 * Math.max((players[selfId].abilityCd / players[selfId].maxCd), 0), 0);
+		// 	actx.fill()
+		// 	if (players[selfId].abilityCd <= 0) {
+		// 		actx.fillStyle = '#66000a';
+		// 		actx.globalAlpha = 0.7;
+		// 		actx.beginPath()
+		// 		actx.lineTo(30, 30)
+		// 		actx.arc(30, 30, 60, -Math.PI * 2 * Math.max((players[selfId].timeSpentFreezing / players[selfId].timeFreezeLimit), 0), 0);
+		// 		actx.fill()
+		// 	}
+		// 	actx.globalAlpha = 1;
+		// 	ctx.drawImage(abilityCanvas, canvas.width / 2 - 30, canvas.height - 60, 60, 60)
+		// }
 		// if (leader != null) {
 		// 	ctx.globalAlpha = 0.9;
 		// 	// ctx.fillStyle = '#303030';
@@ -503,10 +653,6 @@ window.render = () => {
 		// 	ctx.fillText(`${leader.name} with ${leader.kills} eliminations`, canvas.width - width * 1.25, 70);
 		// 	ctx.globalAlpha = 1;
 		// }
-		ctx.fillStyle = 'black';
-		ctx.globalAlpha = overlayAlpha;
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
-		ctx.globalAlpha = 1;
 	} catch (err) {
 		document.body.innerHTML = err + 'from render' + JSON.stringify(leader);
 	}

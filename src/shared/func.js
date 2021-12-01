@@ -30,15 +30,23 @@ let arrowCounter = 0;
 function createArrow(player, arrows, fake = false) {
 	arrowCounter++;
 	arrows[arrowCounter] = new Arrow(player, fake)
+	return arrows[arrowCounter]
 }
 
-function updatePlayer(player, input, arena, obstacles, arrows) {
+function updatePlayer(player, input, arena, obstacles, arrows, players) {
 	if (!player) return;
 	if (!player.dying) {
 		player.abilityCooldown -= dt;
 		if (player.abilityCooldown <= 0) {
 			player.abilityCooldown = 0;
 		}
+
+		const dir = {
+			x: (input.right - input.left),
+			y: (input.down - input.up),
+		};
+		const mag = Math.sqrt(dir.x * dir.x + dir.y * dir.y) || 1;
+		const normal = { x: dir.x / mag, y: dir.y / mag };
 
 		// Kronos/Klaydo
 		if (player.freezing) {
@@ -60,7 +68,7 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 							/* im using dt instead of 0 because player updates before arrow which detects deleting afterward*/)) {
 						arrow.unfreeze();
 						player.freezing = false;
-						player.abilityCooldown = 0.5 + player.timeSpentFreezing * 1.5;
+						player.abilityCooldown = 0.5 + player.timeSpentFreezing * 1.25;
 						player.maxCd = player.abilityCooldown;
 						player.timeSpentFreezing = 0;
 						// console.log(arrow)
@@ -73,6 +81,111 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 					newestArrow.freeze()
 					// console.log(newestArrow)
 					player.freezing = true;
+				}
+			}
+
+			if (player.character.Ability.name === 'Gravity') {
+				// const velAngle = Math.atan2(player.yv, player.xv);
+				// const predictAmount = 100;
+				// player.gravX = player.x + normal.x * predictAmount;
+				// player.gravY = player.y + normal.y * predictAmount;
+				if (input.shift && !player.passive && player.abilityCooldown <= 0) {
+					for (const arrowId of Object.keys(arrows)) {
+						if (arrows[arrowId].parent === player.id) {
+							arrows[arrowId].gravity = true;
+							player.usingGravity = true;
+						}
+					}
+				}
+				let hasGravityArrow = false;
+				if (player.usingGravity) {
+					for (const arrowId of Object.keys(arrows)) {
+						if (arrows[arrowId].parent === player.id && arrows[arrowId].gravity) {
+							hasGravityArrow = true;
+						}
+					}
+				}
+
+				if (hasGravityArrow) {
+					player.gravityTime += dt;
+				}
+
+				if ((!input.shift && !player.passive && player.usingGravity) || (player.usingGravity && !player.passive && !hasGravityArrow && player.gravityTime > 0)) {
+					player.usingGravity = false;
+					player.abilityCooldown = 1 + (player.gravityTime * 0.9);
+					player.maxCd = player.abilityCooldown;
+					// console.log(player.gravityTime, player.abilityCooldown)
+					player.gravityTime = 0;
+					for (const arrowId of Object.keys(arrows)) {
+						if (arrows[arrowId].parent === player.id) {
+							arrows[arrowId].gravity = false;
+							// arrows[arrowId].die()
+						}
+					}
+				}
+			}
+			if (player.character.Ability.name === 'Dash') {
+				player.canDash = !player.passive && player.abilityCooldown <= 0 && (player.arrowing > 0 || player.lastDashForce != null);
+				if (player.arrowing > 0 && player.abilityCooldown <= 0 && !player.changedLastTime) {
+					player.dashAngle = player.angle;
+					player.lastDashForce = player.arrowing / 3;
+				}
+				if (player.canDash && input.shift) {
+					player.maxCd = 5;
+					player.abilityCooldown = 5;
+					const force = player.lastDashForce;
+					player.bxv = Math.cos(player.dashAngle) * 1100 + (Math.cos(player.dashAngle) * (force) * 5750)
+					player.byv = Math.sin(player.dashAngle) * 1100 + (Math.sin(player.dashAngle) * (force) * 5750)
+
+				}
+			}
+
+			if (player.character.Ability.name === 'Flank-Around') {
+
+				if (!player.passive && player.arrowing > 0 && player.abilityCooldown <= 0 && input.shift) {
+					let shortestDistance = null;
+					let otherId = null;
+					for (const playerId of Object.keys(players)) {
+						if (playerId === player.id) continue;
+						const other = players[playerId];
+						if (other.timer > 0 || (other.character.Name === 'Scry' && !other.showAim)) {
+							continue;
+						}
+						const distX = player.x - other.x;
+						const distY = player.y - other.y;
+						const dist = Math.sqrt(distX * distX + distY * distY);
+						if (dist < 450 + other.radius) {
+							if (shortestDistance == null) {
+								shortestDistance = dist;
+								otherId = playerId;
+							} else if (shortestDistance != null && dist < shortestDistance) {
+								shortestDistance = dist;
+								otherId = playerId;
+							}
+						}
+					}
+					if (otherId != null) {
+						const other = players[otherId];
+						player.abilityCooldown = 6;
+						player.maxCd = 6;
+						let teleportDist = Math.round((player.arrowing / 3) * 200);
+						// let old = { x: player.x, y: player.y };
+						let dest = {
+							x: other.x + Math.cos(player.angle) * teleportDist,
+							y: other.y + Math.sin(player.angle) * teleportDist,
+						}
+						player.x = dest.x;
+						player.y = dest.y;
+						while (player.intersectingObstacles(obstacles) && teleportDist > 0) {
+							teleportDist -= 10;
+							dest = {
+								x: other.x + Math.cos(player.angle) * teleportDist,
+								y: other.y + Math.sin(player.angle) * teleportDist,
+							}
+							player.x = dest.x;
+							player.y = dest.y;
+						}
+					}
 				}
 			}
 
@@ -93,17 +206,67 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 					player.showAim = true;
 				}
 			}
+
+
+			if (player.character.Ability.name === 'Direct-Arrow') {
+				if (!player.passive && player.arrowing > 0 && input.shift && player.canCreatePoint) {
+					player.canCreatePoint = false;
+					player.redirPoint = {
+						x: player.x + Math.cos(player.angle) * (player.radius + 250),
+						y: player.y + Math.sin(player.angle) * (player.radius + 250),
+					};
+					player.abilityCooldown = 8;
+					player.maxCd = 8;
+				}
+				if (!player.passive) {
+					player.canCreatePoint = player.abilityCooldown <= 0;
+				}
+				if (!player.passive && player.arrowing <= 0 && input.shift && player.redirPoint != null && player.canRedirect) {
+					let newestArrow = null;
+					for (const arrow of Object.values(arrows)) {
+						if (arrow.parent != player.id || arrow.redirected) continue;
+						if (newestArrow == null || (arrow.c < newestArrow.c)) {
+							const distX = player.redirPoint.x - arrow.x;
+							const distY = player.redirPoint.y - arrow.y;
+							const dist = Math.sqrt(distX * distX + distY * distY);
+							if (dist < 1250) {
+								newestArrow = arrow;
+							}
+						}
+					}
+					if (newestArrow != null) {
+						newestArrow.redirected = true;
+						newestArrow.angle = Math.atan2(player.redirPoint.y - newestArrow.y, player.redirPoint.x - newestArrow.x);
+						// const mag = Math.sqrt(newestArrow.xv * newestArrow.xv + newestArrow.yv * newestArrow.yv);
+						const mag = newestArrow.speed;
+						newestArrow.xv = Math.cos(newestArrow.angle) * mag;
+						newestArrow.yv = Math.sin(newestArrow.angle) * mag;
+					}
+					player.canRedirect = false;
+				}
+
+				if (!input.shift && !player.passive && player.arrowing <= 0) {
+					player.canRedirect = true;
+				}
+			}
 		}
 
-		const dir = {
-			x: (input.right - input.left),
-			y: (input.down - input.up),
-		};
-		const mag = Math.sqrt(dir.x * dir.x + dir.y * dir.y) || 1;
-		const normal = { x: dir.x / mag, y: dir.y / mag };
 
-		player.xv += normal.x * ((player.arrowing > 0 ? player.speed * 0.75 : player.speed) * dt);
-		player.yv += normal.y * ((player.arrowing > 0 ? player.speed * 0.75 : player.speed) * dt);
+		let changedMovement = false;
+		if (player.character.Passive != null) {
+			if (player.character.Passive === 'Move-Fast-Slow-Aim') {
+				player.xv += normal.x * ((player.arrowing > 0 ? player.speed * 0.65 : player.speed * 1.1) * dt);
+				player.yv += normal.y * ((player.arrowing > 0 ? player.speed * 0.65 : player.speed * 1.1) * dt);
+				changedMovement = true;
+			}
+		}
+
+		if (!changedMovement) {
+			player.xv += normal.x * ((player.arrowing > 0 ? player.speed * 0.75 : player.speed) * dt);
+			player.yv += normal.y * ((player.arrowing > 0 ? player.speed * 0.75 : player.speed) * dt);
+		}
+		player.x += player.bxv * dt;
+		player.y += player.byv * dt;
 		// if (input.space && player.timer <= 0) { // spacelock isnt being used rn
 		// 	// create arrowx
 		// 	player.xv -= Math.cos(player.angle) * 5;
@@ -114,6 +277,10 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		// }
 		if (!player.passive) {
 			if (input.space && player.timer <= 0) {
+				// if (player.character.Ability != null && player.character.Ability.name === 'Gravity' && player.usingGravity) {
+				// 	player.arrowing = 0;
+				// 	player.timer = 0;
+				// } else {
 				player.arrowing += dt * 2;
 				if (player.arrowing >= 3) {
 					player.arrowing = 3;
@@ -126,12 +293,16 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 				}
 				player.angle += player.angleVel;
 				player.angleVel = 0;
+				// }
 			} else {
 				if (player.arrowing > 0 && player.timer <= 0) {
 					// shoot
 					player.arrowsShot++;
-					createArrow(player, arrows)
+					const createdArrow = createArrow(player, arrows)
 					player.timer = player.timerMax;
+					if (player.character.Ability != null && player.character.Ability.name === 'Gravity' && player.usingGravity) {
+						createdArrow.gravity = true;
+					}
 					if (player.character.Ability != null && player.character.Ability.name === 'Fake-Arrow') {
 						player.noAim = 0;
 						if (player.fakedArrowLastTime) {
@@ -139,6 +310,9 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 						} else if (player.fakedArrow) {
 							player.fakedArrowLastTime = true;
 						}
+					}
+					if (player.character.Ability != null && player.character.Ability.name === 'Dash') {
+						player.changedLastTime = !player.changedLastTime;
 					}
 					// console.log('shoot', player.arrows)
 				}
@@ -168,6 +342,8 @@ function updatePlayer(player, input, arena, obstacles, arrows) {
 		}
 		player.xv *= Math.pow(player.fric, dt * 60);
 		player.yv *= Math.pow(player.fric, dt * 60);
+		player.bxv *= Math.pow(0.7, dt * 60);
+		player.byv *= Math.pow(0.7, dt * 60);
 
 
 		if (!input.space) {

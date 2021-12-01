@@ -1,4 +1,4 @@
-const { Circle, Vector, Response, testPolygonCircle } = require('sat')
+ const { Circle, Vector, Response, testPolygonCircle } = require('sat')
 
 module.exports = class Arrow {
 	constructor(player, fake = false) {
@@ -7,7 +7,7 @@ module.exports = class Arrow {
 		this.angle = player.angle;
 		this.radius = 10;
 		this.life = 3.5;
-		this.speed = (5 + (player.arrowing / 3) * 18) * 0.85;
+		this.speed = (5 + (player.arrowing / 3) * 16) * 0.8;
 		this.max = player.arrowing === 3;
 		this.alpha = 1;
 		this.dead = false;
@@ -19,6 +19,8 @@ module.exports = class Arrow {
 		this.oldVel = { x: 0, y: 0 };
 		this.c = 0; // counter of how long it lasts
 		this.fake = fake;
+		this.redirected = false;
+		this.gravity = false;
 	}
 	freeze() {
 		this.freezed = true;
@@ -37,14 +39,21 @@ module.exports = class Arrow {
 	}
 	collide(arrow) {
 		if (arrow.dead || this.dead) return;
+		// if (arrow.freezed || this.freezed) return;
 		if (this.fake && this.parent === arrow.parent) return;
 		const distX = arrow.x - this.x;
 		const distY = arrow.y - this.y;
 		if (distX <= arrow.radius + this.radius && distY <= arrow.radius + this.radius) {
 			const dist = Math.sqrt(distX * distX + distY * distY);
 			if (dist < this.radius + arrow.radius) {
-				this.die();
-				arrow.die();
+				if (this.freezed) {
+					arrow.die();
+				} else if (arrow.freezed) {
+					this.die();
+				} else {
+					this.die();
+					arrow.die();
+				}
 			}
 		}
 	}
@@ -145,9 +154,9 @@ module.exports = class Arrow {
 					}
 				} else {
 					if (obstacle.type === 'bounce') {
-							this.yv *= -0.9;
-							this.angle = Math.atan2(this.yv, this.xv)
-							this.slided = true;
+						this.yv *= -0.9;
+						this.angle = Math.atan2(this.yv, this.xv)
+						this.slided = true;
 					} else {
 						this.die()
 					}
@@ -166,9 +175,37 @@ module.exports = class Arrow {
 			}
 		}
 	}
-	update(arena, obstacles) {
+	update(arena, obstacles, players) {
 		this.c += dt
 		if (!this.dead) {
+			if (this.gravity) {
+				// arrow is being pulled in
+				for (const player of Object.values(players)) {
+					if (player.id !== this.parent) continue;
+					const angle = Math.atan2(player.y - this.y, player.x - this.x);
+					const gravStrength = 40;
+					this.xv += (Math.cos(angle) * gravStrength) * dt;
+					this.yv += (Math.sin(angle) * gravStrength) * dt;
+					break;
+				}
+				this.angle = Math.atan2(this.yv, this.xv)
+			}
+			if (this.xv > this.speed) {
+				this.xv = this.speed;
+			}
+
+			if (this.xv < -this.speed) {
+				this.xv = -this.speed;
+			}
+
+			if (this.yv > this.speed) {
+				this.yv = this.speed;
+			}
+
+			if (this.yv < -this.speed) {
+				this.yv = -this.speed;
+			}
+
 			this.x += this.xv * (60 * dt)
 			this.y += this.yv * (60 * dt)
 			for (const obstacle of obstacles) {
@@ -195,10 +232,9 @@ module.exports = class Arrow {
 			// this.radius += 20 * (1 / 60)
 		}
 
-		// future character ability
-		// this.angle += 0.25
-		// this.xv = Math.cos(this.angle) * this.speed;
-		// this.yv = Math.sin(this.angle) * this.speed;
+
+
+
 	}
 	differencePack(arrow) {
 		if (!arrow) {
@@ -223,6 +259,8 @@ module.exports = class Arrow {
 			freezed: this.freezed,
 			c: this.c,
 			fake: this.fake,
+			redirected: this.redirected,
+			gravity: this.gravity,
 		}
 	}
 }

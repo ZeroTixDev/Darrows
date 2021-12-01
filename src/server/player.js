@@ -47,6 +47,23 @@ module.exports = class Player {
 		this.noAimTime = 1;
 		this.noAim = 0;
 
+		// Stac/Director
+		this.redirPoint = null;
+		this.canCreatePoint = true;
+		this.canRedirect = true;
+
+		// Conquest
+		this.canDash = false;
+		this.dashAngle = 0;
+		this.changedLastTime = false;
+		
+
+		// Crescent
+		this.usingGravity = false;
+		this.gravityTime = 0;
+		this.gravX = null;
+		this.gravY = null;
+
 		this.name = `Agent ${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
 	}
 	spawn(obstacles, arena) {
@@ -135,10 +152,29 @@ module.exports = class Player {
 			dev: this.dev,
 			passive: this.passive,
 			characterName: this.character.Name,
-			abilityCd: Math.round(this.abilityCooldown * 100) / 100,
+			abilityCd: this.abilityCooldown,
 			maxCd: this.maxCd,
 			// timer: this.timer,
 		};
+
+		if (this.character.Name === 'Crescent') {
+			// obj.gravX = Math.round(this.gravX);
+			// obj.gravY = Math.round(this.gravY);
+			obj.usingGravity = this.usingGravity;
+		}
+
+		if (this.character.Name === 'Conquest') {
+			obj.canDash = this.canDash;
+			obj.lastDashForce = this.lastDashForce;
+			obj.dashAngle = this.dashAngle;
+			obj.changedLastTime = this.changedLastTime;
+		}
+
+		if (this.character.Name === 'Stac') {
+			obj.point_x = this.redirPoint === null ? null: this.redirPoint.x;
+			obj.point_y = this.redirPoint === null ? null: this.redirPoint.y;
+			obj.canCreatePoint = this.canCreatePoint;
+		}
 
 		if (this.character.Name === 'Klaydo') {
 			obj.timeSpentFreezing = Math.round(this.timeSpentFreezing * 100)/100;

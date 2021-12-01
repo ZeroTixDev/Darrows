@@ -10,6 +10,8 @@ function trackKeys(event) {
 					div.innerHTML = `${'<span class="rainbow">[SERVER]</span> '}: <span style="color: #c4c4c4;">WASD to move, Space to start Arrowing, Release space to shoot arrow, Shift for character ability, Arrow Keys or Q/E to change arrow aim. Press V to change movement mode which will change movement to Arrow Keys and Aiming to A/D or Z/X. Changing your name can be done by using /name command in chat. Tab to see the leaderboard. R to toggle auto respawn and M to toggle the music.</span>`;
 					ref.chatMessageDiv.appendChild(div)
 					ref.chatMessageDiv.scrollTop = ref.chatMessageDiv.scrollHeight;
+				} else if (ref.chat.value.trim().toLowerCase() == '/clear') {
+					ref.chatMessageDiv.innerHTML = ''
 				} else {
 					// if (ref.chat.value.toLowerCase() == "/char scry"){
 					//     	backgroundMusic.pause();
@@ -22,7 +24,6 @@ function trackKeys(event) {
 			}
 			ref.chat.blur()
 			ref.chat.value = '';
-			chatOpen = false;
 			return;
 		} else if (event.type === 'keydown') {
 			chatOpen = true;
@@ -33,7 +34,7 @@ function trackKeys(event) {
 		}
 	}
 	if (chatOpen) return;
-	if (event.code === 'Space' && event.type === 'keydown' && !window.autoRespawn && iExist && dead) {
+	if (event.code === 'Space' && event.type === 'keydown' && iExist && dead) {
 		send({ type: 'spawn' })
 		ref.deathScreen.classList.add('hidden')
 		ref.deathScreen.classList.remove('dAnim')
@@ -44,9 +45,11 @@ function trackKeys(event) {
 	if (event.code === 'KeyM' && event.type === 'keydown') {
 		window.music = !window.music;
 		if (window.music) {
-			backgroundMusic.volume = musicVolume;
+			backgroundMusic1.volume = musicVolume;
+			backgroundMusic2.volume = musicVolume;
 		} else if (!window.music) {
-			backgroundMusic.volume = 0;
+			backgroundMusic1.volume = 0;
+			backgroundMusic2.volume = 0;
 		}
 	}
 	if (event.code === 'Tab') {
@@ -78,7 +81,7 @@ function trackKeys(event) {
 		sendInput();
 		inputMessageCount++;
 	}
-	if (event.key === 'Shift') {
+	if (event.key === 'Shift' || (window.movementMode === 'wasd' && event.code === 'ArrowUp')) {
 		input.shift = event.type === 'keydown';
 		sendInput();
 		inputMessageCount++;

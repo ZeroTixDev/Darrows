@@ -5,7 +5,7 @@
 }
 
 body {
-	background-color: #1a1a1a;
+	background-color: #0f0f0f;
 	overflow: hidden;
 	font-size: 16px;
 	font-family: 'Inter', sans-serif;
@@ -21,12 +21,14 @@ body {
 	top: 750px;
 	width: 600px;
 	height: 150px;
-	background-color: #1a1a1a;
+	background-color: #0f0f0f;
 	opacity: 1;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 }
+
+
 
 .stat {
 	display: flex;
@@ -90,6 +92,20 @@ body {
 	opacity: 0.7; */
 }
 
+.change-hero {
+	position: absolute;
+	left: -1px;
+	bottom: -1px;
+	padding: 10px;
+	font-size: 2rem;
+	border: none;
+	outline: none;
+	cursor: pointer;
+	color: rgb(237, 2, 2);
+	background-color: #0f0f0f;
+	z-index: 50000;
+}
+
 
 .chat {
 	position: absolute;
@@ -134,7 +150,7 @@ body {
 	overflow-y: auto;
 	padding: 2px;
 	overflow-x: hidden;
-	word-break: break-word;
+	word-break: break-all;
 }
 
 .chat-div::-webkit-scrollbar {
@@ -147,7 +163,7 @@ body {
 }
 
 .menu {
-	background-color: #1a1a1a;
+	background-color: #0f0f0f;
 	position: absolute;
 	left: 0;
 	top: 0;
@@ -267,6 +283,15 @@ body {
 	left: 50vw;
 	transform: translateX(-50%);
 	font-size: 3rem;
+	color: rgb(237, 2, 2);
+}
+
+.version { 
+	font-size: 1.5rem;
+	margin: 10px;
+	position: absolute;
+	right: 0;
+	bottom: 0;
 	color: rgb(237, 2, 2);
 }
 

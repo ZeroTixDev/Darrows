@@ -10,6 +10,7 @@ class CPlayer {
 		this.chatMessage = '';
 		this.chatMessageTimer = 0;
 		this.chatMessageTime = 8;
+		this.abilityCooldown = 0;
 	}
 	chat(msg) {
 		this.chatMessageTimer = this.chatMessageTime;
@@ -35,18 +36,45 @@ class CPlayer {
 		}
 		this.interpAngle = lerp(this.interpAngle, this.angle, delta);
 
+		if (this.characterName === 'Conquest' && this.dashAngle != undefined) {
+			if (this.iDashAngle == undefined) {
+				this.iDashAngle = this.dashAngle;
+			}
+			const dtheta = this.dashAngle - this.iDashAngle;
+			if (dtheta > Math.PI) {
+				this.iDashAngle += 2 * Math.PI;
+			} else if (dtheta < -Math.PI) {
+				this.iDashAngle -= 2 * Math.PI;
+			}
+			this.iDashAngle = lerp(this.iDashAngle, this.dashAngle, delta);
+		}
+
+		// if (this.abilityCooldown > this.abilityCd) {
+		// 	this.abilityCooldown = this.abilityCd;
+		// } else {
+			this.abilityCooldown = this.abilityCd;
+			if (this.abilityCooldown === this.maxCd) {
+				this.abilityCooldown = 0;
+			}
+			// this.abilityCooldown = lerp(this.abilityCooldown, this.abilityCd, delta);
+			// if (this.abilityCd === this.maxCd) {
+			// 	this.abilityCooldown = 0;
+			// }
+		// }
+		// ability cooldown is the interpoalted version of cooldown
+
 	}
 	Snap(data) {
 		for (const key of Object.keys(data)) {
 			this[key] = data[key]
 		}
 
-		this.server = { 
-			x: this.x, 
-			angle: this.angle, 
-			y: this.y, 
-			xv: this.xv, 
-			yv: this.yv 
+		this.server = {
+			x: this.x,
+			angle: this.angle,
+			y: this.y,
+			xv: this.xv,
+			yv: this.yv
 		};
 	}
 	pack() {

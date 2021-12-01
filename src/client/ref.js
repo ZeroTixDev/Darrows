@@ -18,4 +18,5 @@ window.ref = {
 	heroDesc: document.querySelector('.darrow-hero-desc'),
 	leftArrow: document.querySelector('.darrow-hero-left'),
 	rightArrow: document.querySelector('.darrow-hero-right'),
+	version: document.querySelector('.version'),
 }

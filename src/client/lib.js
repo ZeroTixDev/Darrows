@@ -24,6 +24,16 @@ window.ghue = 0;
 window.roundTime = 0;
 window.music = true;
 window.musicVolume = 1;
+window.intermission = false;
+window.interMissionMessage = 'we at darrows incorporated are very professional';
+window.interMessages = [
+	'we at darrows incorporated are very professional',
+	'ur brain currently processing at 0 ticks per second',
+	'we are waiting for the day you get good',
+	'stac',
+]
+window.firstMessage = 'nice job you got first who cares';
+window.defaultMessage = 'default... i like it';
 
 
 function changeMovMode() {
@@ -74,6 +84,9 @@ const actx = abilityCanvas.getContext('2d')
 const players = {};
 let arrows = {}
 let obstacles = []
+let blocks = []
+let blockCanvas = document.createElement('canvas');
+let blockCtx = blockCanvas.getContext('2d');
 let hits = [];
 
 /* state */

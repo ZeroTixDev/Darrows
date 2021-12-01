@@ -12,6 +12,10 @@ if (pastHeroIndex != null) {
 	localStorage.setItem('hero_index', characterIndex)
 }
 
+if (Characters[characterIndex] == undefined) {
+	characterIndex = 0;
+}
+
 changeHero(Characters[characterIndex]);
 
 ref.rightArrow.addEventListener('mousedown', () => {
@@ -49,10 +53,15 @@ function changeHero(char) {
 
 // textures.Kronos.src = './gfx/kronos-ability.png';
 
-window.backgroundMusic = new Audio();
-backgroundMusic.loop = true;
-backgroundMusic.src = './sounds/torment.mp3';
-backgroundMusic.volume = musicVolume;
+window.backgroundMusic1 = new Audio();
+backgroundMusic1.src = './sounds/bella-ciao-s.mp3';
+backgroundMusic1.volume = musicVolume;
+// backgroundMusic1.playbackRate = 10;
+
+window.backgroundMusic2 = new Audio();
+backgroundMusic2.src = './sounds/bella-ciao-l.mp3';
+backgroundMusic2.volume = musicVolume;
+// backgroundMusic2.playbackRate = 10;
 
 ws.onopen = () => {
 
@@ -65,7 +74,7 @@ ws.onopen = () => {
 			return send({ type: 'spawn' })
 		}
 		// setTimeout(() => {
-			processMessage(obj)
+		processMessage(obj)
 		// }, 0)
 
 		byteCount += msg.data.byteLength;
@@ -80,16 +89,48 @@ ws.onopen = () => {
 	ref.playButton.addEventListener('click', () => {
 		ref.menuDiv.classList.add('hidden');
 		ref.gameDiv.classList.remove('hidden');
+		document.onkeydown = null;
 		startGame()
-		backgroundMusic.play()
+		backgroundMusic1.play()
+		backgroundMusic1.onended = () => {
+			backgroundMusic2.play();
+		};
+		backgroundMusic2.onended = () => {
+			backgroundMusic1.play()
+		};
 	})
 
 	document.onkeydown = (e) => {
-		if (e.code === 'Enter') {
+		if (e.code === 'Enter' || e.code === 'Space') {
 			ref.playButton.click();
 			document.onkeydown = null;
 			e.preventDefault()
 			e.stopPropagation()
+			return;
+		}
+		if (e.repeat) return;
+		if (e.code === 'ArrowRight') {
+			if (characterIndex >= Characters.length - 1) {
+				characterIndex = 0;
+			} else {
+				characterIndex++;
+			}
+			localStorage.setItem('hero_index', characterIndex)
+			changeHero(Characters[characterIndex]);
+			e.preventDefault()
+			e.stopPropagation();
+			return;
+		}
+		if (e.code === 'ArrowLeft') {
+			if (characterIndex <= 0) {
+				characterIndex = Characters.length - 1;
+			} else {
+				characterIndex--;
+			}
+			localStorage.setItem('hero_index', characterIndex)
+			changeHero(Characters[characterIndex]);
+			e.preventDefault();
+			e.stopPropagation();
 			return;
 		}
 	}
