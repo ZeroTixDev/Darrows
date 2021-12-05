@@ -10,6 +10,29 @@ function sendInput() {
 	send({ input: true, data: input });
 }
 
+function fullscreen() {
+	const elem = document.documentElement;
+	if (elem.requestFullscreen) {
+		elem.requestFullscreen();
+	} else if (elem.webkitRequestFullscreen) { /* Safari */
+		elem.webkitRequestFullscreen();
+	} else if (elem.msRequestFullscreen) { /* IE11 */
+		elem.msRequestFullscreen();
+	}
+	fullscreened = true;
+}
+
+function exitFullscreen() {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  } else if (document.webkitExitFullscreen) { /* Safari */
+    document.webkitExitFullscreen();
+  } else if (document.msExitFullscreen) { /* IE11 */
+    document.msExitFullscreen();
+  }
+  fullscreened = false;
+}
+
 function sameInput(input1, input2) {
 	for (const key of Object.keys(input1)) {
 		if (input1[key] !== input2[key]) return false
@@ -25,7 +48,7 @@ function send(obj) {
 
 	extraLag > 0 ? setTimeout(() => {
 		ws.send(pack);
-	}): ws.send(pack);
+	}) : ws.send(pack);
 }
 
 
@@ -50,11 +73,11 @@ function resize(elements) {
 }
 
 function fpsTick(timestamp) {
-    while (times.length > 0 && times[0] <= timestamp - 1000) {
-        times.shift();
-    }
-    times.push(timestamp);
-    fps = times.length;
+	while (times.length > 0 && times[0] <= timestamp - 1000) {
+		times.shift();
+	}
+	times.push(timestamp);
+	fps = times.length;
 }
 
 function lerp(start, end, dt) {

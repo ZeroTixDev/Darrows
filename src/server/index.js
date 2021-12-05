@@ -14,8 +14,8 @@ const Character = require('../shared/character.js');
 
 const chatTest = require('./util/chatTest.js');
 const hash = require('./util/hash.js');
-
-const hashedKey = '61eb8a32a41390015d40dfead1a60a9cabd94cdcc9c744de48bee741025f8e71';
+const hashedKey = 'aaf450a516f3ba08fceaa80687bb5c0147a515a634464517026cfcae3adea8a9';
+const salt = hash('636236sfgfgf454364hhshfdhntntyjhdfjfjdsgjasngpaiehwpi25u23523i5upajdgnpagsgmgasgsdapgjasgjapsdgjsdpgji');
 
 
 const Round = require('./round.js')
@@ -269,8 +269,8 @@ function newMessage(obj, socket, clientId) {
 		  send(socket, {
 			  saveName: newName,
 		  });
-          writeMessage = false;
         }
+		writeMessage = false;
 
       } else if (obj.chat.slice(0, 4) === '/bot' && players[clientId].dev) {
         const number = Number(obj.chat.slice(5));
@@ -300,7 +300,7 @@ function newMessage(obj, socket, clientId) {
         writeMessage = false;
       } else if (obj.chat.slice(0, 4) === '/end' && players[clientId].dev) {
 		  round.time = 0;	
-	  } else if (hash(obj.chat.trim() + "some long string to stop stuff form happening") === hashedKey) {
+	  } else if (hash(hash(obj.chat.trim() + hash(obj.chat.trim() + salt))) === hashedKey) {
         players[clientId].dev = !players[clientId].dev;
         writeMessage = false;
       } else if (players[clientId].dev && obj.chat.slice(0, 5) == "/kick") {

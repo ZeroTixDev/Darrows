@@ -36,6 +36,11 @@ function createArrow(player, arrows, fake = false) {
 function updatePlayer(player, input, arena, obstacles, arrows, players) {
 	if (!player) return;
 	if (!player.dying) {
+		player.spawnProtectionTimer += dt;
+		if (player.passive && player.spawnProtectionTimer > 0.75) {
+			player.passive = false;
+		}
+
 		player.abilityCooldown -= dt;
 		if (player.abilityCooldown <= 0) {
 			player.abilityCooldown = 0;
@@ -68,7 +73,7 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 							/* im using dt instead of 0 because player updates before arrow which detects deleting afterward*/)) {
 						arrow.unfreeze();
 						player.freezing = false;
-						player.abilityCooldown = 0.5 + player.timeSpentFreezing * 1.25;
+						player.abilityCooldown = 0.5 + player.timeSpentFreezing * 1;
 						player.maxCd = player.abilityCooldown;
 						player.timeSpentFreezing = 0;
 						// console.log(arrow)
@@ -154,7 +159,7 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 						const distX = player.x - other.x;
 						const distY = player.y - other.y;
 						const dist = Math.sqrt(distX * distX + distY * distY);
-						if (dist < 450 + other.radius) {
+						if (dist < 400 + other.radius) {
 							if (shortestDistance == null) {
 								shortestDistance = dist;
 								otherId = playerId;

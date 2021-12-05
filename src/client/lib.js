@@ -23,17 +23,23 @@ window.tab = false;
 window.ghue = 0;
 window.roundTime = 0;
 window.music = true;
-window.musicVolume = 1;
+window.musicVolume = 0.7;
 window.intermission = false;
 window.interMissionMessage = 'we at darrows incorporated are very professional';
 window.interMessages = [
-	'we at darrows incorporated are very professional',
-	'ur brain currently processing at 0 ticks per second',
-	'we are waiting for the day you get good',
-	'stac',
+	'we at darrows incorporated are very profesional',
+	'generating more terrible quotes...',
+	'you made no miskates',
+	'imagine looking at this',
+	'never gonna give you up!',
+	'ctrl+w for aimbot',
+	'no pain, no gain',
+	'lag is great',
 ]
 window.firstMessage = 'nice job you got first who cares';
 window.defaultMessage = 'default... i like it';
+window.fullscreened = false;
+window.darkness = 0.15;
 
 
 function changeMovMode() {

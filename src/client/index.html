@@ -28,17 +28,23 @@
 <body>
 
 	<div class="menu">
-		<span class="version"></span>
-		<span class="title">Death Arrows 2</span>
-		<span class="darrow-hero"></span>
-		<span class="darrow-hero-name"></span>
-		<button class="darrow-hero-left darrow-hero-button"><span class="darrow-left">&lt;</span></button>
-		<button class="darrow-hero-right darrow-hero-button"><span class="darrow-right">&gt;</span></button>
-		<span class="darrow-hero-desc"></span>
-		<button class="play" autofocus>play</button>
-		<a class="discord" href="https://discord.gg/VMXbcctvbY" target="_blank">Discord</a>
-		<a class="editor" href="https://darrows-editor.zerotixdev.repl.co" target="_blank">Map Editor</a>
-		<span class="highscore">Loading...</span>
+		<!-- <span class="version"></span> -->
+		<div class="menu-items invis">
+			<div class="main">
+				<span class="title"><span class="death-box">Death</span><span class="arrow-box">Arrows</span></span>
+				<span class="darrow-hero"></span>
+				<span class="darrow-hero-name"></span>
+				<span class="darrow-hero-desc"></span>
+			</div>
+			<button class="darrow-hero-left darrow-hero-button"><span class="darrow-left">&lt;</span></button>
+			<button class="darrow-hero-right darrow-hero-button"><span class="darrow-right">&gt;</span></button>
+			<button class="play" autofocus>play</button>
+			<a class="discord" href="https://discord.gg/VMXbcctvbY" target="_blank">Discord</a>
+			<a class="editor" href="https://darrows-editor.zerotixdev.repl.co" target="_blank">Map Editor</a>
+			<!-- <span class="highscore">Loading...</span> -->
+			</div>
+			<span class="top-left-box"></span>
+			<span class="bottom-right-box"></span>
 	</div>
 
 	<div class="game hidden">
@@ -53,7 +59,7 @@
 			</div>
 			<div class="death-screen hidden">
 				<div class="background-overlay"></div>
-				<button class="change-hero" onclick="window.location.reload()"e>Change Character</button>
+				<!-- <button class="change-hero" onclick="window.location.reload()"e>Change Character</button> -->
 				<div class="space-to-respawn"><span>press <span style="color: #00e1ff">space</span> to respawn</span></div>
 				<div class="stats">
 					<div class="stat">

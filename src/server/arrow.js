@@ -36,6 +36,8 @@ module.exports = class Arrow {
 	die() {
 		this.dead = true;
 		this.life = Math.min(this.life, 0.5)
+		this.xv = 0;
+		this.yv = 0;
 	}
 	collide(arrow) {
 		if (arrow.dead || this.dead) return;

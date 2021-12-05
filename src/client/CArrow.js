@@ -6,6 +6,7 @@ class CArrow {
 		}
 		this.pos = { x: this.x, y: this.y };
 		this.lerpAngle = this.angle;
+		this.server = { x: this.x, y: this.y }
 	}
 	smooth(delta) {
 		if (!_interpolate) {
@@ -29,8 +30,15 @@ class CArrow {
 		// 
 	}
 	Snap(data) {
+
 		for (const key of Object.keys(data)) {
 			this[key] = data[key]
 		}
+
+		this.server = {
+			x: this.x,
+			y: this.y,
+		}
+
 	}
 }

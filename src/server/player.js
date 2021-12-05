@@ -29,7 +29,8 @@ module.exports = class Player {
 		this.arrowsShot = 0;
 		this.score = 0;
 		this.dev = false;
-		this.passive = false;
+		this.passive = true;
+		this.spawnProtectionTimer = 0;
 		
 
 		this.abilityCooldown = 0;
@@ -136,6 +137,8 @@ module.exports = class Player {
 		const obj =  {
 			x: Math.round(this.x * 100) / 100,
 			y: Math.round(this.y * 100) / 100,
+			xv: this.xv,
+			yv: this.yv,
 			dying: this.dying,
 			radius: this.radius,
 			timer: Math.round(this.timer * 100) / 100,

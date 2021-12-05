@@ -47,23 +47,58 @@ function changeHero(char) {
 }
 
 
-// window.textures = {
-// 	Kronos: new Image(),
+window.bg = new Audio();
+bg.src = './sounds/metro.mp3';
+bg.volume = musicVolume;
+bg.loop = true;
+
+
+
+window.menuReq = requestAnimationFrame(menuUpdate);
+let menuX = window.innerWidth / 2;
+let menuY = window.innerHeight / 2;
+// let t = 0;
+// let mangle = null;
+// let mag = null;
+// let targetX = menuX;
+// let targetY = menuY;
+
+
+// document.onmousemove = (e) => {
+// 	const x = e.pageX;
+// 	const y = e.pageY;
+// 	mangle = Math.atan2(window.innerHeight / 2 - y, window.innerWidth / 2 - x);
+// 	const dist = Math.sqrt((x - window.innerWidth / 2) * (x - window.innerWidth / 2) + (y - window.innerHeight / 2) * (y - window.innerHeight / 2));	
+// 	mag = dist * 0.02;
 // }
 
-// textures.Kronos.src = './gfx/kronos-ability.png';
 
-window.backgroundMusic1 = new Audio();
-backgroundMusic1.src = './sounds/bella-ciao-s.mp3';
-backgroundMusic1.volume = musicVolume;
-// backgroundMusic1.playbackRate = 10;
 
-window.backgroundMusic2 = new Audio();
-backgroundMusic2.src = './sounds/bella-ciao-l.mp3';
-backgroundMusic2.volume = musicVolume;
-// backgroundMusic2.playbackRate = 10;
+function menuUpdate()  {
+	// if (mangle != null) {
+	// 	targetX = window.innerWidth / 2 + Math.cos(mangle) * mag;
+	// 	targetY = window.innerHeight / 2 + Math.sin(mangle) * mag;
+	// } else {
+	// 	targetX = window.innerWidth / 2;
+	// 	targetY = window.innerHeight / 2;
+	// }
+
+	// menuX += (targetX - menuX) * 0.5;
+	// menuY += (targetY - menuY) * 0.5;
+
+
+
+	// ref.menuDiv.style.left = `calc(${Math.round(menuX - window.innerWidth / 2)}px)`;
+	// ref.menuDiv.style.top = `caflc( ${Math.round(menuY - window.innerHeight / 2)}px)`
+
+	menuReq = requestAnimationFrame(menuUpdate);
+}
 
 ws.onopen = () => {
+
+	setTimeout(() => {
+		ref.menuGui.classList.remove('invis')
+	}, 300);
 
 	ws.onmessage = (msg) => {
 		if (window.stutter) return;
@@ -74,7 +109,13 @@ ws.onopen = () => {
 			return send({ type: 'spawn' })
 		}
 		// setTimeout(() => {
-		processMessage(obj)
+		if (extraLag > 0) {
+			setTimeout(() => {
+				processMessage(obj)
+			}, extraLag);
+		} else {
+			processMessage(obj)
+		}
 		// }, 0)
 
 		byteCount += msg.data.byteLength;
@@ -90,14 +131,12 @@ ws.onopen = () => {
 		ref.menuDiv.classList.add('hidden');
 		ref.gameDiv.classList.remove('hidden');
 		document.onkeydown = null;
+		document.onmousemove = null;
+		document.body.style.backgroundColor = '#0f0f0f'
 		startGame()
-		backgroundMusic1.play()
-		backgroundMusic1.onended = () => {
-			backgroundMusic2.play();
-		};
-		backgroundMusic2.onended = () => {
-			backgroundMusic1.play()
-		};
+		bg.play()
+		fullscreen()
+		cancelAnimationFrame(menuReq)
 	})
 
 	document.onkeydown = (e) => {

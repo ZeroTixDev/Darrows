@@ -45,29 +45,33 @@ function trackKeys(event) {
 	if (event.code === 'KeyM' && event.type === 'keydown') {
 		window.music = !window.music;
 		if (window.music) {
-			backgroundMusic1.volume = musicVolume;
-			backgroundMusic2.volume = musicVolume;
+			bg.volume = musicVolume;
 		} else if (!window.music) {
-			backgroundMusic1.volume = 0;
-			backgroundMusic2.volume = 0;
+			bg.volume = 0;
 		}
 	}
 	if (event.code === 'Tab') {
 		window.tab = event.type === 'keydown';
 		return event.preventDefault()
 	}
-	if (event.code === 'KeyV' && event.type === 'keydown')
+	if (event.code === 'KeyL' && event.type === 'keydown')
 		changeMovMode()
 	if (event.code === 'KeyR' && event.type === 'keydown')
 		window.autoRespawn = !window.autoRespawn;
-	if (event.code === 'KeyN' && event.type === 'keydown')
+	if (event.code === 'KeyN' && event.type === 'keydown') {
 		window.debug = !window.debug;
+	}
+
+	if (event.code === 'KeyF' && event.type === 'keydown') {
+		fullscreened ? exitFullscreen(): fullscreen()
+	}
 	// if (event.code === 'KeyL' && event.type === 'keydown') 
 	// 	window._interpolate = !window._interpolate;
-	if (event.code === 'KeyP' && event.type === 'keydown')
-		window._predict = !window._predict;
+	// if (event.code === 'KeyP' && event.type === 'keydown')
+	// 	window._predict = !window._predict;
 	// if (event.code === 'KeyB'&& event.type === 'keydown') {
 	// 	window.stutter = !window.stutter;
+	// 	// extraLag += 50;
 	// }
 	if ((window.movementMode === 'wasd' && (event.code === 'ArrowLeft' || event.code === 'KeyQ'))
 		|| (window.movementMode === 'arr' && (event.code === 'KeyA' || event.code === 'KeyZ'))) {

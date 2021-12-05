@@ -11,6 +11,7 @@ class CPlayer {
 		this.chatMessageTimer = 0;
 		this.chatMessageTime = 8;
 		this.abilityCooldown = 0;
+
 	}
 	chat(msg) {
 		this.chatMessageTimer = this.chatMessageTime;
@@ -24,7 +25,6 @@ class CPlayer {
 			this.interpAngle = this.angle;
 			return;
 		}
-
 		this.pos.x = lerp(this.pos.x, this.x, delta);
 		this.pos.y = lerp(this.pos.y, this.y, delta);
 
@@ -52,14 +52,14 @@ class CPlayer {
 		// if (this.abilityCooldown > this.abilityCd) {
 		// 	this.abilityCooldown = this.abilityCd;
 		// } else {
-			this.abilityCooldown = this.abilityCd;
-			if (this.abilityCooldown === this.maxCd) {
-				this.abilityCooldown = 0;
-			}
-			// this.abilityCooldown = lerp(this.abilityCooldown, this.abilityCd, delta);
-			// if (this.abilityCd === this.maxCd) {
-			// 	this.abilityCooldown = 0;
-			// }
+		this.abilityCooldown = this.abilityCd;
+		if (this.abilityCooldown === this.maxCd) {
+			this.abilityCooldown = 0;
+		}
+		// this.abilityCooldown = lerp(this.abilityCooldown, this.abilityCd, delta);
+		// if (this.abilityCd === this.maxCd) {
+		// 	this.abilityCooldown = 0;
+		// }
 		// }
 		// ability cooldown is the interpoalted version of cooldown
 
@@ -69,6 +69,7 @@ class CPlayer {
 			this[key] = data[key]
 		}
 
+	
 		this.server = {
 			x: this.x,
 			angle: this.angle,

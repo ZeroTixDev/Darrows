@@ -10,7 +10,7 @@ const Character = {
 		Html: {
 			color: '#292929',
 			name: 'Default',
-			nameColor: '#999999',
+			nameColor: '#ababab',
 			desc: 'No Passive or Ability',
 		}
 	},
@@ -44,21 +44,6 @@ const Character = {
 			desc: 'Shoot fake arrows to deceive opponents',
 		},
 	},
-	// Flank: {
-	// 	Color: '#007800',
-	// 	ArrowCdColor: '#509450',
-	// 	Name: 'Flank',
-	// 	Passive: null,
-	// 	Ability: {
-	// 		name: 'Flank-Around',
-	// 	},
-	// 	Html: {
-	// 		color: '#007800',
-	// 		nameColor: '#007800',
-	// 		name: 'Excorpio',
-	// 		desc: 'Flanks opponents via teleportation',
-	// 	}
-	// },
   Stac: {
 		Color: '#0eab85',
 		ArrowCdColor: '#80baac',
@@ -87,6 +72,21 @@ const Character = {
 			nameColor: '#b74f0e',
 			name: 'Conquest',
 			desc: 'Bash into your opponents',
+		}
+	},
+	Flank: {
+		Color: '#007800',
+		ArrowCdColor: '#509450',
+		Name: 'Flank',
+		Passive: null,
+		Ability: {
+			name: 'Flank-Around',
+		},
+		Html: {
+			color: '#007800',
+			nameColor: '#007800',
+			name: 'Excorpio',
+			desc: 'Flanks opponents via teleportation',
 		}
 	},
 	// Crescent: {
