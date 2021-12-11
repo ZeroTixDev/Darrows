@@ -14,7 +14,7 @@ const Character = require('../shared/character.js');
 
 const chatTest = require('./util/chatTest.js');
 const hash = require('./util/hash.js');
-const hashedKey = 'aaf450a516f3ba08fceaa80687bb5c0147a515a634464517026cfcae3adea8a9';
+const hashedKey = null;
 const salt = hash('636236sfgfgf454364hhshfdhntntyjhdfjfjdsgjasngpaiehwpi25u23523i5upajdgnpagsgmgasgsdapgjasgjapsdgjsdpgji');
 
 
