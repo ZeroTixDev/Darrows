@@ -14,6 +14,7 @@ window.fric = -1;
 window.speed = -1;
 window.autoRespawn = false;
 window.movementMode = 'wasd';
+window.movementModeId = 1;
 window.font = 'Inter'
 window.fps = 60;
 window.overlayAlpha = 0;
@@ -41,13 +42,43 @@ window.defaultMessage = 'default... i like it';
 window.fullscreened = false;
 window.darkness = 0.15;
 
+movementModes = ["uldr","wasd","hjkl"]
+
+movementModesKeys = {
+    uldr: {
+        KeyZ: "arrowLeft",
+        KeyA: "arrowLeft",
+        KeyX: "arrowRight",
+        KeyD: "arrowRight",
+        ArrowUp: "up",ArrowDown: "down",ArrowLeft: "left",ArrowRight: "right",
+        ShiftLeft: "shift",
+        Space: "space"
+    },
+    wasd: {
+        KeyQ: "arrowLeft",
+        ArrowLeft: "arrowLeft",
+        KeyE: "arrowRight",
+        ArrowRight: "arrowRight",
+        KeyW: "up",KeyS: "down",KeyA: "left",KeyD: "right",
+        ShiftLeft: "shift",
+        Space: "space"
+    },
+    hjkl: {
+        KeyA: "arrowLeft",
+        ArrowLeft: "arrowLeft",
+        KeyS: "arrowRight",
+        ArrowRight: "arrowRight",
+        KeyK: "up",KeyJ: "down",KeyH: "left",KeyL: "right",
+        ShiftLeft: "shift",
+        Space: "space",
+        KeyD: "space"
+    }
+}
 
 function changeMovMode() {
-	if (window.movementMode === 'wasd') {
-		window.movementMode = 'arr'
-	} else {
-		window.movementMode = 'wasd'
-	}
+    window.movementModeId ++;
+    window.movementModeId %= movementModes.length;
+	window.movementMode = movementModes[movementModeId]
 }
 
 let iExist = false;
