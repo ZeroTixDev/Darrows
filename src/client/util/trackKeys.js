@@ -2,7 +2,6 @@
 
 function trackKeys(event) {
 	if (event.repeat && !chatOpen) return event.preventDefault();
-	console.log(event.code)
     if (event.code === 'Enter') {
 		if (chatOpen && event.type === 'keydown') {
 			ref.chatDiv.classList.add('hidden')
