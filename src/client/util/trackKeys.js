@@ -57,7 +57,7 @@ function trackKeys(event) {
 		window.tab = event.type === 'keydown';
 		return event.preventDefault()
 	}
-	if (event.code === 'Escape' && event.type === 'keydown')
+	if (event.code === 'Delete' && event.type === 'keydown')
 		changeMovMode()
 	if (event.code === 'KeyR' && event.type === 'keydown')
 		window.autoRespawn = !window.autoRespawn;
