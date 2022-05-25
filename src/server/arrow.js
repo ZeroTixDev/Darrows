@@ -185,7 +185,7 @@ module.exports = class Arrow {
 				for (const player of Object.values(players)) {
 					if (player.id !== this.parent) continue;
 					const angle = Math.atan2(player.y - this.y, player.x - this.x);
-					const gravStrength = 40;
+					const gravStrength = 30;
 					this.xv += (Math.cos(angle) * gravStrength) * dt;
 					this.yv += (Math.sin(angle) * gravStrength) * dt;
 					break;

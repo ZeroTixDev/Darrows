@@ -105,9 +105,20 @@ function drawArrows() {
 			ctx.fillStyle = '#780000'
 		}
 
+		if (players[arrows[arrowId].parent]?.characterName === 'Vice' && life > 2.75
+		  && players[arrows[arrowId].parent]?.abilityCd <= 0) {
+			ctx.strokeStyle = 'black';
+			ctx.lineWidth = 4;
+		}
+
 		ctx.beginPath();
 		ctx.rect(-6.25, -18.75, 12.5, 37.5);
 		ctx.fill()
+
+		if (players[arrows[arrowId].parent]?.characterName === 'Vice' && life > 2.75
+		   && players[arrows[arrowId].parent]?.abilityCd <= 0) {
+			ctx.stroke();
+		}
 
 		ctx.rotate(-(lerpAngle + Math.PI / 2));
 		ctx.translate(-pos.x, -pos.y);
@@ -183,6 +194,15 @@ function drawPlayers() {
 			}
 		}
 
+		if (player.characterName === 'Harpazo') {
+			ctx.globalAlpha = 0.15;
+			ctx.fillStyle = '#de8c2f';
+			ctx.beginPath();
+			ctx.arc(pos.x, pos.y, 300, 0, Math.PI * 2);
+			ctx.fill();
+			ctx.globalAlpha = 1;
+		}
+
 		if (player.characterName === 'Flank'
 			&& !intermission
 			&& player.abilityCd <= 0
@@ -240,9 +260,9 @@ function drawPlayers() {
 			);
 
 			ctx.globalAlpha = 0.4;
-			ctx.fillStyle = '#330e00'
+			ctx.fillStyle = '#cf3a02'
 			if (player.arrowing > 0 && !player.changedLastTime) {
-				ctx.fillStyle = '#cf3a02'
+				ctx.fillStyle = '#330e00'
 			}
 			ctx.beginPath();
 			ctx.arc(dashPos.x, dashPos.y, player.radius, 0, Math.PI * 2);

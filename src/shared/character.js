@@ -26,7 +26,7 @@ const Character = {
 			color: '#00b55b',
 			nameColor: '#00b55b',
 			name: 'Klaydo',
-			desc: 'Ceases time for your newest arrow',
+			desc: 'Stops time for your newest arrow',
 		},
 	},
 	Scry: {
@@ -56,7 +56,7 @@ const Character = {
 			color: '#0eab85',
 			nameColor: '#0eab85',
 			name: 'Kai',
-      desc: 'Uses strategic points to direct arrows',
+      desc: 'Place strategic points to redirect arrows',
 		}
   },
 	Conquest: {
@@ -86,7 +86,7 @@ const Character = {
 			color: '#007800',
 			nameColor: '#007800',
 			name: 'Excorpio',
-			desc: 'Flanks opponents via teleportation',
+			desc: 'Flank opponents using teleportation',
 		}
 	},
 	Crescent: {
@@ -101,7 +101,43 @@ const Character = {
 			color: '#7325b3',
 			nameColor: '#7325b3',
 			name: 'Crescent',
-			desc: 'Gravitate arrows towards you',
+			desc: 'Gravitate your arrows towards you',
+		},
+	},
+	// #fa2f20
+	// #a6150a
+	
+	Harpazo: {
+		Color: '#e09112',
+		ArrowCdColor: '#a66f17',
+		Name: 'Harpazo',
+		Passive: 'Homing-Player',
+		// Passive: 'Move-Fast-Slow-Aim',
+		Ability: { 
+			name: null,
+		},
+		Html: {
+			color: '#e09112',
+			nameColor: '#e09112',
+			name: 'Harpazo',
+			desc: 'Home players towards you',
+		},
+	},
+
+	Vice: {
+		Color: '#b8b8b8',
+		ArrowCdColor: '#8f8f8f',
+		Name: 'Vice',
+		Passive: null,
+		// Passive: 'Move-Fast-Slow-Aim',
+		Ability: { 
+			name: 'Arrow-Teleport',
+		},
+		Html: {
+			color: '#b8b8b8',
+			nameColor: '#b8b8b8',
+			name: 'Vice',
+			desc: 'Teleport to your arrows',
 		},
 	},
 //   ZeroTix: {

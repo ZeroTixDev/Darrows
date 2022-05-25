@@ -73,7 +73,7 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 							/* im using dt instead of 0 because player updates before arrow which detects deleting afterward*/)) {
 						arrow.unfreeze();
 						player.freezing = false;
-						player.abilityCooldown = 0.5 + player.timeSpentFreezing * 1;
+						player.abilityCooldown = 0.25 + player.timeSpentFreezing * 0.8;
 						player.maxCd = player.abilityCooldown;
 						player.timeSpentFreezing = 0;
 						// console.log(arrow)
@@ -86,6 +86,40 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 					newestArrow.freeze()
 					// console.log(newestArrow)
 					player.freezing = true;
+				}
+			}
+			// homing arrow for harpazo
+			if (player.character.Passive === 'Homing-Player') {
+				for (const other of Object.values(players)) {
+					if (player.id === other.id) continue;
+					const distX = player.x - other.x;
+					const distY = player.y - other.y;
+					const dist = Math.sqrt(distX * distX + distY * distY);
+					if (dist < 300) {
+						const angle = Math.atan2(other.y - player.y, other.x - player.x);
+						other.xv -= Math.cos(angle) * 0.15;
+						other.yv -= Math.sin(angle) * 0.15;
+					}
+				}
+			}
+			if (player.character.Ability.name === 'Arrow-Teleport') {
+				let newestArrow = null;
+				for (const arrow of Object.values(arrows)) {
+					if (arrow.parent != player.id) continue;
+					if (newestArrow == null || arrow.c < newestArrow.c) {
+						if (arrow.life > 2.75) {
+							newestArrow = arrow;
+						}
+					}
+				}
+				if (newestArrow != null && input.shift && player.abilityCooldown <= 0) {
+					player.abilityCooldown = 6;
+					player.maxCd = player.abilityCooldown;
+					player.x = newestArrow.x;
+					player.y = newestArrow.y;
+					newestArrow.life = 0;
+					player.xv = newestArrow.xv;
+					player.yv = newestArrow.yv;
 				}
 			}
 
@@ -117,7 +151,7 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 
 				if ((!input.shift && !player.passive && player.usingGravity) || (player.usingGravity && !player.passive && !hasGravityArrow && player.gravityTime > 0)) {
 					player.usingGravity = false;
-					player.abilityCooldown = 1 + (player.gravityTime * 0.9);
+					player.abilityCooldown = 1 + (player.gravityTime * 0.7);
 					player.maxCd = player.abilityCooldown;
 					// console.log(player.gravityTime, player.abilityCooldown)
 					player.gravityTime = 0;
@@ -131,11 +165,13 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 			}
 			if (player.character.Ability.name === 'Dash') {
 				player.canDash = !player.passive && player.abilityCooldown <= 0 && (player.arrowing > 0 || player.lastDashForce != null);
+				let should = true;
 				if (player.arrowing > 0 && player.abilityCooldown <= 0 && !player.changedLastTime) {
 					player.dashAngle = player.angle;
-					player.lastDashForce = player.arrowing / 3;
+					player.lastDashForce = player.arrowing / 3;	
+					should = false;
 				}
-				if (player.canDash && input.shift) {
+				if (player.canDash && input.shift && should) {
 					player.maxCd = 5;
 					player.abilityCooldown = 5;
 					const force = player.lastDashForce;

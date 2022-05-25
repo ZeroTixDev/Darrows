@@ -287,7 +287,7 @@ function newMessage(obj, socket, clientId) {
           }
         }
         writeMessage = false;
-      } else if (obj.chat.slice(0, 5) === '/skip' && players[clientId].dev) {
+      } else if (obj.chat.slice(0, 5) === '/skip') {
         round.time = 0;
         round.ended = true;
         round.intermission = true;

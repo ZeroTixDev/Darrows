@@ -39,7 +39,7 @@ module.exports = class Player {
 		// Kronos/Klaydo
 		this.timeSpentFreezing = 0;
 		this.freezing = false;
-		this.timeFreezeLimit = 4;
+		this.timeFreezeLimit = 6;
 
 		// Scry
 		this.fakedArrow = false;
