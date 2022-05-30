@@ -23,7 +23,7 @@ window.tab = false;
 window.ghue = 0;
 window.roundTime = 0;
 window.music = true;
-window.musicVolume = 0.7;
+window.musicVolume = 0.2;
 window.intermission = false;
 window.interMissionMessage = 'we at darrows incorporated are very professional';
 window.interMessages = [
@@ -39,7 +39,7 @@ window.interMessages = [
 window.firstMessage = 'nice job you got first who cares';
 window.defaultMessage = 'default... i like it';
 window.fullscreened = false;
-window.darkness = 0.15;
+window.darkness = 0.3;
 
 
 function changeMovMode() {

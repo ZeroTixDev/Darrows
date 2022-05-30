@@ -4,6 +4,8 @@ const Arrow = require('../server/arrow.js');
 const createInput = require('./createInput.js')
 
 
+// console.log(createInput)
+
 
 // console.log('example input', createInput())
 
@@ -13,6 +15,11 @@ function copyInput(input) {
 		copy[key] = input[key];
 	}
 	return copy;
+}
+
+function createClone(arena, obstacles, char) {
+	const Player = require('../server/player.js');
+	return new Player(Math.random(), arena, obstacles, char);
 }
 
 // function simulatePlayer(player, arena) {
@@ -58,7 +65,23 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 			player.timeSpentFreezing += dt;
 		}
 
+	
+
 		if (player.character.Ability != null) {
+			// duplex
+			if (player.character.Ability.name === 'Clone') {
+				if (input.shift && player.abilityCooldown <= 0) {
+					const clone = createClone(arena, obstacles, 'Duplex')
+					clone.x = player.x;
+					clone.y = player.y;
+					clone.name = player.name;
+					clone.passive = false;
+					player.clones.push(clone)
+					player.abilityCooldown = 6;
+					player.maxCd = player.abilityCooldown;
+					// console.log(player.clones)
+				}
+			}
 			// Kronos/Klaydo
 			if (player.character.Ability.name === 'Freeze-Arrow') {
 				let newestArrow = null;
@@ -73,7 +96,7 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 							/* im using dt instead of 0 because player updates before arrow which detects deleting afterward*/)) {
 						arrow.unfreeze();
 						player.freezing = false;
-						player.abilityCooldown = 0.25 + player.timeSpentFreezing * 0.8;
+						player.abilityCooldown = 0.5 + player.timeSpentFreezing * 0.8;
 						player.maxCd = player.abilityCooldown;
 						player.timeSpentFreezing = 0;
 						// console.log(arrow)
@@ -95,10 +118,10 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 					const distX = player.x - other.x;
 					const distY = player.y - other.y;
 					const dist = Math.sqrt(distX * distX + distY * distY);
-					if (dist < 300) {
+					if (dist < 300 + other.radius) {
 						const angle = Math.atan2(other.y - player.y, other.x - player.x);
-						other.xv -= Math.cos(angle) * 0.15;
-						other.yv -= Math.sin(angle) * 0.15;
+						other.xv -= Math.cos(angle) * 0.12	;
+						other.yv -= Math.sin(angle) * 0.12;
 					}
 				}
 			}
@@ -149,9 +172,9 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 					player.gravityTime += dt;
 				}
 
-				if ((!input.shift && !player.passive && player.usingGravity) || (player.usingGravity && !player.passive && !hasGravityArrow && player.gravityTime > 0)) {
+				if ((!input.shift && !player.passive && player.usingGravity) || (player.usingGravity && !player.passive && !hasGravityArrow && player.gravityTime > 0) || (player.usingGravity && !player.passive && player.gravityTime > 5)) {
 					player.usingGravity = false;
-					player.abilityCooldown = 1 + (player.gravityTime * 0.7);
+					player.abilityCooldown = 2 + (player.gravityTime * 0.8);
 					player.maxCd = player.abilityCooldown;
 					// console.log(player.gravityTime, player.abilityCooldown)
 					player.gravityTime = 0;
@@ -429,7 +452,7 @@ function boundPlayerObstacle(player, obstacle) {
 		const collision = testPolygonCircle(obstacle.sat, playerSat, res);
 		if (collision) {
 			if (obstacle.type === 'point' && !player.passive) {
-				player.score += 5 * dt;
+				player.score += 10 * dt;
 			} else {
 				player.x += res.overlapV.x;
 				player.y += res.overlapV.y;
@@ -508,5 +531,7 @@ function boundPlayer(player, arena, obstacles) {
 
 
 // if (module) {
+
+// console.log(createInput)
 module.exports = { updatePlayer, copyInput, boundPlayer, collidePlayers, createInput }
 // }

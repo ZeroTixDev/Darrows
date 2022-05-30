@@ -48,7 +48,7 @@ function changeHero(char) {
 
 
 window.bg = new Audio();
-bg.src = './sounds/metro.mp3';
+bg.src = './sounds/full-stop.mp3';
 bg.volume = musicVolume;
 bg.loop = true;
 

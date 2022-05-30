@@ -90,16 +90,16 @@ const Character = {
 		}
 	},
 	Crescent: {
-		Color: '#7325b3',
-		ArrowCdColor: '#8956b3',
+		Color: '#8f1ced',
+		ArrowCdColor: '#4f008f',
 		Name: 'Crescent',
 		Passive: 'Move-Fast-Slow-Aim',
 		Ability: { 
 			name: 'Gravity',
 		},
 		Html: {
-			color: '#7325b3',
-			nameColor: '#7325b3',
+			color: '#8f1ced',
+			nameColor: '#8f1ced',
 			name: 'Crescent',
 			desc: 'Gravitate your arrows towards you',
 		},
@@ -140,6 +140,23 @@ const Character = {
 			desc: 'Teleport to your arrows',
 		},
 	},
+
+	// Duplex: {
+	// 	Color: '#002dd1',
+	// 	ArrowCdColor: '#001d87',
+	// 	Name: 'Duplex',
+	// 	Passive: null,
+	// 	// Passive: 'Move-Fast-Slow-Aim',
+	// 	Ability: { 
+	// 		name: 'Clone',
+	// 	},
+	// 	Html: {
+	// 		color: '#002dd1',
+	// 		nameColor: '#002dd1',
+	// 		name: 'Duplex',
+	// 		desc: 'Confuse opponents with clones',
+	// 	},
+	// },
 //   ZeroTix: {
 // 		Color: '#fce0bd',
 //  		ArrowCdColor: '#fce0bd',

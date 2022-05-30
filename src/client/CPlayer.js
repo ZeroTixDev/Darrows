@@ -69,6 +69,8 @@ class CPlayer {
 			this[key] = data[key]
 		}
 
+		console.log(data)
+
 	
 		this.server = {
 			x: this.x,

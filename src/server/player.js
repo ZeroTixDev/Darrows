@@ -1,6 +1,8 @@
 const { createInput } = require('../shared/func.js');
 const Character = require('../shared/character.js');
 
+// console.log(createInput)
+
 module.exports = class Player {
 	constructor(id, arena, obstacles, character = 'Default') {
 		this.character = Character[character];
@@ -20,10 +22,12 @@ module.exports = class Player {
 		this.timer = 0;
 		this.angleVel = 0;
 		this.input = createInput();
-		this.fric = 0.955;
+		// this.fric = 0.955;
+		this.fric = 0.945//0.955;
 		this.bfric = 0.985;
 		this.kills = 0;
-		this.speed = 20;
+		this.speed = 22//20;
+		// this.speed = 20;
 		this.deaths = 0;
 		this.arrowsHit = 0;
 		this.arrowsShot = 0;
@@ -64,7 +68,7 @@ module.exports = class Player {
 		this.gravityTime = 0;
 		this.gravX = null;
 		this.gravY = null;
-
+		this.clones = [];
 		this.name = `Agent ${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
 	}
 	spawn(obstacles, arena) {
@@ -126,6 +130,11 @@ module.exports = class Player {
 		const pack = this.pack();
 		const diffPack = {};
 		for (const key of Object.keys(pack)) {
+			if (Array.isArray(pack[key])) {
+				if (pack[key].compare(player[key])) {
+					continue;
+				}
+			}
 			if (pack[key] === player[key]) {
 				continue;
 			}
@@ -157,8 +166,13 @@ module.exports = class Player {
 			characterName: this.character.Name,
 			abilityCd: this.abilityCooldown,
 			maxCd: this.maxCd,
+			// clones: this.clones,
 			// timer: this.timer,
 		};
+
+		// if (this.character.Name === 'Duplex') {
+		// 	obj.clones = this.clones.map((clone) => clone.pack());
+		// }
 
 		if (this.character.Name === 'Crescent') {
 			// obj.gravX = Math.round(this.gravX);
@@ -192,4 +206,15 @@ module.exports = class Player {
 
 		return obj;
 	}
+}
+
+Array.prototype.compare = function(testArr) {
+    if (this.length != testArr.length) return false;
+    for (var i = 0; i < testArr.length; i++) {
+        if (this[i].compare) { //To test values in nested arrays
+            if (!this[i].compare(testArr[i])) return false;
+        }
+        else if (this[i] !== testArr[i]) return false;
+    }
+    return true;
 }
