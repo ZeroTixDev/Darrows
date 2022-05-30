@@ -260,6 +260,7 @@ function newMessage(obj, socket, clientId) {
 		let writeMessage = true;
 		if (players[clientId] && chatTest(obj.chat)) {
 			if (obj.chat.slice(0, 5) == "/name") {
+				// test
 				let newName = obj.chat.slice(6);
 				let unique = true;
 				for (const player of Object.values(players)) {
