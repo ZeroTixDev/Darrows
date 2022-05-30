@@ -19,7 +19,7 @@ function copyInput(input) {
 
 function createClone(arena, obstacles, char) {
 	const Player = require('../server/player.js');
-	return new Player(Math.random(), arena, obstacles, char);
+	return new Player(Math.random(), arena, obstacles, char, true);
 }
 
 // function simulatePlayer(player, arena) {
@@ -40,8 +40,20 @@ function createArrow(player, arrows, fake = false) {
 	return arrows[arrowCounter]
 }
 
-function updatePlayer(player, input, arena, obstacles, arrows, players) {
+function updatePlayer(player, input, arena, obstacles, arrows, players, isClone=false) {
 	if (!player) return;
+	if (player.clones.length > 0) {
+		// console.log('updating clones')
+		player.changedClones = true;
+		const cloneInput = {...input};
+		if (player.arrowing <= 0) {
+			cloneInput.up = input.down;
+			cloneInput.down = input.up;
+			cloneInput.left = input.right;
+			cloneInput.right = input.left;
+		}
+		player.clones.forEach((clone) => updatePlayer(clone, cloneInput, arena, obstacles, arrows, players, true))
+	}
 	if (!player.dying) {
 		player.spawnProtectionTimer += dt;
 		if (player.passive && player.spawnProtectionTimer > 0.75) {
@@ -67,20 +79,48 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 
 	
 
-		if (player.character.Ability != null) {
-			// duplex
+		if (player.character.Ability != null && !isClone) {
+			// Xerox
 			if (player.character.Ability.name === 'Clone') {
-				if (input.shift && player.abilityCooldown <= 0) {
-					const clone = createClone(arena, obstacles, 'Duplex')
+				if (input.shift && player.abilityCooldown <= 0 && player.clones.length <= 1) {
+					const clone = createClone(arena, obstacles, 'Xerox')
+					const bruh = Math.random() < 0.5;
 					clone.x = player.x;
 					clone.y = player.y;
+					// if (bruh) {
+					// 	player.x += Math.cos(player.angle) * (player.radius / 2);
+					// 	player.y += Math.sin(player.angle) * (player.radius / 2);
+					// 	clone.x -= Math.cos(player.angle) * (player.radius / 2);
+					// 	clone.y -= Math.sin(player.angle) * (player.radius / 2);
+					// } else {
+					// 	player.x -= Math.cos(player.angle) * (player.radius / 2);
+					// 	player.y -= Math.sin(player.angle) * (player.radius / 2);
+					// 	clone.x += Math.cos(player.angle) * (player.radius / 2);
+					// 	clone.y += Math.sin(player.angle) * (player.radius / 2)
+					// }
+					clone.xv = player.xv;
+					clone.yv = player.yv;
 					clone.name = player.name;
 					clone.passive = false;
+					clone.angle = player.angle;
+					clone.lifeTime = 15;
 					player.clones.push(clone)
-					player.abilityCooldown = 6;
+					player.abilityCooldown = 4;
 					player.maxCd = player.abilityCooldown;
+					player.changedClones = true;
 					// console.log(player.clones)
 				}
+				const deleteArr = [];
+				player.clones.forEach((clone, i) => {
+					clone.lifeTime -= dt;
+					if (clone.lifeTime <= 0) {
+						deleteArr.push(i)
+					}
+				})
+				deleteArr.forEach((i) => {
+					player.clones.splice(i, 1);
+					player.changedClones = true;
+				})
 			}
 			// Kronos/Klaydo
 			if (player.character.Ability.name === 'Freeze-Arrow') {
@@ -123,6 +163,34 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 						other.xv -= Math.cos(angle) * 0.12	;
 						other.yv -= Math.sin(angle) * 0.12;
 					}
+				}
+			}
+			if (player.character.Ability.name === 'Arrow-Split') {
+				if (input.shift && player.abilityCooldown <= 0) {
+					for (const arrowId of Object.keys(arrows)) {
+						const arrow = arrows[arrowId];
+						if (arrow.parent != player.id || arrow.dead) continue;
+						arrow.angle -= Math.PI / 16
+						const mag = Math.sqrt(arrow.xv * arrow.xv + arrow.yv * arrow.yv);
+						arrow.xv = Math.cos(arrow.angle) * mag;
+						arrow.yv = Math.sin(arrow.angle) * mag;
+						const createdArrow = createArrow(player, arrows, isClone);
+						createdArrow.x = arrow.x;
+						createdArrow.y = arrow.y;
+						createdArrow.life = arrow.life;
+						createdArrow.speed = mag;
+						createdArrow.angle = arrow.angle + (Math.PI / 16) * 2;
+						createdArrow.max = arrow.max;
+						createdArrow.alpha = arrow.alpha;
+						createdArrow.xv = Math.cos(createdArrow.angle) * mag;
+						createdArrow.yv = Math.sin(createdArrow.angle) * mag;
+						// arrow.x += arrow.xv * 1;
+						// arrow.y += arrow.yv * 1;
+						// createdArrow.x += createdArrow.xv * 1;
+						// createdArrow.y += createdArrow.yv * 1;
+					}
+					player.abilityCooldown = 3;
+					player.maxCd = player.abilityCooldown;
 				}
 			}
 			if (player.character.Ability.name === 'Arrow-Teleport') {
@@ -359,11 +427,15 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 				player.angleVel = 0;
 				// }
 			} else {
-				if (player.arrowing > 0 && player.timer <= 0) {
+				if (player.arrowing > 0 && player.timer <= 0 ) {
 					// shoot
 					player.arrowsShot++;
-					const createdArrow = createArrow(player, arrows)
+					const createdArrow = createArrow(player, arrows, isClone)
 					player.timer = player.timerMax;
+					// if (player.character.Ability.name === 'Clone') {
+					// 	player.clones = [];
+					// 	player.changedClones = true;
+					// }
 					if (player.character.Ability != null && player.character.Ability.name === 'Gravity' && player.usingGravity) {
 						createdArrow.gravity = true;
 					}
@@ -415,6 +487,10 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 		}
 		// player.angleVel *= 0;
 	} else {
+		if (player.clones.length > 0) {
+			player.clones = [];
+			player.changedClones = true;
+		}
 		player.radius -= 60 * dt;
 		if (player.radius <= 1) {
 			player.radius = 1;
@@ -440,6 +516,7 @@ function updatePlayer(player, input, arena, obstacles, arrows, players) {
 
 
 function boundPlayerObstacle(player, obstacle) {
+	// console.log(player)
 	const rectHalfSizeX = obstacle.width / 2;
 	const rectHalfSizeY = obstacle.height / 2;
 	const rectCenterX = obstacle.x + rectHalfSizeX;
@@ -480,11 +557,24 @@ function boundPlayerObstacle(player, obstacle) {
 
 function collidePlayers(players, arena, obstacles) {
 	const keys = Object.keys(players)
+	
+	for (const player of Object.values(players)) {
+		if (player.clones.length > 0) {
+			player.clones.forEach((clone, i) => {
+				keys.push({ clone: true, parent: player.id, index: i })
+			})
+		}
+	}
+	// console.log(keys)
 	for (let i = 0; i < keys.length; i++) {
-		const player1 = players[keys[i]];
+		const player1 = typeof keys[i] === 'object' && keys[i].clone
+			? players[keys[i].parent].clones[keys[i].index]
+			: players[keys[i]]
 		for (let j = 0; j < keys.length; j++) {
 			if (i >= j) continue;
-			const player2 = players[keys[j]];
+			const player2 = typeof keys[j] === 'object' && keys[j].clone
+				? players[keys[j].parent].clones[keys[j].index]
+				: players[keys[j]]
 			const distX = player1.x - player2.x;
 			const distY = player1.y - player2.y;
 			if (!player1.passive && !player2.passive &&

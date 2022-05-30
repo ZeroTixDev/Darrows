@@ -123,7 +123,7 @@ ws.onopen = () => {
 
 	ws.onclose = () => {
 		if (!window.kicked) {
-			alert('Disconnected.')
+			// alert('Disconnected.')
 		}
 	};
 

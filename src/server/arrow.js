@@ -43,6 +43,7 @@ module.exports = class Arrow {
 		if (arrow.dead || this.dead) return;
 		// if (arrow.freezed || this.freezed) return;
 		if (this.fake && this.parent === arrow.parent) return;
+		if (this.parent === arrow.parent) return;
 		const distX = arrow.x - this.x;
 		const distY = arrow.y - this.y;
 		if (distX <= arrow.radius + this.radius && distY <= arrow.radius + this.radius) {

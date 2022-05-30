@@ -141,22 +141,39 @@ const Character = {
 		},
 	},
 
-	// Duplex: {
-	// 	Color: '#002dd1',
-	// 	ArrowCdColor: '#001d87',
-	// 	Name: 'Duplex',
-	// 	Passive: null,
-	// 	// Passive: 'Move-Fast-Slow-Aim',
-	// 	Ability: { 
-	// 		name: 'Clone',
-	// 	},
-	// 	Html: {
-	// 		color: '#002dd1',
-	// 		nameColor: '#002dd1',
-	// 		name: 'Duplex',
-	// 		desc: 'Confuse opponents with clones',
-	// 	},
-	// },
+	Xerox: {
+		Color: '#002dd1',
+		ArrowCdColor: '#001d87',
+		Name: 'Xerox',
+		Passive: null,
+		// Passive: 'Move-Fast-Slow-Aim',
+		Ability: { 
+			name: 'Clone',
+		},
+		Html: {
+			color: '#002dd1',
+			nameColor: '#002dd1',
+			name: 'Xerox',
+			desc: 'Confuse opponents with clones',
+		},
+	},
+	// mince #edd011
+	Mince: {
+		Color: '#edd011',
+		ArrowCdColor: '#877500',
+		Name: 'Mince',
+		Passive: null,
+		// Passive: 'Move-Fast-Slow-Aim',
+		Ability: { 
+			name: 'Arrow-Split',
+		},
+		Html: {
+			color: '#edd011',
+			nameColor: '#edd011',
+			name: 'Mince',
+			desc: 'Split your arrows in half',
+		},
+	},
 //   ZeroTix: {
 // 		Color: '#fce0bd',
 //  		ArrowCdColor: '#fce0bd',

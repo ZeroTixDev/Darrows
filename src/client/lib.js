@@ -23,7 +23,7 @@ window.tab = false;
 window.ghue = 0;
 window.roundTime = 0;
 window.music = true;
-window.musicVolume = 0.2;
+window.musicVolume = 0.4;
 window.intermission = false;
 window.interMissionMessage = 'we at darrows incorporated are very professional';
 window.interMessages = [
@@ -172,7 +172,12 @@ function run(time =  0) {
 	for (const playerId of Object.keys(players)) {
 		const player = players[playerId];
 
-		player.smooth(delta, playerId === selfId);
+		player.smooth(delta);
+		if (player.clones && player.clones.length > 0) {
+			player.clones.forEach((clone) => {
+				clone.smooth(delta)
+			})
+		}
 		
 		player.chatMessageTimer -= dt;
 
