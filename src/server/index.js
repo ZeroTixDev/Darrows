@@ -297,7 +297,7 @@ function newMessage(obj, socket, clientId) {
 				round.intermission = true;
 				round.interStart = true;
 				writeMessage = false;
-			} else if (obj.chat.slice(0, 5) === '/char' && players[clientId].dev) {
+			} else if (obj.chat.slice(0, 5) === '/char') {
 				const characterName = obj.chat.slice(6);
 				if (Character[characterName] != null) {
 					players[clientId].character = Character[characterName]
