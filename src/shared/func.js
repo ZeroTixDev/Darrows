@@ -82,7 +82,7 @@ function updatePlayer(player, input, arena, obstacles, arrows, players, isClone=
 		if (player.character.Ability != null && !isClone) {
 			// Xerox
 			if (player.character.Ability.name === 'Clone') {
-				if (input.shift && player.abilityCooldown <= 0 && player.clones.length <= 1) {
+				if (input.shift && player.abilityCooldown <= 0 && player.clones.length < 1) {
 					const clone = createClone(arena, obstacles, 'Xerox')
 					const bruh = Math.random() < 0.5;
 					clone.x = player.x;
@@ -103,9 +103,9 @@ function updatePlayer(player, input, arena, obstacles, arrows, players, isClone=
 					clone.name = player.name;
 					clone.passive = false;
 					clone.angle = player.angle;
-					clone.lifeTime = 15;
+					clone.lifeTime = 8//15;
 					player.clones.push(clone)
-					player.abilityCooldown = 4;
+					player.abilityCooldown = 8;
 					player.maxCd = player.abilityCooldown;
 					player.changedClones = true;
 					// console.log(player.clones)
@@ -152,18 +152,18 @@ function updatePlayer(player, input, arena, obstacles, arrows, players, isClone=
 				}
 			}
 			// homing arrow for harpazo
-			if (player.character.Passive === 'Homing-Player') {
-				for (const other of Object.values(players)) {
-					if (player.id === other.id) continue;
-					const distX = player.x - other.x;
-					const distY = player.y - other.y;
-					const dist = Math.sqrt(distX * distX + distY * distY);
-					if (dist < 300 + other.radius) {
-						const angle = Math.atan2(other.y - player.y, other.x - player.x);
-						other.xv -= Math.cos(angle) * 0.12	;
-						other.yv -= Math.sin(angle) * 0.12;
-					}
-				}
+			if (player.character.Passive === 'Slow-Arrow') {
+				// for (const other of Object.values(players)) {
+				// 	if (player.id === other.id) continue;
+				// 	const distX = player.x - other.x;
+				// 	const distY = player.y - other.y;
+				// 	const dist = Math.sqrt(distX * distX + distY * distY);
+				// 	if (dist < 300 + other.radius) {
+				// 		const angle = Math.atan2(other.y - player.y, other.x - player.x);
+				// 		other.xv -= Math.cos(angle) * 0.12;
+				// 		other.yv -= Math.sin(angle) * 0.12;
+				// 	}
+				// }
 			}
 			if (player.character.Ability.name === 'Arrow-Split') {
 				if (input.shift && player.abilityCooldown <= 0) {
@@ -192,7 +192,7 @@ function updatePlayer(player, input, arena, obstacles, arrows, players, isClone=
 						// createdArrow.y += createdArrow.yv * 1;
 					}
 					if (foundArrow) {
-						player.abilityCooldown = 3;
+						player.abilityCooldown = 5;
 						player.maxCd = player.abilityCooldown;
 					}
 				}

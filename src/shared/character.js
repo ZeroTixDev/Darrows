@@ -107,22 +107,22 @@ const Character = {
 	// #fa2f20
 	// #a6150a
 	
-	Harpazo: {
-		Color: '#e09112',
-		ArrowCdColor: '#a66f17',
-		Name: 'Harpazo',
-		Passive: 'Homing-Player',
-		// Passive: 'Move-Fast-Slow-Aim',
-		Ability: { 
-			name: null,
-		},
-		Html: {
-			color: '#e09112',
-			nameColor: '#e09112',
-			name: 'Harpazo',
-			desc: 'Home players towards you',
-		},
-	},
+	// Harpazo: {
+	// 	Color: '#e09112',
+	// 	ArrowCdColor: '#a66f17',
+	// 	Name: 'Harpazo',
+	// 	Passive: 'Slow-Arrow',
+	// 	// Passive: 'Move-Fast-Slow-Aim',
+	// 	Ability: { 
+	// 		name: null,
+	// 	},
+	// 	Html: {
+	// 		color: '#e09112',
+	// 		nameColor: '#e09112',
+	// 		name: 'Harpazo',
+	// 		desc: 'Create an aura that slows all arrows',
+	// 	},
+	// },
 
 	Vice: {
 		Color: '#b8b8b8',
