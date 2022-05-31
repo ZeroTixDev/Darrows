@@ -95,6 +95,8 @@ let blockCanvas = document.createElement('canvas');
 let blockCtx = blockCanvas.getContext('2d');
 let hits = [];
 
+window.teamMode = false;
+
 /* state */
 
 let input = createInput();

@@ -4,9 +4,14 @@ window.render = () => {
 
 	// drawArenaBackground('#b3b3b3')
 	// drawArena('#d6d6d6');
-	drawArenaBackground('#750016');
-	drawArena('#a30321')
-	drawTiles('#750016')
+	
+	// drawArenaBackground('#750016');
+	// drawArena('#a30321')
+	// drawTiles('#750016')
+
+	drawArenaBackground('#1f2229');
+	drawArena('#323645')
+	drawTiles('#1f2229');
 	// drawTiles('gray');
 
 	drawObstacles();
@@ -70,7 +75,8 @@ function drawObstacles() {
 
 		if (type === 'obstacle') {
 			// ctx.fillStyle = '#b3b3b3';
-			ctx.fillStyle = '#750016'
+			// ctx.fillStyle = '#750016'
+			ctx.fillStyle = '#1f2229'
 		} else if (type === 'bounce') {
 			ctx.fillStyle = '#32a852';
 		} else if (type === 'point') {
@@ -93,7 +99,7 @@ function drawArrows() {
 		const { lerpAngle, radius, life, alpha, parent, fake, server } = arrows[arrowId]
 		const { x, y } = arrows[arrowId].pos;
 		ctx.globalAlpha = fake && parent === selfId ? alpha * 0.5 : alpha; // life 
-		if (fake && players[selfId].characterName === 'Xerox' && players[selfId].clones.length > 0) {
+		if (fake && players[selfId]?.characterName === 'Xerox' && players[selfId].clones && players[selfId].clones.length > 0) {
 			let trans = false;
 			players[selfId].clones.forEach((clone) => {
 				if (clone.id === arrows[arrowId].parent) {
@@ -282,16 +288,16 @@ function renderPlayerEntity(player, playerId, isClone) {
 					x: other.pos.x + Math.cos(player.interpAngle) * ((player.arrowing / 3) * 200),
 					y: other.pos.y + Math.sin(player.interpAngle) * ((player.arrowing / 3) * 200),
 				}
-				ctx.globalAlpha = 0.5;
+				ctx.globalAlpha = 0.8;
 				const destPos = offset(dest.x, dest.y);
 				ctx.beginPath();
 				ctx.arc(destPos.x, destPos.y, player.radius, 0, Math.PI * 2);
 				ctx.fill()
 				// ctx.fillStyle = 'black';
-				ctx.textAlign = 'center';
-				ctx.textBaseline = 'middle'
-				ctx.font = `22px ${window.font}`
-				ctx.fillText(`${player.name}`, destPos.x, destPos.y + player.radius * 1.5)
+				// ctx.textAlign = 'center';
+				// ctx.textBaseline = 'middle'
+				// ctx.font = `22px ${window.font}`
+				// ctx.fillText(`${player.name}`, destPos.x, destPos.y + player.radius * 1.5)
 			}
 			ctx.globalAlpha = 1;
 		}
@@ -447,6 +453,14 @@ function drawOverlay() {
 	ctx.fillStyle = '#eb0000';
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	ctx.globalAlpha = 1;
+
+	if (window.teamMode) {
+		ctx.fillStyle = Character[players[selfId]?.characterName]?.Color;
+		ctx.font = `30px ${window.font}`;
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText('[TEAMS]', canvas.width - 100, canvas.height - 50)
+	}
 }
 
 function drawIntermission() {
@@ -478,14 +492,16 @@ function drawMinimap() {
 
 		ctx.globalAlpha = 0.75;
 		// ctx.fillStyle = '#707070';
-		ctx.fillStyle = '#a30321'
+		// ctx.fillStyle = '#a30321'
+		ctx.fillStyle = '#323645'
 		ctx.fillRect(0, canvas.height - mheight, mwidth, mheight);
 
 		ctx.fillStyle = '#595959'
 		for (const { x, y, width, height, type } of obstacles) {
 			if (type == "obstacle") {
 				// ctx.fillStyle = '#595959';
-				ctx.fillStyle = '#750016'
+				// ctx.fillStyle = '#750016'
+				ctx.fillStyle = '#1f2229'
 			} else if (type == "bounce") {
 				ctx.fillStyle = '#00fc08';
 			} else if (type === 'point') {

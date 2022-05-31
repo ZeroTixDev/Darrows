@@ -167,10 +167,12 @@ function updatePlayer(player, input, arena, obstacles, arrows, players, isClone=
 			}
 			if (player.character.Ability.name === 'Arrow-Split') {
 				if (input.shift && player.abilityCooldown <= 0) {
+					let foundArrow = false;
 					for (const arrowId of Object.keys(arrows)) {
 						const arrow = arrows[arrowId];
 						if (arrow.parent != player.id || arrow.dead) continue;
-						arrow.angle -= Math.PI / 16
+						foundArrow = true;
+						arrow.angle -= Math.PI / 32
 						const mag = Math.sqrt(arrow.xv * arrow.xv + arrow.yv * arrow.yv);
 						arrow.xv = Math.cos(arrow.angle) * mag;
 						arrow.yv = Math.sin(arrow.angle) * mag;
@@ -179,7 +181,7 @@ function updatePlayer(player, input, arena, obstacles, arrows, players, isClone=
 						createdArrow.y = arrow.y;
 						createdArrow.life = arrow.life;
 						createdArrow.speed = mag;
-						createdArrow.angle = arrow.angle + (Math.PI / 16) * 2;
+						createdArrow.angle = arrow.angle + (Math.PI / 32) * 2;
 						createdArrow.max = arrow.max;
 						createdArrow.alpha = arrow.alpha;
 						createdArrow.xv = Math.cos(createdArrow.angle) * mag;
@@ -189,8 +191,10 @@ function updatePlayer(player, input, arena, obstacles, arrows, players, isClone=
 						// createdArrow.x += createdArrow.xv * 1;
 						// createdArrow.y += createdArrow.yv * 1;
 					}
-					player.abilityCooldown = 3;
-					player.maxCd = player.abilityCooldown;
+					if (foundArrow) {
+						player.abilityCooldown = 3;
+						player.maxCd = player.abilityCooldown;
+					}
 				}
 			}
 			if (player.character.Ability.name === 'Arrow-Teleport') {

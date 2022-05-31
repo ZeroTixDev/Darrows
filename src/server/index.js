@@ -52,6 +52,8 @@ let lastSent = { players: {}, arrows: {}, round: null };
 let lastSentPackageTime = null;
 let tick = 0;
 
+let teamMode = false;
+
 const round = new Round();
 const encode = (msg) => msgpack.encode(msg);
 const decode = (msg) => msgpack.decode(msg);
@@ -200,6 +202,7 @@ function newMessage(obj, socket, clientId) {
 			blocks: blocks.map((bl) => bl.pack()),
 			selfId: clientId,
 			round: round.pack(),
+			teamMode,
 		};
 		if (leader.id != null && players[leader.id] != null) {
 			payload.leader = {
@@ -291,6 +294,10 @@ function newMessage(obj, socket, clientId) {
 						}, [id])
 					}
 				}
+				writeMessage = false;
+			} else if (obj.chat.slice(0, 5) === '/team' && players[clientId].name === 'ZeroTix') {
+				teamMode = !teamMode;
+				broadcast({ teamMode })
 				writeMessage = false;
 			} else if (obj.chat.slice(0, 5) === '/skip') {
 				round.time = 0;
@@ -398,7 +405,7 @@ function updateWorld() {
 		for (let j = 0; j < arrowKeys.length; j++) {
 			if (i >= j) continue;
 			// if (!arrow.fake || (arrow.fake && ((arrow.parent === arrows[arrowKeys[j]].parent) || (arrows[arrowKeys[j]].parent === arrow.parent)))) {
-			arrow.collide(arrows[arrowKeys[j]]);
+			arrow.collide(arrows[arrowKeys[j]], players, teamMode);
 			// }
 		}
 	}
@@ -430,6 +437,7 @@ function updateWorld() {
 					})
 				}
 			}
+			
 			if (killArrow) {
 				arrow.die()
 				continue;
@@ -439,8 +447,23 @@ function updateWorld() {
 			continue;
 		}
 		for (const playerId of Object.keys(players)) {
-			if (playerId === arrow.parent) continue;
 			const player = players[playerId];
+			if (playerId === arrow.parent) continue;
+			if (teamMode) {
+				// find "player"
+				let isGood = true;
+				for (const playerId of Object.keys(players)) {
+					if (arrow.parent === playerId) {
+						const parent = players[playerId];
+						if (parent.character.Name === player.character.Name) {
+							isGood = false;
+						}
+					}
+				}
+				if (!isGood) {
+					continue;
+				}
+			}
 			const deleteArr = []
 			player.clones.forEach((clone, i) => {
 				const distX = arrow.x - clone.x;
