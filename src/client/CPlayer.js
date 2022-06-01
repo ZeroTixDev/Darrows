@@ -1,9 +1,20 @@
 
-class CPlayer {
+window.CPlayer = class {
 	constructor(pack) {
+		this.clones = [];
 		for (const key of Object.keys(pack)) {
-			this[key] = pack[key]
+			if (key === 'clones') {
+				for (const clone of pack.clones) {
+					this.clones.push(new CPlayer(clone))
+				}
+			} else {
+				this[key] = pack[key]
+			}
 		}
+		// if (this.clones != null) {
+			// this.clones = this.clones.map((clone) => new CPlayer(clone));
+			// console.log(this.clones);
+		// }
 		this.server = { x: pack.x, y: pack.y, xv: pack.xv, yv: pack.yv }
 		this.pos = { x: this.x, y: this.y };
 		this.interpAngle = pack.angle;
@@ -66,7 +77,27 @@ class CPlayer {
 	}
 	Snap(data) {
 		for (const key of Object.keys(data)) {
-			this[key] = data[key]
+			if (key === 'clones') {
+				const safeIds = [];
+				for (const clone of data.clones) {
+					// console.log(this.clones)
+					const ind = this.clones.map((clone) => clone.id).findIndex((id) => id === clone.id)
+					if (ind > -1) {
+						this.clones[ind].Snap(clone);
+						safeIds.push(clone.id);
+					} else {
+						this.clones.push(new CPlayer(clone));
+						safeIds.push(clone.id);
+					}
+				}
+				for (let i = this.clones.length - 1; i >= 0; i--) {
+					if (!safeIds.includes(this.clones[i].id)) {
+						this.clones.splice(i, 1);
+					}
+				}
+			} else {
+				this[key] = data[key]
+			}
 		}
 
 		// console.log(data)

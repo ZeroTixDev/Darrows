@@ -2,9 +2,17 @@
 window.render = () => {
 	if (!arena) return;
 
-	drawArenaBackground('#b3b3b3')
-	drawArena('#d6d6d6');
-	drawTiles('gray');
+	// drawArenaBackground('#b3b3b3')
+	// drawArena('#d6d6d6');
+	
+	// drawArenaBackground('#750016');
+	// drawArena('#a30321')
+	// drawTiles('#750016')
+
+	drawArenaBackground('#1f2229');
+	drawArena('#323645')
+	drawTiles('#1f2229');
+	// drawTiles('gray');
 
 	drawObstacles();
 	drawBlocks();
@@ -48,7 +56,7 @@ function drawTiles(color) {
 
 	ctx.globalAlpha = 0.8;
 	ctx.strokeStyle = color;
-	ctx.lineWidth = 0.5;
+	ctx.lineWidth = 1//0.5;
 	for (let y = 0; y < arena.height; y += tileSize) {
 		for (let x = 0; x < arena.width; x += tileSize) {
 			if (Math.abs(x - camera.x) > maxDistToCamera ||
@@ -66,7 +74,9 @@ function drawObstacles() {
 		const pos = offset(x, y);
 
 		if (type === 'obstacle') {
-			ctx.fillStyle = '#b3b3b3';
+			// ctx.fillStyle = '#b3b3b3';
+			// ctx.fillStyle = '#750016'
+			ctx.fillStyle = '#1f2229'
 		} else if (type === 'bounce') {
 			ctx.fillStyle = '#32a852';
 		} else if (type === 'point') {
@@ -89,6 +99,17 @@ function drawArrows() {
 		const { lerpAngle, radius, life, alpha, parent, fake, server } = arrows[arrowId]
 		const { x, y } = arrows[arrowId].pos;
 		ctx.globalAlpha = fake && parent === selfId ? alpha * 0.5 : alpha; // life 
+		if (fake && players[selfId]?.characterName === 'Xerox' && players[selfId].clones && players[selfId].clones.length > 0) {
+			let trans = false;
+			players[selfId].clones.forEach((clone) => {
+				if (clone.id === arrows[arrowId].parent) {
+					trans = true;
+				}
+			})
+			if (trans) {
+				ctx.globalAlpha = alpha * 0.5;
+			}
+		}
 		const pos = offset(x, y);
 
 		ctx.translate(pos.x, pos.y);
@@ -109,6 +130,10 @@ function drawArrows() {
 		  && players[arrows[arrowId].parent]?.abilityCd <= 0) {
 			ctx.strokeStyle = 'black';
 			ctx.lineWidth = 4;
+		} else if (players[arrows[arrowId].parent]?.characterName === 'Mince'
+			&& players[arrows[arrowId].parent]?.abilityCd <= 0){
+			ctx.strokeStyle = 'black';
+			ctx.lineWidth = 4;
 		}
 
 		ctx.beginPath();
@@ -118,6 +143,9 @@ function drawArrows() {
 		if (players[arrows[arrowId].parent]?.characterName === 'Vice' && life > 2.75
 		   && players[arrows[arrowId].parent]?.abilityCd <= 0) {
 			ctx.stroke();
+		} else if (players[arrows[arrowId].parent]?.characterName === 'Mince'
+			&& players[arrows[arrowId].parent]?.abilityCd <= 0) {
+			ctx.stroke()
 		}
 
 		ctx.rotate(-(lerpAngle + Math.PI / 2));
@@ -147,18 +175,18 @@ function drawPlayers() {
 	for (const playerId of Object.keys(players)) {
 		const player = players[playerId];
 
-		renderPlayerEntity(player, playerId);
+		renderPlayerEntity(player, playerId, false);
 
 		if (player.clones != null && Array.isArray(player.clones)) {
 			for (const clone of player.clones) {
 				// console.log(clone)
-				renderPlayerEntity(new CPlayer(clone), clone.id)
+				renderPlayerEntity(clone, clone.id, true)
 			}
 		}
 	}
 }
 
-function renderPlayerEntity(player, playerId) {
+function renderPlayerEntity(player, playerId, isClone) {
 	const maxDistToCamera = 1000;
 		if (Math.abs(player.pos.x - camera.x) > maxDistToCamera ||
 			Math.abs(player.pos.y - camera.y) > maxDistToCamera) {
@@ -175,6 +203,10 @@ function renderPlayerEntity(player, playerId) {
 
 		if (player.passive) {
 			ctx.globalAlpha = 0.3;
+		}
+
+		if (isClone && player.lifeTime < 1) {
+			ctx.globalAlpha = (player.lifeTime / 1)
 		}
 
 		ctx.beginPath();
@@ -256,16 +288,16 @@ function renderPlayerEntity(player, playerId) {
 					x: other.pos.x + Math.cos(player.interpAngle) * ((player.arrowing / 3) * 200),
 					y: other.pos.y + Math.sin(player.interpAngle) * ((player.arrowing / 3) * 200),
 				}
-				ctx.globalAlpha = 0.5;
+				ctx.globalAlpha = 0.8;
 				const destPos = offset(dest.x, dest.y);
 				ctx.beginPath();
 				ctx.arc(destPos.x, destPos.y, player.radius, 0, Math.PI * 2);
 				ctx.fill()
 				// ctx.fillStyle = 'black';
-				ctx.textAlign = 'center';
-				ctx.textBaseline = 'middle'
-				ctx.font = `22px ${window.font}`
-				ctx.fillText(`${player.name}`, destPos.x, destPos.y + player.radius * 1.5)
+				// ctx.textAlign = 'center';
+				// ctx.textBaseline = 'middle'
+				// ctx.font = `22px ${window.font}`
+				// ctx.fillText(`${player.name}`, destPos.x, destPos.y + player.radius * 1.5)
 			}
 			ctx.globalAlpha = 1;
 		}
@@ -302,8 +334,12 @@ function renderPlayerEntity(player, playerId) {
 		ctx.rotate(player.interpAngle + Math.PI / 2);
 
 		if (player.arrowing > 0 && (player.characterName !== 'Scry' || (player.characterName === 'Scry' && (playerId === selfId || player.showAim)))) {
-			const ga = (player.characterName === 'Scry' && playerId === selfId && !player.showAim)
+			let ga = (player.characterName === 'Scry' && playerId === selfId && !player.showAim)
 				? 0.5 : 1;
+			if (isClone && player.lifeTime < 1) {
+				ga = (player.lifeTime / 1)
+			}
+			
 			ctx.beginPath();
 			ctx.strokeStyle = 'white';
 			ctx.lineWidth = 1;
@@ -322,12 +358,13 @@ function renderPlayerEntity(player, playerId) {
 			ctx.lineTo(0, -150);
 			ctx.stroke();
 			ctx.globalAlpha = 1 * ga;
-
+			
 			ctx.beginPath();
 			// bow itself (arc)
 			ctx.arc(0, 0, 60, 1.25 * Math.PI, 1.75 * Math.PI, false);
 			ctx.lineWidth = 5;
-			ctx.strokeStyle = '#ff2626';
+			// ctx.strokeStyle = '#ff2626';
+			ctx.strokeStyle = Character[player.characterName].Color
 			if (player.characterName === 'Scry' && playerId === selfId && player.canFakeArrow) {
 				ctx.strokeStyle = '#f700ff'
 			}
@@ -340,6 +377,11 @@ function renderPlayerEntity(player, playerId) {
 
 			// arrow on bow
 			ctx.fillRect(-5, -60 + player.arrowing * 25, 10, 30);
+			// if (player.characterName === 'Vice' && player.abilityCd <= 0) {
+			// 	ctx.strokeStyle = 'black';
+			// 	ctx.lineWidth = 4;
+			// 	ctx.strokeRect(-5, -60 + player.arrowing * 25, 10, 30);
+			// }
 			ctx.globalAlpha = 1;
 		}
 
@@ -356,13 +398,17 @@ function renderPlayerEntity(player, playerId) {
 			ctx.globalAlpha = 1;
 		}
 
-		ctx.fillStyle = 'black';
+		ctx.fillStyle = 'white'//'black';
 		ctx.textAlign = 'center';
 		ctx.textBaseline = 'middle'
 		ctx.font = `22px ${window.font}`
+	if (isClone && player.lifeTime < 1) {
+			ctx.globalAlpha = (player.lifeTime / 1)
+		}
 		if (!player.dying) {
 			ctx.fillText(`${player.name}`, pos.x, pos.y + player.radius * 1.5)
 		}
+	ctx.globalAlpha = 1;
 }
 
 function drawHits() {
@@ -407,6 +453,14 @@ function drawOverlay() {
 	ctx.fillStyle = '#eb0000';
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	ctx.globalAlpha = 1;
+
+	if (window.teamMode) {
+		ctx.fillStyle = Character[players[selfId]?.characterName]?.Color;
+		ctx.font = `30px ${window.font}`;
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText('[TEAMS]', canvas.width - 100, canvas.height - 50)
+	}
 }
 
 function drawIntermission() {
@@ -437,13 +491,17 @@ function drawMinimap() {
 		const mheight = 200;
 
 		ctx.globalAlpha = 0.75;
-		ctx.fillStyle = '#707070';
+		// ctx.fillStyle = '#707070';
+		// ctx.fillStyle = '#a30321'
+		ctx.fillStyle = '#323645'
 		ctx.fillRect(0, canvas.height - mheight, mwidth, mheight);
 
 		ctx.fillStyle = '#595959'
 		for (const { x, y, width, height, type } of obstacles) {
 			if (type == "obstacle") {
-				ctx.fillStyle = '#595959';
+				// ctx.fillStyle = '#595959';
+				// ctx.fillStyle = '#750016'
+				ctx.fillStyle = '#1f2229'
 			} else if (type == "bounce") {
 				ctx.fillStyle = '#00fc08';
 			} else if (type === 'point') {
@@ -471,15 +529,22 @@ function drawMinimap() {
 					ctx.fill()
 				}
 				ctx.fillStyle = '#000000';
-				if (playerId === selfId) {
-					ctx.fillStyle = '#d91414'
-				}
+				// if (playerId === selfId) {
+				// 	ctx.fillStyle = '#d91414'
+				// }
 				if (leader != null && playerId === leader.id) {
 					ctx.fillStyle = '#f2cf1d'
 				}
 				ctx.beginPath();
 				ctx.arc((player.pos.x / arena.width) * mwidth, (canvas.height - mheight) + (player.pos.y / arena.height) * mheight, (player.radius / arena.width) * mwidth, 0, Math.PI * 2)
 				ctx.fill()
+				if (player.clones.length > 0) {
+					player.clones.forEach((clone) => {
+						ctx.beginPath();
+						ctx.arc((clone.pos.x / arena.width) * mwidth, (canvas.height - mheight) + (clone.pos.y / arena.height) * mheight, (clone.radius / arena.width) * mwidth, 0, Math.PI * 2)
+						ctx.fill()
+					})
+				}
 			}
 		}
 	}
@@ -490,8 +555,9 @@ function drawMinimap() {
 function drawDebugText() {
 	ctx.font = `18px ${window.font}`
 
-	ctx.fillStyle = 'rgb(100, 0, 0)';
+	// ctx.fillStyle = 'rgb(100, 0, 0)';
 	ctx.textAlign = 'left'
+	ctx.fillStyle = 'white'
 	if (window.debug) {
 		ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}] | Angle: ${players[selfId] ?.angle.toFixed(1)}`
 			, 200, 800);

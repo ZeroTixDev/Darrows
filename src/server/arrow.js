@@ -39,10 +39,36 @@ module.exports = class Arrow {
 		this.xv = 0;
 		this.yv = 0;
 	}
-	collide(arrow) {
+	collide(arrow, players, teamMode) {
 		if (arrow.dead || this.dead) return;
 		// if (arrow.freezed || this.freezed) return;
 		if (this.fake && this.parent === arrow.parent) return;
+		if (this.parent === arrow.parent) return;
+		if (teamMode) {
+			let other = null;
+			let me = null;
+			for (const playerId of Object.keys(players)) {
+				if (arrow.parent === playerId) {
+					other = players[playerId];
+				}
+				if (this.parent === playerId) {
+					me = players[playerId];
+				}
+				players[playerId].clones.forEach((clone) => {
+					if (clone.id === arrow.parent) {
+						other = clone;
+					}
+					if (clone.id === this.parent) {
+						me = clone;
+					}
+				})
+			}
+			if (me != null && other != null) {
+				if (me.character.Name === other.character.Name) {
+					return;
+				}
+			}
+		}
 		const distX = arrow.x - this.x;
 		const distY = arrow.y - this.y;
 		if (distX <= arrow.radius + this.radius && distY <= arrow.radius + this.radius) {
