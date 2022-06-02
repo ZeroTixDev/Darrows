@@ -663,6 +663,7 @@ function drawTimer() {
 }
 
 function drawChat() {
+	if (!showChat) return;
 	ctx.globalAlpha = 0.7;
 	ctx.fillStyle = '#0f0f0f';
 	ctx.fillRect(0, 0, 375, 250);

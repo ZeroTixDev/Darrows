@@ -44,11 +44,10 @@ const currentChatMessages = [];
 const spacings = [];
 const updateRate = 120;
 global.dt = 1 / 120;
-const ipLimit = 6;
+const ipLimit = 15;
 const startTime = Date.now();
 const leader = { id: null, score: null }
 const globalLeader = { name: null, score: 0 }
-let chats = [];
 let lastSent = { players: {}, arrows: {}, round: null };
 let lastSentPackageTime = null;
 let tick = 0;
@@ -262,7 +261,6 @@ function newMessage(obj, socket, clientId) {
 		players[clientId].input = obj.data;
 	}
 	if (obj.chat != undefined) {
-		chats.push(obj.chat)
 		let writeMessage = true;
 		if (players[clientId] && chatTest(obj.chat)) {
 			if (obj.chat.slice(0, 5) == "/name") {
@@ -348,7 +346,7 @@ function newMessage(obj, socket, clientId) {
 				data: obj.chat,
 				name: inGame ? players[clientId].name : clients[clientId]._name,
 				dev: inGame ? players[clientId].dev : clients[clientId]._playerStats.dev,
-				timer: 10,
+				timer: 20,
 			}
 			// console.log(msg)
 			currentChatMessages.push(msg);

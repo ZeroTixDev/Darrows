@@ -25,7 +25,7 @@ function trackKeys(event) {
 			ref.chat.blur()
 			ref.chat.value = '';
 			return;
-		} else if (event.type === 'keydown') {
+		} else if (event.type === 'keydown' && showChat) {
 			chatOpen = true;
 			ref.chatDiv.classList.remove('hidden')
 			ref.chat.focus()
@@ -41,6 +41,18 @@ function trackKeys(event) {
 		overlaying = false;
 		overlayAlpha = 0;
 		return;
+	}
+	if (event.code === 'KeyO' && event.type === 'keydown') {
+		// toggle chat
+		showChat = !showChat;
+		if (!showChat) {
+			ref.chat.blur()
+			ref.chat.value = '';
+			ref.chatMessageDiv.classList.add('hidden')
+			ref.chatDiv.classList.add('hidden')
+		} else {
+			ref.chatMessageDiv.classList.remove('hidden')
+		}
 	}
 	if (event.code === 'KeyM' && event.type === 'keydown') {
 		window.music = !window.music;

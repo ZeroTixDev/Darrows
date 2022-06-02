@@ -13,6 +13,7 @@ window.inputsBuffered = 0;
 window.fric = -1;
 window.speed = -1;
 window.autoRespawn = false;
+window.showChat = true;
 window.movementMode = 'wasd';
 window.font = 'Inter'
 window.fps = 60;
