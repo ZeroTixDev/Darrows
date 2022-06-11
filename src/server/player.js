@@ -4,19 +4,21 @@ const Character = require('../shared/character.js');
 // console.log(createInput)
 
 module.exports = class Player {
-	constructor(id, arena, obstacles, character = 'Default') {
+	constructor(id, arena, obstacles, character = 'Default', isClone=false) {
 		this.character = Character[character];
 		this.radius = 40;
 		this.spawn(obstacles, arena)
+		this.isClone = isClone;
 		this.xv = 0;
 		this.yv = 0;
 		this.bxv = 0;
 		this.byv = 0;
+		this.life = 1;
 		this.id = id;
 		this.dying = false;
 		this.timer = 0;
 		this.angle = -Math.PI / 2;
-		this.timerMax = 1.5;
+		this.timerMax = 1.25;
 		this.arrowing = false;
 		this.spaceLock = false;
 		this.timer = 0;
@@ -61,6 +63,14 @@ module.exports = class Player {
 		this.canDash = false;
 		this.dashAngle = 0;
 		this.changedLastTime = false;
+
+		// Beyond
+		this.droneX = 0;
+		this.droneY = 0;
+		this.droneRadius = 20;
+		this.hasDrone = false;
+		this.droneViewRadius = 1000;
+		this.teleportTimer = 0;
 		
 
 		// Crescent
@@ -69,6 +79,7 @@ module.exports = class Player {
 		this.gravX = null;
 		this.gravY = null;
 		this.clones = [];
+		this.changedClones = false;
 		this.name = `Agent ${Math.ceil(Math.random() * 9)}${Math.ceil(Math.random() * 9)}`
 	}
 	spawn(obstacles, arena) {
@@ -76,6 +87,7 @@ module.exports = class Player {
 		this.arrowsHit = 0;
 		this.arrowsShot = 0;
 		this.deaths = 0;
+		this.life = 1;
 		this.kills = 0;
 		this.x = Math.round(Math.random() * arena.width) + this.radius
 		this.y = Math.round(Math.random() * arena.height) + this.radius;
@@ -130,11 +142,6 @@ module.exports = class Player {
 		const pack = this.pack();
 		const diffPack = {};
 		for (const key of Object.keys(pack)) {
-			if (Array.isArray(pack[key])) {
-				if (pack[key].compare(player[key])) {
-					continue;
-				}
-			}
 			if (pack[key] === player[key]) {
 				continue;
 			}
@@ -146,8 +153,8 @@ module.exports = class Player {
 		const obj =  {
 			x: Math.round(this.x * 100) / 100,
 			y: Math.round(this.y * 100) / 100,
-			xv: this.xv,
-			yv: this.yv,
+			// xv: this.xv,
+			// yv: this.yv,
 			dying: this.dying,
 			radius: this.radius,
 			timer: Math.round(this.timer * 100) / 100,
@@ -155,6 +162,7 @@ module.exports = class Player {
 			// yv: this.yv,
 			angle: this.angle,
 			name: this.name,
+			life: this.life,
 			// timer: this.timer,
 			arrowing: this.arrowing,
 			// angleVel: this.angleVel,
@@ -170,9 +178,20 @@ module.exports = class Player {
 			// timer: this.timer,
 		};
 
-		// if (this.character.Name === 'Duplex') {
-		// 	obj.clones = this.clones.map((clone) => clone.pack());
-		// }
+		if (this.isClone) {
+			obj.id = this.id;
+			obj.lifeTime = this.lifeTime;
+		}
+
+		if (this.character.Name === 'Beyond') {
+			obj.droneX = Math.round(this.droneX * 100) / 100;
+			obj.droneY = Math.round(this.droneY * 100) / 100;
+			obj.droneRadius = this.droneRadius;
+			obj.hasDrone = this.hasDrone;
+			obj.droneViewRadius = this.droneViewRadius;
+			obj.teleportTimer = this.teleportTimer;
+		}
+
 
 		if (this.character.Name === 'Crescent') {
 			// obj.gravX = Math.round(this.gravX);

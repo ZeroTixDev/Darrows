@@ -2,6 +2,7 @@
 
 ws = new WebSocket(location.origin.replace(/^http/, 'ws'));
 ws.binaryType = 'arraybuffer'
+window.disconnected = false;
 
 window.Characters = Object.keys(Character);
 window.characterIndex = 0;
@@ -48,7 +49,7 @@ function changeHero(char) {
 
 
 window.bg = new Audio();
-bg.src = './sounds/full-stop.mp3';
+bg.src = './sounds/zero-hour.mp3';
 bg.volume = musicVolume;
 bg.loop = true;
 
@@ -123,7 +124,8 @@ ws.onopen = () => {
 
 	ws.onclose = () => {
 		if (!window.kicked) {
-			alert('Disconnected.')
+			window.disconnected = true;
+			// alert('Disconnected.')
 		}
 	};
 

@@ -8,6 +8,7 @@ module.exports = class Arrow {
 		this.radius = 10;
 		this.life = 3.5;
 		this.speed = (5 + (player.arrowing / 3) * 16) * 0.8;
+		this.maxSpeed = (5 + 16) * 0.8;
 		this.max = player.arrowing === 3;
 		this.alpha = 1;
 		this.dead = false;
@@ -21,6 +22,8 @@ module.exports = class Arrow {
 		this.fake = fake;
 		this.redirected = false;
 		this.gravity = false;
+		this.toSplit = 0;
+		this.split = false;
 	}
 	freeze() {
 		this.freezed = true;
@@ -39,10 +42,36 @@ module.exports = class Arrow {
 		this.xv = 0;
 		this.yv = 0;
 	}
-	collide(arrow) {
+	collide(arrow, players, teamMode) {
 		if (arrow.dead || this.dead) return;
 		// if (arrow.freezed || this.freezed) return;
 		if (this.fake && this.parent === arrow.parent) return;
+		if (this.parent === arrow.parent) return;
+		if (teamMode) {
+			let other = null;
+			let me = null;
+			for (const playerId of Object.keys(players)) {
+				if (arrow.parent === playerId) {
+					other = players[playerId];
+				}
+				if (this.parent === playerId) {
+					me = players[playerId];
+				}
+				players[playerId].clones.forEach((clone) => {
+					if (clone.id === arrow.parent) {
+						other = clone;
+					}
+					if (clone.id === this.parent) {
+						me = clone;
+					}
+				})
+			}
+			if (me != null && other != null) {
+				if (me.character.Name === other.character.Name) {
+					return;
+				}
+			}
+		}
 		const distX = arrow.x - this.x;
 		const distY = arrow.y - this.y;
 		if (distX <= arrow.radius + this.radius && distY <= arrow.radius + this.radius) {
@@ -263,6 +292,7 @@ module.exports = class Arrow {
 			fake: this.fake,
 			redirected: this.redirected,
 			gravity: this.gravity,
+			toSplit: this.toSplit,
 		}
 	}
 }

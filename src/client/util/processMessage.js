@@ -29,12 +29,17 @@ function processMessage(obj) {
 		localStorage.setItem('name', obj.saveName);
 	}
 
+	if (obj.teamMode != undefined) {
+		teamMode = obj.teamMode;
+	}
+
 	if (obj.arena != undefined) {
 		arena = obj.arena;
 	}
 
 	if (obj.obstacles != undefined) {
 		obstacles = obj.obstacles;
+		computeLines();
 	}
 
 	if (obj.blocks != undefined) {

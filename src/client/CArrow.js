@@ -9,12 +9,15 @@ class CArrow {
 		this.server = { x: this.x, y: this.y }
 	}
 	smooth(delta) {
+		// console.log(this.angle);
 		if (!_interpolate) {
 			this.pos.x = this.x;
 			this.pos.y = this.y;
 			this.lerpAngle = this.angle;
 			return;
 		}
+
+		// console.log(this.lerpAngle);
 
 		this.pos.x = lerp(this.pos.x, this.x, delta);
 		this.pos.y = lerp(this.pos.y, this.y, delta);
@@ -32,8 +35,16 @@ class CArrow {
 	Snap(data) {
 
 		for (const key of Object.keys(data)) {
-			this[key] = data[key]
+			// if (data[key] != undefined) {
+				this[key] = data[key]
+			// }
 		}
+
+		// if (data.angle != null) {
+		// 	console.log(data)
+		// }
+
+		// console.log(data.angle)
 
 		this.server = {
 			x: this.x,
