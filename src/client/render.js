@@ -518,7 +518,7 @@ function drawPanel() {
 
 	ctx.fillStyle = '#ddff00';
 
-	ctx.fillText(`[L] ${window.movementMode === 'wasd' ? 'WASD' : 'ULDR'}`, canvas.width - 355, canvas.height - 15);
+	ctx.fillText(`[Del] ${window.movementMode.toUpperCase()}`, canvas.width - 355, canvas.height - 15);
 
 	ctx.fillStyle = '#00c8ff';
 

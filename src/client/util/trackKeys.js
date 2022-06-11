@@ -1,6 +1,8 @@
+
+
 function trackKeys(event) {
 	if (event.repeat && !chatOpen) return event.preventDefault();
-	if (event.code === 'Enter') {
+    if (event.code === 'Enter') {
 		if (chatOpen && event.type === 'keydown') {
 			ref.chatDiv.classList.add('hidden')
 			if (chatTest(ref.chat.value)) {
@@ -54,7 +56,7 @@ function trackKeys(event) {
 		window.tab = event.type === 'keydown';
 		return event.preventDefault()
 	}
-	if (event.code === 'KeyL' && event.type === 'keydown')
+	if (event.code === 'Delete' && event.type === 'keydown')
 		changeMovMode()
 	if (event.code === 'KeyR' && event.type === 'keydown')
 		window.autoRespawn = !window.autoRespawn;
@@ -65,43 +67,13 @@ function trackKeys(event) {
 	if (event.code === 'KeyF' && event.type === 'keydown') {
 		fullscreened ? exitFullscreen(): fullscreen()
 	}
-	// if (event.code === 'KeyL' && event.type === 'keydown') 
-	// 	window._interpolate = !window._interpolate;
-	// if (event.code === 'KeyP' && event.type === 'keydown')
-	// 	window._predict = !window._predict;
-	// if (event.code === 'KeyB'&& event.type === 'keydown') {
-	// 	window.stutter = !window.stutter;
-	// 	// extraLag += 50;
-	// }
-	if ((window.movementMode === 'wasd' && (event.code === 'ArrowLeft' || event.code === 'KeyQ'))
-		|| (window.movementMode === 'arr' && (event.code === 'KeyA' || event.code === 'KeyZ'))) {
-		input.arrowLeft = event.type === 'keydown'
+
+	if (movementModesKeys[window.movementMode][event.code]) {
+		input[movementModesKeys[window.movementMode][event.code]] = event.type === 'keydown'
 		sendInput();
 		inputMessageCount++;
 	}
-	if ((window.movementMode === 'wasd' && (event.code === 'ArrowRight' || event.code === 'KeyE'))
-		|| (window.movementMode === 'arr' && (event.code === 'KeyD' || event.code === 'KeyX'))) {
-		input.arrowRight = event.type === 'keydown'
-		sendInput();
-		inputMessageCount++;
-	}
-	if (event.key === 'Shift' || (window.movementMode === 'wasd' && event.code === 'ArrowUp')) {
-		input.shift = event.type === 'keydown';
-		sendInput();
-		inputMessageCount++;
-		event.preventDefault()
-	}
+	
 	if (event.code == 'KeyT' && event.type === 'keydown')
 		window.showSnapshots = !window.showSnapshots;
-	if (window.movementMode === 'wasd') {
-		if (inputCodes[event.code] === undefined) return;
-		input[inputCodes[event.code].key] = event.type === "keydown";
-		sendInput()
-		inputMessageCount++;
-	} else {
-		if (arrInputCodes[event.code] === undefined) return;
-		input[arrInputCodes[event.code].key] = event.type === 'keydown';
-		sendInput();
-		inputMessageCount++;
-	}
 }
