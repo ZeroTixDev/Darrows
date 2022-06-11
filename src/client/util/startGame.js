@@ -5,7 +5,7 @@ function startGame() {
 	window.addEventListener("keyup", trackKeys);
 
 	window.addEventListener('resize', () => {
-		resize([canvas, gui])
+		resize([canvas, gui, shadowCanvas, leftCanvas, rightCanvas])
 	})
 
 	canvas.addEventListener('mousemove', (event) => {

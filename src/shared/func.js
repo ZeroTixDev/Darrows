@@ -87,6 +87,10 @@ function updatePlayer(player, input, arena, obstacles, arrows, players, isClone=
 					const bruh = Math.random() < 0.5;
 					clone.x = player.x;
 					clone.y = player.y;
+					if (bruh) {
+						player.xv = -player.xv;
+						player.yv = -player.yv;
+					}
 					// if (bruh) {
 					// 	player.x += Math.cos(player.angle) * (player.radius / 2);
 					// 	player.y += Math.sin(player.angle) * (player.radius / 2);
@@ -103,7 +107,8 @@ function updatePlayer(player, input, arena, obstacles, arrows, players, isClone=
 					clone.name = player.name;
 					clone.passive = false;
 					clone.angle = player.angle;
-					clone.lifeTime = 8//15;
+					clone.arrowing = player.arrowing;
+					clone.lifeTime = 10//15;
 					player.clones.push(clone)
 					player.abilityCooldown = 8;
 					player.maxCd = player.abilityCooldown;
@@ -165,6 +170,44 @@ function updatePlayer(player, input, arena, obstacles, arrows, players, isClone=
 				// 	}
 				// }
 			}
+			if (player.character.Ability.name === 'Drone') {
+				if (input.shift && player.abilityCooldown <= 0 && !player.hasDrone) {
+					player.hasDrone = true;
+					player.abilityCooldown = 10;
+					player.maxCd = player.abilityCooldown;
+					player.droneX = player.x + Math.cos(player.angle) * player.radius;
+					player.droneY = player.y + Math.sin(player.angle) * player.radius;
+				}
+				
+				if (player.hasDrone) {
+					const angle = Math.atan2(player.y - player.droneY, player.x - player.droneX);
+					if (player.teleportTimer === 0) {
+						player.droneX += Math.cos(angle) * (175) * dt;
+						player.droneY += Math.sin(angle) * (175) * dt;
+					}
+					if (input.shift && player.teleportTimer === 0 && player.abilityCooldown <= 0) {
+						player.teleportTimer = 1;
+					}
+					if (player.teleportTimer > 0) {
+						player.teleportTimer -= dt;
+						if (player.teleportTimer <= 0) {
+							player.teleportTimer = 0;
+							player.hasDrone = false;
+							player.x = player.droneX;
+							player.y = player.droneY;
+						}
+					}
+					// const distX = player.x - player.droneX;
+					// const distY = player.y - player.droneY;
+					// const dist = Math.sqrt(distX * distX + distY + distY);
+					// if (dist <= 150) {
+					// 	player.droneX = player.x + Math.cos(angle) * 150;
+					// 	player.droneY = player.y + Math.sin(angle) * 150;
+					// }
+				} else {
+					player.teleportTimer = 0;
+				}
+			}
 			if (player.character.Ability.name === 'Arrow-Split') {
 				if (input.shift && player.abilityCooldown <= 0) {
 					let foundArrow = false;
@@ -172,28 +215,39 @@ function updatePlayer(player, input, arena, obstacles, arrows, players, isClone=
 						const arrow = arrows[arrowId];
 						if (arrow.parent != player.id || arrow.dead) continue;
 						foundArrow = true;
-						arrow.angle -= Math.PI / 32
-						const mag = Math.sqrt(arrow.xv * arrow.xv + arrow.yv * arrow.yv);
+						if (arrow.toSplit == 0) {
+							arrow.toSplit = 0.25; // half a second
+							arrow.split = true;
+						}
+					}
+
+					if (foundArrow) {
+						player.abilityCooldown = 6;
+						player.maxCd = player.abilityCooldown;
+					}
+				}
+				for (const arrowId of Object.keys(arrows)) {
+					const arrow = arrows[arrowId]
+					if (!arrow.split) continue;
+					arrow.toSplit -= dt;
+					if (arrow.toSplit <= 0) {
+						arrow.split = false;
+						arrow.toSplit = 0;
+						arrow.angle -= Math.PI / 2
+						const mag = Math.sqrt(arrow.xv * arrow.xv + arrow.yv * arrow.yv) * 0.4;
 						arrow.xv = Math.cos(arrow.angle) * mag;
 						arrow.yv = Math.sin(arrow.angle) * mag;
+						arrow.speed = mag;
 						const createdArrow = createArrow(player, arrows, isClone);
 						createdArrow.x = arrow.x;
 						createdArrow.y = arrow.y;
 						createdArrow.life = arrow.life;
 						createdArrow.speed = mag;
-						createdArrow.angle = arrow.angle + (Math.PI / 32) * 2;
+						createdArrow.angle = arrow.angle + (Math.PI / 2) * 2;
 						createdArrow.max = arrow.max;
 						createdArrow.alpha = arrow.alpha;
 						createdArrow.xv = Math.cos(createdArrow.angle) * mag;
 						createdArrow.yv = Math.sin(createdArrow.angle) * mag;
-						// arrow.x += arrow.xv * 1;
-						// arrow.y += arrow.yv * 1;
-						// createdArrow.x += createdArrow.xv * 1;
-						// createdArrow.y += createdArrow.yv * 1;
-					}
-					if (foundArrow) {
-						player.abilityCooldown = 5;
-						player.maxCd = player.abilityCooldown;
 					}
 				}
 			}
@@ -495,11 +549,15 @@ function updatePlayer(player, input, arena, obstacles, arrows, players, isClone=
 			player.clones = [];
 			player.changedClones = true;
 		}
-		player.radius -= 60 * dt;
-		if (player.radius <= 1) {
-			player.radius = 1;
-			player.respawn = true;
-		}
+		player.life -=  2 * dt;
+		// player.radius -= 20 * dt;
+		// if (player.radius <= 1) {
+		// 	player.radius = 1;
+		// 	player.respawn = true;
+		// }
+		player.x += player.xv * (60 * dt);
+		player.y += player.yv * (60 * dt);
+		
 	}
 
 
@@ -597,6 +655,46 @@ function collidePlayers(players, arena, obstacles) {
 			}
 		}
 		boundPlayer(player1, arena, obstacles)
+	}
+
+	// drone to player collisions
+	for (const playerId of Object.keys(players)) {
+		let player = players[playerId];
+		if (!player.hasDrone) continue;
+		// own collision to drone
+		const distX = player.x - player.droneX;
+		const distY = player.y - player.droneY;
+		if (distX * distX + distY * distY < player.radius * 2 * (player.droneRadius * 2)) {
+			const magnitude = Math.sqrt(distX * distX + distY * distY) || 1;
+			const xv = (distX / magnitude);
+			const yv = (distY / magnitude);
+			const oldP = { x: player.x, y: player.y }
+			// player.x = player.droneX + ((player.radius + 0.05 + player.droneRadius) * (xv))
+			// player.y = player.droneY + ((player.radius + 0.05 + player.droneRadius) * (yv));
+			player.droneX = oldP.x - ((player.radius + player.droneRadius) * (xv));
+			player.droneY = oldP.y - ((player.radius + player.droneRadius) * (yv))
+		}
+		for (const otherId of Object.keys(players)) {
+			if (playerId === otherId) continue;
+			let other = players[otherId];
+			const distX = other.x - player.droneX;
+			const distY = other.y - player.droneY;
+			if (distX * distX + distY * distY < other.radius * 2 * (player.droneRadius * 2)) {
+				const magnitude = Math.sqrt(distX * distX + distY * distY) || 1;
+				const xv = (distX / magnitude);
+				const yv = (distY / magnitude);
+				const oldP = { x: other.x, y: other.y }
+				// player.x = player.droneX + ((player.radius + 0.05 + player.droneRadius) * (xv))
+				// player.y = player.droneY + ((player.radius + 0.05 + player.droneRadius) * (yv));
+				player.droneX = oldP.x - ((other.radius + player.droneRadius) * (xv));
+				player.droneY = oldP.y - ((other.radius + player.droneRadius) * (yv))
+			}
+		}
+		const dronePlayer = { x: player.droneX, y: player.droneY, radius: player.droneRadius,
+							xv: 0, yv: 0, score: 0};
+		boundPlayer(dronePlayer, arena, obstacles);
+		player.droneX = dronePlayer.x;
+		player.droneY = dronePlayer.y;
 	}
 }
 

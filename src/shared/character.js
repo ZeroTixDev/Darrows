@@ -174,6 +174,23 @@ const Character = {
 			desc: 'Split your arrows in half',
 		},
 	},
+	//#ff4326
+	Beyond: {
+		Color: '#ff4326',
+		ArrowCdColor: '#8f2c21',
+		Name: 'Beyond',
+		Passive: null,
+		// Passive: 'Move-Fast-Slow-Aim',
+		Ability: { 
+			name: 'Drone',
+		},
+		Html: {
+			color: '#ff4326',
+			nameColor: '#ff4326',
+			name: 'Beyond',
+			desc: 'Get extra information on your screen',
+		},
+	},
 //   ZeroTix: {
 // 		Color: '#fce0bd',
 //  		ArrowCdColor: '#fce0bd',

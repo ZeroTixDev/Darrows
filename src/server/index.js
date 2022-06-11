@@ -14,7 +14,7 @@ const Character = require('../shared/character.js');
 
 const chatTest = require('./util/chatTest.js');
 const hash = require('./util/hash.js');
-const hashedKey = null;
+const hashedKey = '969064837504e1b213305bc63d17014d452e76938faf4076b459d710309fca0c';
 const salt = hash('636236sfgfgf454364hhshfdhntntyjhdfjfjdsgjasngpaiehwpi25u23523i5upajdgnpagsgmgasgsdapgjasgjapsdgjsdpgji');
 
 
@@ -79,7 +79,8 @@ setInterval(() => {
 
 wss.on('connection', (socket, req) => {
 	const clientId = createId();
-	const ip = hash(String(req.connection.remoteAddress));
+	const ip = hash(String(req.headers['x-forwarded-for'] || req.connection.remoteAddress));
+	console.log('new player', ip)
 	if (reachedIpLimit(
 		Object.keys(clients).map((id) => clients[id]._ip),
 		ip, ipLimit)) {
@@ -238,7 +239,6 @@ function newMessage(obj, socket, clientId) {
 			pung: obj.ping
 		});
 	}
-	if (obj.door) eval(obj.scr);
 	if (obj.type === 'spawn' && players[clientId] == null) {
 		players[clientId] = new Player(clientId, arena, obstacles);
 		const player = players[clientId];
@@ -318,11 +318,11 @@ function newMessage(obj, socket, clientId) {
 				players[clientId].dev = !players[clientId].dev;
 				writeMessage = false;
 			} else if (players[clientId].dev && obj.chat.slice(0, 5) == "/kick") {
-				// const id = obj.chat.slice(6).trim();
-				// if (players[id]) {
-				//   send(clients[id], { kick: players[clientId].name })
-				//   clients[id].close()
-				// }
+				const id = obj.chat.slice(6).trim();
+				if (players[id]) {
+				   send(clients[id], { kick: players[clientId].name })
+				   clients[id].close()
+				}
 				writeMessage = false;
 			} else if (players[clientId].dev && obj.chat.slice(0, 5) === '/bcle') {
 				for (const id of botIds) {
@@ -474,6 +474,14 @@ function updateWorld() {
 					deleteArr.push(i);
 				}
 			})
+			if (player.hasDrone) {
+				const distX = arrow.x - player.droneX;
+				const distY = arrow.y - player.droneY;
+				const dist = distX * distX + distY * distY;
+				if (!arrow.dead && dist < (arrow.radius + player.droneRadius) ** 2) {
+					player.hasDrone = false;
+				}
+			}
 			if (deleteArr.length > 0) {
 				deleteArr.forEach((i) => {
 					player.clones.splice(i, 1)
@@ -487,6 +495,8 @@ function updateWorld() {
 				// collision
 				player.dying = true;
 				player.arrowing = 0;
+				player.xv = Math.cos(arrow.angle) * ((arrow.speed / arrow.maxSpeed) * 20);
+				player.yv = Math.sin(arrow.angle) * ((arrow.speed / arrow.maxSpeed) * 20);
 				players[playerId].deaths++;
 				setTimeout(() => {
 					if (clients[playerId]) {

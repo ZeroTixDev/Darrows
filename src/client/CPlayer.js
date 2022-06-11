@@ -22,6 +22,7 @@ window.CPlayer = class {
 		this.chatMessageTimer = 0;
 		this.chatMessageTime = 8;
 		this.abilityCooldown = 0;
+		this.dronePos = { x: this.droneX, y: this.droneY }
 
 	}
 	chat(msg) {
@@ -34,10 +35,17 @@ window.CPlayer = class {
 			this.pos.x = this.x;
 			this.pos.y = this.y;
 			this.interpAngle = this.angle;
+			this.dronePos.x = this.droneX;
+			this.dronePos.y = this.droneY;
 			return;
 		}
 		this.pos.x = lerp(this.pos.x, this.x, delta);
 		this.pos.y = lerp(this.pos.y, this.y, delta);
+
+		if (this.hasDrone) {
+			this.dronePos.x = lerp(this.dronePos.x, this.droneX, delta);
+			this.dronePos.y = lerp(this.dronePos.y, this.droneY, delta);
+		}
 
 		const dtheta = this.angle - this.interpAngle;
 		if (dtheta > Math.PI) {
@@ -76,6 +84,7 @@ window.CPlayer = class {
 
 	}
 	Snap(data) {
+		const keys = []
 		for (const key of Object.keys(data)) {
 			if (key === 'clones') {
 				const safeIds = [];
@@ -97,7 +106,11 @@ window.CPlayer = class {
 				}
 			} else {
 				this[key] = data[key]
+				keys.push(key);
 			}
+		}
+		if (keys.includes('hasDrone') && this.hasDrone) {
+			this.dronePos = { x: this.droneX, y: this.droneY }
 		}
 
 		// console.log(data)

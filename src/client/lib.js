@@ -10,6 +10,8 @@ window.mouse = { x: 0, y: 0 };
 window.lerpRate = 30;
 window.extraLag = 0;
 window.inputsBuffered = 0;
+window.rayLines = [];
+window.uniqueRayPoints = [];
 window.fric = -1;
 window.speed = -1;
 window.autoRespawn = false;
@@ -41,6 +43,9 @@ window.firstMessage = 'nice job you got first who cares';
 window.defaultMessage = 'default... i like it';
 window.fullscreened = false;
 window.darkness = 0.3;
+window.lighting = 0.7;
+window.rayCalcT = 0;
+window.rayFreq = 10;
 
 
 function changeMovMode() {
@@ -60,6 +65,9 @@ let _kills = 0;
 let lastTime = window.performance.now()
 let xoff = 0;
 let yoff = 0;
+
+window.currentWidth = 1600;
+window.currentHeight = 900;
 let shotPlayers = {}
 let selfId;
 let arena;
@@ -103,16 +111,23 @@ window.teamMode = false;
 let input = createInput();
 const gui = ref.gui
 const canvas = ref.canvas
-const ctx = canvas.getContext('2d')
+let ctx = canvas.getContext('2d');
+const shadowCanvas = document.createElement('canvas');
+const sctx = shadowCanvas.getContext('2d');
+const leftCanvas = document.createElement('canvas');
+const rightCanvas = document.createElement('canvas');
+const lctx = leftCanvas.getContext('2d');
+const rctx = rightCanvas.getContext('2d');
 const width = 1600;
 const height = 900;
 const updateRate = 60;
+let cprogress = 0;
 const camera = { x: null, y: null }
 let ws = null;
 
 canvas.width = width;
 canvas.height = height;
-resize([canvas, gui])
+resize([canvas, gui, shadowCanvas, leftCanvas, rightCanvas])
 
 const inputs = ["KeyW", "KeyA", "KeyS", "KeyD"];
 const inputCodes = {
@@ -120,7 +135,8 @@ const inputCodes = {
 	[inputs[1]]: { key: "left" },
 	[inputs[2]]: { key: "down" },
 	[inputs[3]]: { key: "right" },
-	Space: { key: 'space' }
+	Space: { key: 'space' },
+	KeyZ: { key: 'space' },
 }
 const arrInputs = ["ArrowUp", "ArrowLeft", "ArrowDown", "ArrowRight"]
 const arrInputCodes = {
@@ -128,7 +144,8 @@ const arrInputCodes = {
 	[arrInputs[1]]: { key: "left" },
 	[arrInputs[2]]: { key: "down" },
 	[arrInputs[3]]: { key: "right" },
-	Space: { key: 'space' }
+	Space: { key: 'space' },
+	KeyZ: { key: 'space' },
 }
 
 function convert(seconds) {
@@ -143,6 +160,51 @@ function convert(seconds) {
 function chatTest(string) {
    string = string.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
    return /\S/.test(string) && string.length <= 60;
+}
+
+function computeLines() {
+	window.rayLines = [];
+	const rectToLines = ({ x, y, width, height }) => {
+		return [
+			new Line(x, y, x + width, y),
+			new Line(x, y + height, x + width, y + height),
+			new Line(x, y, x, y + height),
+			new Line(x + width, y, x + width, y + height),
+		]
+	}
+	for (const obj of obstacles) {
+		if (obj.type !== 'point') {
+			rectToLines(obj).forEach((line) => {
+				rayLines.push(line);
+			})
+		}
+	}
+	const mapLines = [
+		rectToLines({ x: 0, y: 0, width: arena.width, height: 1}),
+		rectToLines({ x: 0, y: 0, width: 1, height: arena.height }),
+		rectToLines({ x: 0, y: arena.height, width: arena.width, height: 1 }),
+		rectToLines({ x: arena.width, y: 0, width: 1, height: arena.height }),
+	]
+	mapLines.forEach((lines) => {
+		lines.forEach((line) => {
+			rayLines.push(line);
+		})
+	})
+	let points = [];
+	rayLines.forEach((line) => {
+		points.push(line.start.copy(), line.end.copy());
+	})
+	let pointSet = {};
+	const maxDist = Infinity; 
+	window.uniqueRayPoints = points.filter((point) => {
+		const key = `${point.x},${point.y}`;
+		if (key in pointSet) {
+			return false; // not unique
+		} else {
+			pointSet[key] = true;
+			return true;
+		}
+	})
 }
 
 function run(time =  0) {
@@ -209,7 +271,21 @@ function run(time =  0) {
 
 		if (Math.abs(targetX - xoff) < 0.5) xoff = targetX;
 		if (Math.abs(targetY - yoff) < 0.5) yoff = targetY;
+		if (players[selfId].clones.length > 0) {
+			if (players[selfId].clones[0].lifeTime <= 1) {
+				cprogress -= dt * 1.75;
+				// cprogress = Math.max(players[selfId].clones[0].lifeTime, 0);
+			} else {
+				cprogress += dt * 1.75;
+				if (cprogress > 1) {
+					cprogress = 1;
+				}
+			}
+		} else {
+			cprogress = 0;
+		}
 	}
+
 
 	render();
 	requestAnimationFrame(run);

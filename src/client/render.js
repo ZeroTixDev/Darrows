@@ -1,14 +1,41 @@
 
+
 window.render = () => {
 	if (!arena) return;
 
+	if (cprogress > 0 && players[selfId]?.clones?.length > 0) {
+		ctx.fillStyle = 'black';
+		ctx.fillRect(0, 0, canvas.width, canvas.height)
+		leftCanvas.width = canvas.width - canvas.width * ((1-0.7)*cprogress)//0.6;
+		rightCanvas.width = canvas.width * ((1-0.7)*cprogress);
+		lctx.clearRect(0, 0, leftCanvas.width, leftCanvas.height);
+		rctx.clearRect(0, 0, rightCanvas.width, rightCanvas.height);
+		ctx = lctx;
+		window.currentWidth = leftCanvas.width;
+		renderGame();
+		ctx = rctx;
+		window.currentWidth = rightCanvas.width;
+		camera.x = players[selfId].clones[0].pos.x;
+		camera.y = players[selfId].clones[0].pos.y;
+		renderGame();
+		ctx = canvas.getContext('2d');
+		ctx.drawImage(leftCanvas, 50*cprogress, 50*cprogress, leftCanvas.width - (100*cprogress), leftCanvas.height - (100*cprogress));
+		ctx.drawImage(rightCanvas, leftCanvas.width, 50*cprogress, rightCanvas.width - (50*cprogress), rightCanvas.height - (100*cprogress))
+		window.currentWidth = 1600;
+		window.currentHeight = 900;
+	} else {
+		renderGame();
+	}
+	renderUI()
+}
+
+window.renderGame = () => {
 	// drawArenaBackground('#b3b3b3')
 	// drawArena('#d6d6d6');
 	
 	// drawArenaBackground('#750016');
 	// drawArena('#a30321')
 	// drawTiles('#750016')
-
 	drawArenaBackground('#1f2229');
 	drawArena('#323645')
 	drawTiles('#1f2229');
@@ -21,7 +48,11 @@ window.render = () => {
 	drawPlayers();
 	drawHits();
 
+	// drawRaycasting()
 	drawOverlay()
+}
+
+window.renderUI = () => {
 	drawIntermission();
 	drawKillNotify();
 
@@ -37,6 +68,7 @@ window.render = () => {
 	drawDevModeIndicator();
 	drawAbilityCooldown();
 }
+
 
 function drawArenaBackground(color) {
 	ctx.fillStyle = color;
@@ -126,6 +158,11 @@ function drawArrows() {
 			ctx.fillStyle = '#780000'
 		}
 
+		if (arrows[arrowId].toSplit > 0) {
+			console.log(arrows[arrowId].toSplit)
+			ctx.fillStyle = '#eeff00'
+		}
+
 		if (players[arrows[arrowId].parent]?.characterName === 'Vice' && life > 2.75
 		  && players[arrows[arrowId].parent]?.abilityCd <= 0) {
 			ctx.strokeStyle = 'black';
@@ -195,6 +232,29 @@ function renderPlayerEntity(player, playerId, isClone) {
 
 		const pos = offset(player.pos.x, player.pos.y)
 
+		if (player.hasDrone) {
+			ctx.beginPath();
+			ctx.fillStyle = '#ff4326'
+			// if (playerId === selfId && player.abilityCooldown >= 5) {
+			// 	ctx.globalAlpha = 0.5;
+			// }
+			const d = offset(player.dronePos.x, player.dronePos.y);
+			ctx.arc(d.x, d.y, player.droneRadius, 0, Math.PI * 2);
+			ctx.fill()
+			if (player.teleportTimer > 0) {
+				ctx.strokeStyle = 'black';
+				ctx.lineWidth = 4;
+				ctx.stroke()
+			}
+			if (playerId === selfId) {
+				ctx.globalAlpha = 0.1;
+				ctx.beginPath();
+				ctx.arc(d.x, d.y, player.droneViewRadius, 0, Math.PI * 2);
+				ctx.fill()
+				ctx.globalAlpha = 1;
+			}
+		}
+
 		ctx.fillStyle = Character[player.characterName].Color;
 		if (player.timer > 0
 			|| (player.characterName === 'Scry' && !player.showAim)) {
@@ -209,11 +269,45 @@ function renderPlayerEntity(player, playerId, isClone) {
 			ctx.globalAlpha = (player.lifeTime / 1)
 		}
 
+		if (player.life < 1) {
+			// ctx.globalAlpha = (player.life / 1);
+		}
+	 	if (player.dying) {
+			ctx.globalAlpha = 0;
+		}
+
 		ctx.beginPath();
 		ctx.arc(pos.x, pos.y, player.radius, 0, Math.PI * 2);
 		ctx.fill();
+		if (player.teleportTimer > 0) {
+			ctx.strokeStyle = 'black';
+			ctx.lineWidth = 4;
+			ctx.stroke()
+		}
 
 		ctx.globalAlpha = 1;
+
+		if (playerId !== selfId && players[selfId]?.hasDrone && player.arrowing <= 0) {
+			const me = players[selfId];
+			const distX = player.pos.x - me.dronePos.x;
+			const distY = player.pos.y - me.dronePos.y;
+			if (Math.sqrt(distX * distX + distY * distY) < player.radius + me.droneViewRadius) {
+				// console.log(player.interpAngle)
+				ctx.strokeStyle = 'black';
+				ctx.lineWidth = 10;
+				ctx.globalAlpha = 1;
+				ctx.beginPath();
+				ctx.translate(pos.x, pos.y);
+				ctx.rotate(player.interpAngle)
+				ctx.arc(0, 0, player.radius + 5, -Math.PI / 8, Math.PI / 8);
+				ctx.rotate(-player.interpAngle);
+				ctx.translate(-pos.x, -pos.y);
+				ctx.stroke()
+				ctx.globalAlpha = 1;
+			}
+		}
+
+		
 
 		if (player.characterName === 'Stac') {
 			if (player.point_x != null && player.point_y != null) {
@@ -322,7 +416,7 @@ function renderPlayerEntity(player, playerId, isClone) {
 
 		if (player.dying) {
 			ctx.fillStyle = '#d40000';
-			ctx.globalAlpha = 0.75;
+			ctx.globalAlpha = 0.3;
 			ctx.beginPath();
 			ctx.arc(pos.x, pos.y, player.radius, 0, Math.PI * 2);
 			ctx.fill();
@@ -405,9 +499,12 @@ function renderPlayerEntity(player, playerId, isClone) {
 	if (isClone && player.lifeTime < 1) {
 			ctx.globalAlpha = (player.lifeTime / 1)
 		}
-		if (!player.dying) {
-			ctx.fillText(`${player.name}`, pos.x, pos.y + player.radius * 1.5)
+		if (player.life < 1) {
+			// ctx.globalAlpha = (player.life / 1);
 		}
+		// if (!player.dying) {
+			ctx.fillText(`${player.name}`, pos.x, pos.y + player.radius * 1.5)
+		// }
 	ctx.globalAlpha = 1;
 }
 
@@ -426,9 +523,47 @@ function drawHits() {
 	}
 }
 
-function drawOverlay() {
-	ctx.beginPath();
+function drawRaycasting() {
+	let points;
+	// if (window.rayCalcT >= 1) {
+	// 	rayCalcT++;
+	// 	if (rayCalcT >= rayFreq) {
+	// 		rayCalcT = 0;
+	// 	}
+	// 	points = window.lastPoints;
+	// } else {
+		points = Ray.getPoints(new Vec(camera.x, camera.y), uniqueRayPoints, rayLines, -2 + (players[selfId]?.radius) || 0)
+	// 	rayCalcT++;
+	// 	window.lastPoints = points;
+	// }
+	window.rayPointsLen = points.length;
+	
+	ctx.globalAlpha = 1;
+	sctx.clearRect(0, 0, canvas.width, canvas.height);
+	sctx.save();
+	sctx.fillStyle = 'black'
+	sctx.globalAlpha = 1-lighting
+	sctx.fillRect(0, 0, canvas.width, canvas.height);
+	sctx.globalAlpha = 1;
+	sctx.globalCompositeOperation = 'destination-out';
 
+	sctx.globalAlpha = 1;
+	sctx.fillStyle = 'rgba(255, 255, 255, 1)';
+	sctx.beginPath();
+	for (const { x, y } of points) {
+		const pos = offset(x, y);
+		sctx.lineTo(pos.x, pos.y)
+	}
+	sctx.closePath();
+	sctx.fill()
+	ctx.drawImage(shadowCanvas, 0, 0);
+	sctx.restore();
+}
+
+function drawOverlay() {
+	
+
+	ctx.beginPath()
 	ctx.rect(0, 0, canvas.width, canvas.height);
 	const outerRadius = canvas.width * 0.5;
 	const innerRadius = canvas.height * 0.2;
@@ -545,6 +680,28 @@ function drawMinimap() {
 						ctx.fill()
 					})
 				}
+				if (player.hasDrone && playerId === selfId) {
+					ctx.fillStyle = '#ff4326'
+					ctx.beginPath()
+					ctx.arc((player.dronePos.x / arena.width) * mwidth, (canvas.height - mheight) + (player.dronePos.y / arena.height) * mheight, (player.droneViewRadius / arena.width) * mwidth, 0, Math.PI * 2);
+					ctx.globalAlpha = 0.1;
+					ctx.fill();
+					ctx.globalAlpha = 1;
+					ctx.beginPath()
+					ctx.arc((player.dronePos.x / arena.width) * mwidth, (canvas.height - mheight) + (player.dronePos.y / arena.height) * mheight, ((player.droneRadius+25) / arena.width) * mwidth, 0, Math.PI * 2)
+					ctx.fill()
+					for (const arrowId of Object.keys(arrows)) {
+						const arrow = arrows[arrowId];
+						const distX = arrow.pos.x - player.dronePos.x;
+						const distY = arrow.pos.y - player.dronePos.y;
+						if (Math.sqrt(distX * distX + distY * distY) < 30 + player.droneViewRadius) {
+							ctx.fillStyle = 'red';
+							ctx.beginPath();
+							ctx.arc((arrow.pos.x / arena.width) * mwidth, (canvas.height - mheight) + (arrow.pos.y / arena.height) * mheight, (30 / arena.width) * mwidth, 0, Math.PI * 2);
+							ctx.fill()
+						}
+					}
+				}
 			}
 		}
 	}
@@ -561,7 +718,7 @@ function drawDebugText() {
 	if (window.debug) {
 		ctx.fillText(`Players: ${Object.keys(players).length} | Download: ${stateMessageDisplay} msg/s (${(byteDisplay / 1000).toFixed(1)}kb/s | Upload: ${(uploadByteDisplay / 1000).toFixed(1)}kb/s | ${inputMessageDisplay} msg/s (inputs) | Ping: ${ping}ms | Spacing:[${lowest(spacings).toFixed(1)}, ${spacing.toFixed(1)}, ${highest(spacings).toFixed(1)}]ms | ServerSpacing: [${serverSpacing[0]}, ${serverSpacing[1]}, ${serverSpacing[2]}] | Angle: ${players[selfId] ?.angle.toFixed(1)}`
 			, 200, 800);
-		ctx.fillText(`Extralag: ${extraLag} | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length} | ServerTickTime: ${serverTickMs}ms | ServerFrameTime: ${Math.round(serverTickMs / 60)}ms | ${window.fps}fps`
+		ctx.fillText(`Extralag: ${extraLag} | Interpolate: ${window._interpolate.toString().toUpperCase()} | Input Delay: ${Math.ceil((ping * 2) / (1000 / 60))} frames | Arrows: ${Object.keys(arrows).length} | ServerTickTime: ${serverTickMs}ms | ServerFrameTime: ${Math.round(serverTickMs / 60)}ms | ${window.fps}fps | Raycast end points: ${window.rayPointsLen}`
 			, 200, 825)
 	}
 }
@@ -584,7 +741,7 @@ function drawPanel() {
 
 	ctx.fillStyle = '#ddff00';
 
-	ctx.fillText(`[L] ${window.movementMode === 'wasd' ? 'WASD' : 'ULDR'}`, canvas.width - 355, canvas.height - 15);
+	ctx.fillText(`[P] ${window.movementMode === 'wasd' ? 'WASD' : 'ULDR'}`, canvas.width - 355, canvas.height - 15);
 
 	ctx.fillStyle = '#00c8ff';
 
@@ -659,7 +816,7 @@ function drawTimer() {
 	ctx.fillStyle = 'white';
 	ctx.textAlign = 'center';
 	ctx.font = `25px ${font}`
-	ctx.fillText(`${convert(roundTime)}`, 800, 20);
+	ctx.fillText(`${window.disconnected? 'DISCONNECTED': convert(roundTime)}`, 800, 20);
 }
 
 function drawChat() {

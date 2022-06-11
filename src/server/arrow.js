@@ -8,6 +8,7 @@ module.exports = class Arrow {
 		this.radius = 10;
 		this.life = 3.5;
 		this.speed = (5 + (player.arrowing / 3) * 16) * 0.8;
+		this.maxSpeed = (5 + 16) * 0.8;
 		this.max = player.arrowing === 3;
 		this.alpha = 1;
 		this.dead = false;
@@ -21,6 +22,8 @@ module.exports = class Arrow {
 		this.fake = fake;
 		this.redirected = false;
 		this.gravity = false;
+		this.toSplit = 0;
+		this.split = false;
 	}
 	freeze() {
 		this.freezed = true;
@@ -289,6 +292,7 @@ module.exports = class Arrow {
 			fake: this.fake,
 			redirected: this.redirected,
 			gravity: this.gravity,
+			toSplit: this.toSplit,
 		}
 	}
 }

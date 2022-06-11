@@ -66,7 +66,7 @@ function trackKeys(event) {
 		window.tab = event.type === 'keydown';
 		return event.preventDefault()
 	}
-	if (event.code === 'KeyL' && event.type === 'keydown')
+	if (event.code === 'KeyP' && event.type === 'keydown')
 		changeMovMode()
 	if (event.code === 'KeyR' && event.type === 'keydown')
 		window.autoRespawn = !window.autoRespawn;
@@ -86,13 +86,13 @@ function trackKeys(event) {
 	// 	// extraLag += 50;
 	// }
 	if ((window.movementMode === 'wasd' && (event.code === 'ArrowLeft' || event.code === 'KeyQ'))
-		|| (window.movementMode === 'arr' && (event.code === 'KeyA' || event.code === 'KeyZ'))) {
+		|| (window.movementMode === 'arr' && (event.code === 'KeyA' || event.code === 'KeyX'))) {
 		input.arrowLeft = event.type === 'keydown'
 		sendInput();
 		inputMessageCount++;
 	}
 	if ((window.movementMode === 'wasd' && (event.code === 'ArrowRight' || event.code === 'KeyE'))
-		|| (window.movementMode === 'arr' && (event.code === 'KeyD' || event.code === 'KeyX'))) {
+		|| (window.movementMode === 'arr' && (event.code === 'KeyD' || event.code === 'KeyC'))) {
 		input.arrowRight = event.type === 'keydown'
 		sendInput();
 		inputMessageCount++;
