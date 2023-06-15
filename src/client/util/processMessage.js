@@ -39,6 +39,7 @@ function processMessage(obj) {
 
 	if (obj.obstacles != undefined) {
 		obstacles = obj.obstacles;
+		computeLines();
 	}
 
 	if (obj.blocks != undefined) {

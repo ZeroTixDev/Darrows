@@ -86,8 +86,8 @@ function lerp(start, end, dt) {
 
 function offset(x, y) {
 	return {
-		x: x - (camera.x) + canvas.width / 2 + xoff,
-		y: y - (camera.y) + canvas.height / 2 + yoff,
+		x: x - (camera.x) + currentWidth / 2 + xoff,
+		y: y - (camera.y) + currentHeight / 2 + yoff,
 	};
 }
 

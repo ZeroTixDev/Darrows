@@ -1,6 +1,6 @@
 module.exports = class Round {
 	constructor() {
-		this.roundTime = 300; // 5minute -> 4minute
+		this.roundTime = 3600; // 5minute -> 4minute
 		this.time = this.roundTime;
 		this.state = 'none';
 		this.intermission = false;

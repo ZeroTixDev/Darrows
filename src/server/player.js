@@ -13,11 +13,12 @@ module.exports = class Player {
 		this.yv = 0;
 		this.bxv = 0;
 		this.byv = 0;
+		this.life = 1;
 		this.id = id;
 		this.dying = false;
 		this.timer = 0;
 		this.angle = -Math.PI / 2;
-		this.timerMax = 1.5;
+		this.timerMax = 1.25;
 		this.arrowing = false;
 		this.spaceLock = false;
 		this.timer = 0;
@@ -62,6 +63,14 @@ module.exports = class Player {
 		this.canDash = false;
 		this.dashAngle = 0;
 		this.changedLastTime = false;
+
+		// Beyond
+		this.droneX = 0;
+		this.droneY = 0;
+		this.droneRadius = 20;
+		this.hasDrone = false;
+		this.droneViewRadius = 1000;
+		this.teleportTimer = 0;
 		
 
 		// Crescent
@@ -78,6 +87,7 @@ module.exports = class Player {
 		this.arrowsHit = 0;
 		this.arrowsShot = 0;
 		this.deaths = 0;
+		this.life = 1;
 		this.kills = 0;
 		this.x = Math.round(Math.random() * arena.width) + this.radius
 		this.y = Math.round(Math.random() * arena.height) + this.radius;
@@ -152,6 +162,7 @@ module.exports = class Player {
 			// yv: this.yv,
 			angle: this.angle,
 			name: this.name,
+			life: this.life,
 			// timer: this.timer,
 			arrowing: this.arrowing,
 			// angleVel: this.angleVel,
@@ -170,6 +181,15 @@ module.exports = class Player {
 		if (this.isClone) {
 			obj.id = this.id;
 			obj.lifeTime = this.lifeTime;
+		}
+
+		if (this.character.Name === 'Beyond') {
+			obj.droneX = Math.round(this.droneX * 100) / 100;
+			obj.droneY = Math.round(this.droneY * 100) / 100;
+			obj.droneRadius = this.droneRadius;
+			obj.hasDrone = this.hasDrone;
+			obj.droneViewRadius = this.droneViewRadius;
+			obj.teleportTimer = this.teleportTimer;
 		}
 
 

@@ -44,7 +44,7 @@ const currentChatMessages = [];
 const spacings = [];
 const updateRate = 120;
 global.dt = 1 / 120;
-const ipLimit = 6;
+const ipLimit = 15;
 const startTime = Date.now();
 const leader = { id: null, score: null }
 const globalLeader = { name: null, score: 0 }
@@ -79,7 +79,8 @@ setInterval(() => {
 
 wss.on('connection', (socket, req) => {
 	const clientId = createId();
-	const ip = hash(String(req.connection.remoteAddress));
+	const ip = hash(String(req.headers['x-forwarded-for'] || req.connection.remoteAddress));
+	console.log('new player', ip)
 	if (reachedIpLimit(
 		Object.keys(clients).map((id) => clients[id]._ip),
 		ip, ipLimit)) {
@@ -345,7 +346,7 @@ function newMessage(obj, socket, clientId) {
 				data: obj.chat,
 				name: inGame ? players[clientId].name : clients[clientId]._name,
 				dev: inGame ? players[clientId].dev : clients[clientId]._playerStats.dev,
-				timer: 10,
+				timer: 20,
 			}
 			// console.log(msg)
 			currentChatMessages.push(msg);
@@ -473,6 +474,14 @@ function updateWorld() {
 					deleteArr.push(i);
 				}
 			})
+			if (player.hasDrone) {
+				const distX = arrow.x - player.droneX;
+				const distY = arrow.y - player.droneY;
+				const dist = distX * distX + distY * distY;
+				if (!arrow.dead && dist < (arrow.radius + player.droneRadius) ** 2) {
+					player.hasDrone = false;
+				}
+			}
 			if (deleteArr.length > 0) {
 				deleteArr.forEach((i) => {
 					player.clones.splice(i, 1)
@@ -486,6 +495,8 @@ function updateWorld() {
 				// collision
 				player.dying = true;
 				player.arrowing = 0;
+				player.xv = Math.cos(arrow.angle) * ((arrow.speed / arrow.maxSpeed) * 20);
+				player.yv = Math.sin(arrow.angle) * ((arrow.speed / arrow.maxSpeed) * 20);
 				players[playerId].deaths++;
 				setTimeout(() => {
 					if (clients[playerId]) {

@@ -25,7 +25,7 @@ function trackKeys(event) {
 			ref.chat.blur()
 			ref.chat.value = '';
 			return;
-		} else if (event.type === 'keydown') {
+		} else if (event.type === 'keydown' && showChat) {
 			chatOpen = true;
 			ref.chatDiv.classList.remove('hidden')
 			ref.chat.focus()
@@ -42,6 +42,30 @@ function trackKeys(event) {
 		overlayAlpha = 0;
 		return;
 	}
+	if (event.code === 'KeyO' && event.type === 'keydown') {
+		// toggle chat
+		showChat = !showChat;
+		if (!showChat) {
+			ref.chat.blur()
+			ref.chat.value = '';
+			ref.chatMessageDiv.classList.add('hidden')
+			ref.chatDiv.classList.add('hidden')
+		} else {
+			ref.chatMessageDiv.classList.remove('hidden')
+		}
+	}
+	if (event.code === 'Semicolon' && event.type === 'keydown') {
+		// toggle chat
+		showUI = !showUI;
+		if (!showUI) {
+			ref.chat.blur()
+			ref.chat.value = '';
+			ref.chatMessageDiv.classList.add('hidden')
+			ref.chatDiv.classList.add('hidden')
+		} else {
+			ref.chatMessageDiv.classList.remove('hidden')
+		}
+	}
 	if (event.code === 'KeyM' && event.type === 'keydown') {
 		window.music = !window.music;
 		if (window.music) {
@@ -54,7 +78,7 @@ function trackKeys(event) {
 		window.tab = event.type === 'keydown';
 		return event.preventDefault()
 	}
-	if (event.code === 'KeyL' && event.type === 'keydown')
+	if (event.code === 'KeyP' && event.type === 'keydown')
 		changeMovMode()
 	if (event.code === 'KeyR' && event.type === 'keydown')
 		window.autoRespawn = !window.autoRespawn;
@@ -74,13 +98,13 @@ function trackKeys(event) {
 	// 	// extraLag += 50;
 	// }
 	if ((window.movementMode === 'wasd' && (event.code === 'ArrowLeft' || event.code === 'KeyQ'))
-		|| (window.movementMode === 'arr' && (event.code === 'KeyA' || event.code === 'KeyZ'))) {
+		|| (window.movementMode === 'arr' && (event.code === 'KeyA' || event.code === 'KeyX'))) {
 		input.arrowLeft = event.type === 'keydown'
 		sendInput();
 		inputMessageCount++;
 	}
 	if ((window.movementMode === 'wasd' && (event.code === 'ArrowRight' || event.code === 'KeyE'))
-		|| (window.movementMode === 'arr' && (event.code === 'KeyD' || event.code === 'KeyX'))) {
+		|| (window.movementMode === 'arr' && (event.code === 'KeyD' || event.code === 'KeyC'))) {
 		input.arrowRight = event.type === 'keydown'
 		sendInput();
 		inputMessageCount++;
