@@ -1,3 +1,4 @@
+console.log('new version')
 const Character = {
     Default: {
         Color: '#292929',
